@@ -1,32 +1,67 @@
 # LANDLOGY — Professional Real Estate Ecosystem
 
-A high-performance React/Vite + Express/Nodemailer implementation designed for real estate brokers, based on the LANDLOGY design reference.
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen)](https://landlogy.vercel.app/)
+
+A high-performance, research-first real estate platform designed for brokers, investors, and homeowners. LANDLOGY bridges the gap between property listings and actionable intelligence, providing a verified ecosystem for buying, selling, renting, and investing in real estate across India.
+
+## 🌐 Live Application
+**Visit the live site:** [https://landlogy.vercel.app/](https://landlogy.vercel.app/)
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+- **Framework**: React.js
+- **Build Tool**: Vite
+- **Styling**: CSS3 (Custom Modern Design System)
+- **Icons**: Lucide-React
+- **Deployment**: Vercel
+
+### Backend
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Email Service**: Nodemailer (SMTP)
+- **Security**: `express-rate-limit`, Honeypot protection
+- **Deployment**: (Configure as per your server)
+
+---
 
 ## 🌟 Key Features
 
-### Premium UI/UX
-- **Immersive Visuals**: Premium hero treatment with real-estate photography, depth/parallax, grid atmosphere, and layered lighting.
-- **Interactions**: Scroll reveal animations, hover interactions, animated metric bands, magnetic CTAs, and pointer-aware micro-effects.
-- **Responsive Design**: Fully responsive layouts with mobile navigation and property filtering.
+### 🎨 Premium UI/UX
+- **Immersive Visuals**: High-end hero section with real-estate photography, depth effects, and layered lighting.
+- **Modern Interactions**: Scroll-reveal animations, magnetic CTAs, pointer-aware micro-effects, and interactive metric bands.
+- **Responsive Architecture**: Fully optimized for mobile, tablet, and desktop browsing.
 
-### Lead Capture & Email System
-- **Dual Enquiry Channels**: Both **Quick Property Enquiry** and **General Contact** forms post to a unified `/api/enquiries` endpoint.
-- **Automated Notifications**: Backend leverages **Nodemailer** to send formatted lead notifications to the client's email via SMTP.
-- **Secure Architecture**: SMTP credentials and sensitive configuration are strictly server-side (stored in `.env`), ensuring zero exposure to the client.
+### 📊 Investment Intelligence
+- **Research-First Approach**: Dedicated sections for market intelligence, opportunity screening, and investment analysis.
+- **Verified Listings**: Curated property listings categorized by `Sale`, `Rent`, and `Investment` with verification badges.
+- **Dynamic Data**: Entire site content is driven by a centralized `site-data.json`, allowing for rapid updates without code changes.
 
-### Professional Form Validation
-- **Dual-Layer Validation**: Comprehensive validation implemented on both the **Frontend (React)** and **Backend (Express)** to ensure data integrity and prevent API bypass.
-- **Strict Requirements**:
-  - **Mobile**: Validates Indian mobile number formats (10-digit, optional +91).
-  - **Name**: Rejects numbers-only or excessively long inputs.
-  - **Email**: Regex-based format verification.
-  - **Message**: Minimum length requirements for detailed enquiries.
-- **UX-First Feedback**: Professional inline error messages and visual field highlighting instead of default browser alerts.
+### 📧 Lead Capture & Email System
+- **Dual-Channel Enquiries**: Separate workflows for **Quick Property Enquiries** (Hero) and **General Contact** (Footer).
+- **Automated Notifications**: Real-time lead delivery to administrators via a secure Nodemailer/SMTP backend.
+- **Secure Configuration**: All sensitive credentials (SMTP, API keys) are handled strictly server-side via `.env` files.
 
-### Security & Stability
-- **Rate Limiting**: Protects the API from spam and brute-force submissions.
-- **Honeypot Protection**: Invisible fields to filter out automated bot submissions.
-- **Robust Error Handling**: Detailed server-side reporting for SMTP configuration issues, providing clear feedback to the frontend.
+### 🛡️ Professional Validation & Security
+- **Dual-Layer Validation**: Comprehensive regex-based validation on both Frontend (React) and Backend (Express).
+- **Spam Prevention**: Implementation of rate-limiting and invisible honeypot fields to block automated bot submissions.
+- **UX-Driven Feedback**: Inline error reporting and visual field highlighting for a seamless user experience.
+
+---
+
+## 📂 Project Structure
+
+```text
+LANDLOGY/
+├── client/                # Frontend (Vite + React)
+│   ├── public/            # Static assets & site-data.json
+│   └── src/               # Application logic & styling
+└── server/                # Backend (Express + Node.js)
+    ├── server.js          # API endpoints & Mail server logic
+    └── .env               # Environment variables (Private)
+```
 
 ---
 
@@ -54,10 +89,9 @@ cp .env.example .env
 npm run dev
 ```
 
-*For production, set `CLIENT_ORIGIN` to your actual frontend domain and use a production-grade SMTP provider.*
-
 ---
 
 ## ⚠️ Important Notes
-- **Data Placeholders**: Contact details (phone, email, address) are currently inherited from the reference data. Replace these with the client's confirmed details in `client/public/site-data.json` before deployment.
-- **Accessibility**: Includes reduced-motion support for better accessibility.
+- **Content Management**: To update properties, team members, or contact details, modify `client/public/site-data.json`.
+- **Production Deployment**: Ensure `CLIENT_ORIGIN` in the server `.env` matches your production frontend domain to avoid CORS issues.
+- **Accessibility**: Includes reduced-motion support for a better user experience.
