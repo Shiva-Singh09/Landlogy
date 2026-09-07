@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import dns from 'node:dns';
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
@@ -14,7 +15,7 @@ const clean=(v,max=500)=>String(v??'').trim().slice(0,max);
 const isValidEmail=email=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const isValidPhone=phone=>/^(?:\+91\s?)?[6-9]\d{9}$/.test(phone.replace(/\s+/g,''));
 const smtpConfigured=()=>!!(process.env.SMTP_HOST&&process.env.SMTP_USER&&process.env.SMTP_PASS&&process.env.MAIL_TO);
-const transporter=smtpConfigured()?nodemailer.createTransport({host:process.env.SMTP_HOST,port:Number(process.env.SMTP_PORT||587),secure:String(process.env.SMTP_SECURE||'false')==='true',family:4,auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASS},connectionTimeout:15000,greetingTimeout:10000,socketTimeout:30000}):null;
+const transporter=smtpConfigured()?nodemailer.createTransport({host:process.env.SMTP_HOST,port:Number(process.env.SMTP_PORT||587),secure:String(process.env.SMTP_SECURE||'false')==='true',family:4,lookup:(hostname,_options,callback)=>dns.lookup(hostname,{family:4},callback),auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASS},connectionTimeout:15000,greetingTimeout:10000,socketTimeout:30000}):null;
 if(transporter){transporter.verify().then(()=>console.log('[MAIL] SMTP connection verified OK — '+process.env.SMTP_HOST)).catch(err=>console.warn('[MAIL] SMTP verify warning (will retry on send):',err.message))}
 
 app.post('/api/enquiries',async(req,res)=>{
