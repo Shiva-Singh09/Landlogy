@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import dns from 'node:dns';
+import dns from 'node:dns/promises';
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
@@ -15,8 +15,45 @@ const clean=(v,max=500)=>String(v??'').trim().slice(0,max);
 const isValidEmail=email=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const isValidPhone=phone=>/^(?:\+91\s?)?[6-9]\d{9}$/.test(phone.replace(/\s+/g,''));
 const smtpConfigured=()=>!!(process.env.SMTP_HOST&&process.env.SMTP_USER&&process.env.SMTP_PASS&&process.env.MAIL_TO);
-const transporter=smtpConfigured()?nodemailer.createTransport({host:process.env.SMTP_HOST,port:Number(process.env.SMTP_PORT||587),secure:String(process.env.SMTP_SECURE||'false')==='true',family:4,lookup:(hostname,_options,callback)=>dns.lookup(hostname,{family:4},callback),auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASS},connectionTimeout:15000,greetingTimeout:10000,socketTimeout:30000}):null;
-if(transporter){transporter.verify().then(()=>console.log('[MAIL] SMTP connection verified OK — '+process.env.SMTP_HOST)).catch(err=>console.warn('[MAIL] SMTP verify warning (will retry on send):',err.message))}
+const smtpHost=process.env.SMTP_HOST;
+let transporter=null;
+// SMTP setup is async: we resolve smtp.gmail.com to an IPv4 address up-front
+// (instead of relying on nodemailer's own lookup, which picked IPv6 in Render).
+// It is kicked off in the background so the app always starts even if DNS
+// resolution temporarily fails. The enquiry route awaits smtpInitPromise before
+// sending mail and returns 503 if SMTP is unavailable.
+let smtpInitPromise;
+async function initTransporter(){
+  if(!smtpConfigured()||!smtpHost){
+    console.warn('[MAIL] SMTP not configured (missing SMTP_HOST/SMTP_USER/SMTP_PASS/MAIL_TO). Email sending disabled.');
+    return;
+  }
+  try{
+    const addresses=await dns.resolve4(smtpHost);
+    const smtpIPv4=addresses[0];
+    console.info(`[MAIL] Resolved ${smtpHost} to IPv4: ${smtpIPv4}`);
+    transporter=nodemailer.createTransport({
+      host:smtpIPv4,
+      port:Number(process.env.SMTP_PORT||465),
+      secure:String(process.env.SMTP_SECURE||'false')==='true',
+      tls:{servername:smtpHost},
+      auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASS},
+      connectionTimeout:15000,
+      greetingTimeout:10000,
+      socketTimeout:30000
+    });
+    try{
+      await transporter.verify();
+      console.info(`[MAIL] SMTP connection verified OK — ${smtpHost}`);
+    }catch(verifyErr){
+      console.warn(`[MAIL] SMTP verify warning (will retry on send): ${verifyErr.message}`);
+    }
+  }catch(err){
+    transporter=null;
+    console.error(`[MAIL] SMTP initialization failed for ${smtpHost}: ${err.message}`);
+  }
+}
+smtpInitPromise=initTransporter();
 
 app.post('/api/enquiries',async(req,res)=>{
   try{
@@ -36,6 +73,8 @@ app.post('/api/enquiries',async(req,res)=>{
     if(formType==='property-enquiry'&&!propertyType) return res.status(400).json({ok:false,error:'Property type is required.'});
     if(formType==='contact-message' && (!message || message.length<10)) return res.status(400).json({ok:false,error:'Please enter a detailed message (min 10 characters).'});
 
+    // Wait for async SMTP/DNS init to finish before dispatching mail
+    await smtpInitPromise;
     if(!smtpConfigured()||!transporter) return res.status(503).json({ok:false,error:'Email service is not configured on server.'});
 
     const subject=formType==='property-enquiry'?`New Property Enquiry — ${intent||'LANDLOGY'}`:`New Website Message — LANDLOGY`;
