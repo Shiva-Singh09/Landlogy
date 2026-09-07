@@ -60,6 +60,7 @@ async function initTransporter(){
 smtpInitPromise=initTransporter();
 
 app.post('/api/enquiries',async(req,res)=>{
+  console.info('[MAIL] request received');
   try{
     const b=req.body||{};
     if(clean(b.website,100)) return res.json({ok:true}); // honeypot
@@ -83,11 +84,19 @@ app.post('/api/enquiries',async(req,res)=>{
 
     const subject=formType==='property-enquiry'?`New Property Enquiry — ${intent||'LANDLOGY'}`:`New Website Message — LANDLOGY`;
     const text=[`LANDLOGY website submission`,`Type: ${formType||'website-form'}`,`Name: ${name}`,`Phone: ${phone}`,email&&`Email: ${email}`,intent&&`Intent: ${intent}`,propertyType&&`Property Type: ${propertyType}`,city&&`City / Location: ${city}`,message&&`Message: ${message}`].filter(Boolean).join('\n');
-    await transporter.sendMail({from:process.env.MAIL_FROM||process.env.SMTP_USER,to:process.env.MAIL_TO,replyTo:email||undefined,subject,text});
-    console.log('[MAIL] enquiry delivered to '+process.env.MAIL_TO);
-    res.json({ok:true});
+    console.info('[MAIL] attempting send');
+    try{
+      await transporter.sendMail({from:process.env.MAIL_FROM||process.env.SMTP_USER,to:process.env.MAIL_TO,replyTo:email||undefined,subject,text});
+    }catch(err){
+      console.error('[MAIL] sendMail failed:', err);
+      return res.status(502).json({ok:false,error:'Unable to send your message right now. Please try again later.'});
+    }
+    console.info('[MAIL] sendMail completed');
+    console.info('[MAIL] response sent');
+    return res.status(200).json({ok:true});
   }catch(err){
-    console.error('[MAIL] send failed:', err);
+    console.error('[MAIL] request failed:', err);
+    if(res.headersSent) return;
     res.status(502).json({ok:false,error:'Unable to send your message right now. Please try again later.'});
   }
 });
