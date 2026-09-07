@@ -32,15 +32,16 @@ async function initTransporter(){
     const addresses=await dns.resolve4(smtpHost);
     const smtpIPv4=addresses[0];
     console.info(`[MAIL] Resolved ${smtpHost} to IPv4: ${smtpIPv4}`);
-    transporter=nodemailer.createTransport({
-      host:smtpIPv4,
-      port:Number(process.env.SMTP_PORT||465),
-      secure:String(process.env.SMTP_SECURE||'false')==='true',
-      tls:{servername:smtpHost},
-      auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASS},
-      connectionTimeout:15000,
-      greetingTimeout:10000,
-      socketTimeout:30000
+    const port = Number(process.env.SMTP_PORT || 465);
+    transporter = nodemailer.createTransport({
+      host: smtpIPv4,
+      port: port,
+      secure: port === 465 || String(process.env.SMTP_SECURE || 'false') === 'true',
+      tls: { servername: smtpHost },
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      connectionTimeout: 15000,
+      greetingTimeout: 10000,
+      socketTimeout: 30000
     });
     try{
       await transporter.verify();
