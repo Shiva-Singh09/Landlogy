@@ -1,0 +1,276 @@
+{
+  "heroStats": [
+    {
+      "value": "500+",
+      "label": "Properties Listed"
+    },
+    {
+      "value": "15+",
+      "label": "Cities Pan-India"
+    },
+    {
+      "value": "98%",
+      "label": "Client Satisfaction"
+    }
+  ],
+  "numbersBand": [
+    {
+      "value": "500+",
+      "label": "Properties Across India"
+    },
+    {
+      "value": "15+",
+      "label": "Cities Covered"
+    },
+    {
+      "value": "₹200Cr+",
+      "label": "Deals Facilitated"
+    },
+    {
+      "value": "1000+",
+      "label": "Happy Clients"
+    }
+  ],
+  "properties": [
+    {
+      "category": "sale",
+      "icon": "🏠",
+      "badge": "FOR SALE",
+      "title": "3 BHK Premium Apartment",
+      "location": "📍 Powai, Mumbai",
+      "specs": [
+        "🛏 3 BHK",
+        "🛁 2 Bath",
+        "📐 1450 sq.ft"
+      ],
+      "price": "₹1.85 Cr",
+      "priceSuffix": "onwards",
+      "verified": true
+    },
+    {
+      "category": "invest",
+      "icon": "🏢",
+      "badge": "INVESTMENT",
+      "title": "Commercial Office Space",
+      "location": "📍 Cyber City, Gurgaon",
+      "specs": [
+        "📐 2200 sq.ft",
+        "🏗 G+8"
+      ],
+      "price": "₹3.2 Cr",
+      "priceSuffix": "| 8% yield",
+      "verified": true
+    },
+    {
+      "category": "sale",
+      "icon": "🏡",
+      "badge": "FOR SALE",
+      "title": "Independent Villa with Garden",
+      "location": "📍 Whitefield, Bangalore",
+      "specs": [
+        "🛏 4 BHK",
+        "🛁 4 Bath",
+        "📐 3200 sq.ft"
+      ],
+      "price": "₹2.65 Cr",
+      "priceSuffix": "onwards",
+      "verified": true
+    },
+    {
+      "category": "rent",
+      "icon": "🏙️",
+      "badge": "FOR RENT",
+      "title": "2 BHK Furnished Apartment",
+      "location": "📍 Banjara Hills, Hyderabad",
+      "specs": [
+        "🛏 2 BHK",
+        "🛁 2 Bath",
+        "📐 1100 sq.ft"
+      ],
+      "price": "₹38,000",
+      "priceSuffix": "/month",
+      "verified": true
+    },
+    {
+      "category": "invest",
+      "icon": "🌾",
+      "badge": "INVESTMENT",
+      "title": "Agricultural Land — NA Plot",
+      "location": "📍 Pune–Nashik Highway",
+      "specs": [
+        "📐 2 Acres",
+        "🛣 NH Access"
+      ],
+      "price": "₹95 L",
+      "priceSuffix": "per acre",
+      "verified": true
+    },
+    {
+      "category": "rent",
+      "icon": "🏪",
+      "badge": "FOR RENT",
+      "title": "Retail Shop — High Street",
+      "location": "📍 Connaught Place, New Delhi",
+      "specs": [
+        "📐 800 sq.ft",
+        "🚶 High Footfall"
+      ],
+      "price": "₹1.1 L",
+      "priceSuffix": "/month",
+      "verified": true
+    }
+  ],
+  "team": [
+    {
+      "initial": "S",
+      "name": "Shiva Singh",
+      "role": "Founder & CEO",
+      "detail": "15 years in real estate",
+      "photo": "/team/shiva-singh.jpg"
+    },
+    {
+      "initial": "H",
+      "name": "Harshit Pandey",
+      "role": "Head of Research",
+      "detail": "Market Intelligence",
+      "photo": "/team/harshit-pandey.jpg"
+    },
+    {
+      "initial": "S",
+      "name": "Somesh Pandey",
+      "role": "Investment Advisory",
+      "detail": "Portfolio Specialist",
+      "photo": "/team/somesh-pandey.jpg"
+    },
+    {
+      "initial": "D",
+      "name": "Diwakar Dixit",
+      "role": "Legal & Verification",
+      "detail": "Property Due Diligence",
+      "photo": "/team/diwakar-dixit.jpg"
+    }
+  ],
+  "reviews": [
+    {
+      "initial": "D",
+      "name": "Deepak Malhotra",
+      "role": "Homebuyer — Noida",
+      "rating": 5,
+      "text": "LANDLOGY didn’t just help us find a property — they did the research, verified the title and guided us through the entire transaction. First-time buyers couldn’t ask for more."
+    },
+    {
+      "initial": "N",
+      "name": "Neha Kapoor",
+      "role": "NRI Investor — Dubai",
+      "rating": 5,
+      "text": "As an NRI investor, finding verified commercial opportunities in India was always a challenge. LANDLOGY’s intelligence reports and due-diligence support made the entire process seamless."
+    },
+    {
+      "initial": "V",
+      "name": "Vikram Constructions",
+      "role": "Developer — Pune",
+      "rating": 5,
+      "text": "We partnered with LANDLOGY for land acquisition for our residential project in Pune. Their market research and local network saved us significant time and cost in site identification."
+    }
+  ],
+  "contact": {
+    "phone": "+91 8303872467",
+    "phoneRaw": "+918303872467",
+    "email": "nextgendevcoders@gmail.com",
+    "address": "Halwasia, Hazratganj, Lucknow, Uttar Pradesh 226001",
+    "workingHours": {
+      "weekday": "Mon – Sat: 9:00 AM – 7:00 PM",
+      "sunday": "Sunday: 10:00 AM – 4:00 PM"
+    },
+    "whatsappMessage": "Hi LANDLOGY, I have a property enquiry",
+    "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3771.2782085447396!2d72.86508!3d19.0589!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTnCsDAzJzMyLjAiTiA3MsKwNTInMzQuMyJF!5e0!3m2!1sen!2sin!4v1620000000000!5m2!1sen!2sin"
+  },
+  "services": [
+    {
+      "icon": "🏠",
+      "title": "Buy Property",
+      "desc": "Homes, villas, plots, commercial spaces and investment assets across India’s key markets.",
+      "linkLabel": "Find a Property"
+    },
+    {
+      "icon": "↗",
+      "title": "Sell Property",
+      "desc": "Market-led pricing, professional photography, verified buyer network and end-to-end support.",
+      "linkLabel": "List Your Property"
+    },
+    {
+      "icon": "🔑",
+      "title": "Rent & Lease",
+      "desc": "Residential and commercial rental discovery for owners, tenants and corporate clients.",
+      "linkLabel": "Find a Rental"
+    },
+    {
+      "icon": "🔍",
+      "title": "Land & Market Research",
+      "desc": "Location intelligence, pricing trends, demand analysis and infrastructure impact studies.",
+      "linkLabel": "Explore Intelligence"
+    },
+    {
+      "icon": "✅",
+      "title": "Property Verification",
+      "desc": "Title check, document verification, ownership validation and due-diligence workflows.",
+      "linkLabel": "Request Verification"
+    },
+    {
+      "icon": "📈",
+      "title": "Investment Intelligence",
+      "desc": "Opportunity screening, ROI analysis, risk assessment and market benchmarking for investors.",
+      "linkLabel": "Invest Smarter"
+    },
+    {
+      "icon": "🏗️",
+      "title": "Development & R&D",
+      "desc": "Feasibility studies, land procurement strategy and project research for developers.",
+      "linkLabel": "Explore Development"
+    },
+    {
+      "icon": "🤝",
+      "title": "Broker Network",
+      "desc": "A professional network connecting verified brokers, agents and real estate professionals.",
+      "linkLabel": "Join Network"
+    },
+    {
+      "icon": "🏦",
+      "title": "Allied Services",
+      "desc": "Home loans, legal assistance, valuation, interior design, construction and property management.",
+      "linkLabel": "View Services"
+    }
+  ],
+  "networks": [
+    {
+      "icon": "🏠",
+      "title": "Owners",
+      "desc": "List your property, reach verified buyers and tenants, and get research-backed pricing guidance."
+    },
+    {
+      "icon": "💼",
+      "title": "Investors",
+      "desc": "Access research-led opportunities, market intelligence and curated investment-grade assets."
+    },
+    {
+      "icon": "🏗️",
+      "title": "Developers",
+      "desc": "Discover land opportunities, understand market demand and get feasibility research support."
+    },
+    {
+      "icon": "🤝",
+      "title": "Brokers & Agents",
+      "desc": "Expand your pipeline, access a professional network and grow your real estate business."
+    },
+    {
+      "icon": "👨‍👩‍👧",
+      "title": "Buyers & Tenants",
+      "desc": "Search, compare, verify and connect across residential and commercial property categories."
+    },
+    {
+      "icon": "⚖️",
+      "title": "Service Partners",
+      "desc": "Legal, finance, valuation, construction and property management specialists — connect with clients who need you."
+    }
+  ]
+}
