@@ -174,8 +174,8 @@
     }
   ],
   "contact": {
-    "phone": "+91 8303872467",
-    "phoneRaw": "+918303872467",
+    "phone": "+91 9044936565",
+    "phoneRaw": "+919044936565",
     "email": "nextgendevcoders@gmail.com",
     "address": "Halwasia, Hazratganj, Lucknow, Uttar Pradesh 226001",
     "workingHours": {
@@ -204,11 +204,23 @@
       "desc": "Residential and commercial rental discovery for owners, tenants and corporate clients.",
       "linkLabel": "Find a Rental"
     },
+        {
+      "icon": "▦",
+      "title": "3D Visualization",
+      "desc": "Visualize proposed developments, buildings, site plans and property concepts with realistic 3D presentation.",
+      "linkLabel": "Discuss a Concept"
+    },
     {
       "icon": "🔍",
       "title": "Land & Market Research",
       "desc": "Location intelligence, pricing trends, demand analysis and infrastructure impact studies.",
       "linkLabel": "Explore Intelligence"
+    },
+    {
+      "icon": "◫",
+      "title": "Land Aggregation",
+      "desc": "Bring suitable land parcels together for larger development and investment opportunities.",
+      "linkLabel": "Discuss Land Strategy"
     },
     {
       "icon": "✅",
