@@ -53,6 +53,7 @@ export default function Properties() {
       <div className="page-header">
         <h2>Properties</h2>
         <p>Manage and review property listings</p>
+        <Link to="/properties/new" className="btn-primary btn-sm">Create property</Link>
       </div>
 
       <div className="filters-bar">

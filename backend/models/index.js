@@ -20,6 +20,11 @@ Property.belongsTo(User, { foreignKey: 'owner_id', as: 'owner' });
 User.hasMany(Enquiry, { foreignKey: 'reviewed_by', as: 'reviewed_enquiries' });
 Enquiry.belongsTo(User, { foreignKey: 'reviewed_by', as: 'reviewer' });
 
+// Enquiry → Seller account + property created at conversion (idempotency linkage)
+User.hasMany(Enquiry, { foreignKey: 'converted_user_id', as: 'converted_enquiries' });
+Enquiry.belongsTo(User, { foreignKey: 'converted_user_id', as: 'converted_seller' });
+Enquiry.belongsTo(Property, { foreignKey: 'converted_property_id', as: 'converted_property' });
+
 // PropertyType → Properties
 PropertyType.hasMany(Property, { foreignKey: 'property_type_id', as: 'properties' });
 Property.belongsTo(PropertyType, { foreignKey: 'property_type_id', as: 'property_type' });

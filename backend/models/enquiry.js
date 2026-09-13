@@ -46,6 +46,14 @@ const Enquiry = sequelize.define(
       type: DataTypes.UUID,
       allowNull: true,
     },
+    converted_user_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
+    converted_property_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
     notes: {
       type: DataTypes.TEXT,
       allowNull: true,

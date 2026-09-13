@@ -7,6 +7,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -36,7 +37,7 @@ export default function Login() {
           {error && <div className="error-message">{error}</div>}
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input
+            <div className="password-field"><input
               id="email"
               type="email"
               value={email}
@@ -49,12 +50,12 @@ export default function Login() {
             <label htmlFor="password">Password</label>
             <input
               id="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
-            />
+            /><button type="button" className="btn-secondary btn-sm" onClick={() => setShowPassword(value => !value)}>{showPassword ? 'Hide' : 'Show'}</button></div>
           </div>
           <button type="submit" className="btn-primary login-btn" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}

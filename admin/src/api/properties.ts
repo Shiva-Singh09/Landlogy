@@ -78,6 +78,10 @@ export async function getProperty(id: string): Promise<PropertyDetailResponse> {
   return api.get<PropertyDetailResponse>(`/api/admin/properties/${id}`);
 }
 
+export async function createProperty(body: Record<string, unknown>): Promise<{ ok: boolean; property: Property }> {
+  return api.post('/api/properties', body);
+}
+
 export async function updatePropertyStatus(id: string, status: string): Promise<{ ok: boolean; property: Property }> {
   return api.patch(`/api/admin/properties/${id}/status`, { status });
 }

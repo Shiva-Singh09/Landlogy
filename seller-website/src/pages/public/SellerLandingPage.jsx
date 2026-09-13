@@ -1,0 +1,684 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { ArrowUpRight, Bell, Check, ChevronRight, CircleHelp, Download, Eye, EyeOff, FileText, KeyRound, LayoutDashboard, LogOut, Menu, X, Phone, Mail, MapPin, Clock, MessageCircle, Search, ShieldCheck, TrendingUp, Building2, Home, Landmark, Users, Scale, Send, UserRound } from 'lucide-react';
+import logo from '../../assets/Logo.png';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+function useReveal(enabled = true, rescan = '') {
+  useEffect(() => {
+    if (!enabled) return;
+    const elements = [...document.querySelectorAll('[data-reveal]')].filter((element) => !element.classList.contains('is-visible'));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
+    );
+
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [enabled, rescan]);
+}
+
+function useCounters(enabled = true) {
+  useEffect(() => {
+    if (!enabled) return;
+    const elements = document.querySelectorAll('.counter');
+    const parse = (value) => Number(value.replace(/[^0-9.]/g, ''));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting || entry.target.dataset.done) return;
+          entry.target.dataset.done = '1';
+          const raw = entry.target.dataset.target;
+          const targetNumber = parse(raw);
+          const prefix = raw.trim().startsWith('₹') ? '₹' : '';
+          const suffix = raw.includes('Cr') ? 'Cr+' : raw.includes('%') ? '%' : raw.includes('+') ? '+' : '';
+          let start = 0;
+          const startTime = performance.now();
+          const tick = (now) => {
+            const progress = Math.min((now - startTime) / 1300, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            entry.target.textContent = prefix + (targetNumber % 1 ? targetNumber * eased : Math.round(targetNumber * eased)) + suffix;
+            if (progress < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        });
+      },
+      { threshold: 0.7 }
+    );
+
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [enabled]);
+}
+
+function useSiteData() {
+  const [site, setSite] = useState(null);
+  const [error, setError] = useState(null);
+
+  const load = useCallback(() => {
+    setError(null);
+    fetch('/site-data.json')
+      .then((response) => {
+        if (!response.ok) throw new Error('HTTP ' + response.status + ' ' + response.statusText);
+        return response.json();
+      })
+      .then((json) => {
+        console.log('[LANDLOGY] site-data.json loaded successfully');
+        setSite(json);
+      })
+      .catch((err) => {
+        console.error('[LANDLOGY] Failed to load /site-data.json. Make sure client/public/site-data.json exists and is served at /site-data.json.', err);
+        setError(err);
+      });
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  return { site, error, load };
+}
+
+function Magnetic({ children, className = '', ...props }) {
+  const ref = useRef();
+
+  const move = (event) => {
+    if (matchMedia('(pointer:fine)').matches) {
+      const bounds = ref.current.getBoundingClientRect();
+      ref.current.style.transform = `translate(${(event.clientX - bounds.left - bounds.width / 2) * 0.12}px, ${(event.clientY - bounds.top - bounds.height / 2) * 0.12}px)`;
+    }
+  };
+
+  const leave = () => {
+    if (ref.current) {
+      ref.current.style.transform = '';
+    }
+  };
+
+  return (
+    <a ref={ref} onMouseMove={move} onMouseLeave={leave} className={`btn ${className}`} {...props}>
+      {children}
+    </a>
+  );
+}
+
+function Field({ label, name, select, options, textarea, type = 'text', placeholder, error, clearError, autocomplete, inputmode, ...props }) {
+  const errorId = `${name}-err`;
+
+  return (
+    <div className={`field-group ${error ? 'has-error' : ''}`}>
+      <label htmlFor={name}>{label}</label>
+      {select ? (
+        <select
+          id={name}
+          name={name}
+          defaultValue=""
+          onChange={clearError ? () => clearError(name) : undefined}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
+          {...props}
+        >
+          <option value="">{placeholder || 'Select an option...'}</option>
+          {options?.map((option) => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </select>
+      ) : textarea ? (
+        <textarea
+          id={name}
+          name={name}
+          placeholder={placeholder}
+          onChange={clearError ? () => clearError(name) : undefined}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
+          {...props}
+        />
+      ) : (
+        <input
+          id={name}
+          name={name}
+          type={type}
+          placeholder={placeholder}
+          inputMode={inputmode}
+          autoComplete={autocomplete}
+          onChange={clearError ? () => clearError(name) : undefined}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
+          {...props}
+        />
+      )}
+      {error && (
+        <span id={errorId} className="field-error" role="alert">
+          {error}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function Form({ hero = false }) {
+  const [status, setStatus] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [errors, setErrors] = useState({});
+  const [busy, setBusy] = useState(false);
+  const formRef = useRef(null);
+
+  const validate = (data) => {
+    const nextErrors = {};
+    const name = String(data.name || '').trim();
+    if (!name) nextErrors.name = 'Please enter your full name.';
+    else if (name.length < 2 || name.length > 80) nextErrors.name = 'Name must be 2–80 characters.';
+    else if (!/[\p{L}]/u.test(name)) nextErrors.name = 'Please enter a valid name (letters only).';
+
+    if (!/^(?:\+91\s?)?[6-9]\d{9}$/.test(String(data.phone || '').replace(/\s+/g, ''))) {
+      nextErrors.phone = 'Please enter a valid 10-digit Indian mobile number.';
+    }
+
+    if (data.email && String(data.email).trim()) {
+      const email = String(data.email).trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = 'Please enter a valid email address.';
+      else if (email.length > 160) nextErrors.email = 'Email is too long.';
+    }
+
+    const city = String(data.city || '').trim();
+    if (!city) nextErrors.city = 'Please enter your city or location.';
+    else if (city.length > 120) nextErrors.city = 'City is too long.';
+
+    const intentField = hero ? 'property_type' : 'intent';
+    if (!String(data[intentField] || '').trim()) nextErrors[intentField] = 'Please select an option.';
+
+    if (hero) {
+      if (data.message && String(data.message).length > 2000) nextErrors.message = 'Message is too long (max 2000 characters).';
+    } else {
+      const message = String(data.message || '');
+      if (!message.trim()) nextErrors.message = 'Please enter your message.';
+      else if (message.trim().length < 10) nextErrors.message = 'Message must be at least 10 characters.';
+      else if (message.trim().length > 2000) nextErrors.message = 'Message is too long (max 2000 characters).';
+    }
+
+    return nextErrors;
+  };
+
+  const focusFirstInvalid = (nextErrors) => {
+    if (!formRef.current || !Object.keys(nextErrors).length) return;
+    const firstKey = Object.keys(nextErrors)[0];
+    const element = formRef.current.querySelector(`[name="${firstKey}"]`);
+    if (element && typeof element.focus === 'function') element.focus();
+  };
+
+  const clearError = (name) => {
+    setErrors((previous) => {
+      if (!(name in previous)) return previous;
+      const next = { ...previous };
+      delete next[name];
+      return next;
+    });
+  };
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setBusy(true);
+    setStatus('');
+    setErrorMsg('');
+    setErrors({});
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    const validationErrors = validate(data);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      focusFirstInvalid(validationErrors);
+      setBusy(false);
+      return;
+    }
+
+    data.formType = hero ? 'property-enquiry' : 'contact-message';
+    if (hero) data.intent = 'Sell my Property';
+
+    try {
+      const response = await fetch(`${API_BASE}/api/enquiries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.error || 'Submission failed');
+
+      setStatus('success');
+      if (form && typeof form.reset === 'function') form.reset();
+    } catch (error) {
+      setStatus('error');
+      setErrorMsg(error.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <form ref={formRef} onSubmit={submit} noValidate className="form">
+      <div className="field-row">
+        <Field label={hero ? 'Your Name' : 'Full Name *'} name="name" placeholder="Enter your full name" required autoComplete="name" error={errors.name} clearError={clearError} />
+        <Field label={hero ? 'Mobile' : 'Mobile Number *'} name="phone" placeholder="98765 43210" required inputMode="tel" autoComplete="tel-national" error={errors.phone} clearError={clearError} />
+      </div>
+      <Field label="Email Address" name="email" type="email" placeholder="you@example.com" autoComplete="email" error={errors.email} clearError={clearError} />
+      <Field label={hero ? 'Property Type' : 'Enquiry Type'} name={hero ? 'property_type' : 'intent'} select options={hero ? ['Residential Apartment', 'Independent House / Villa', 'Plot / Land', 'Commercial Space', 'Office Space', 'Warehouse / Industrial'] : ['Sell my Property', 'Property Assessment', 'Pricing & Positioning', 'Verification Support', 'Professional Presentation', 'Marketing & Buyer Reach', 'Negotiation & Closing Support', 'Other']} placeholder={hero ? 'Select property type' : 'Select a seller-service enquiry'} error={errors[hero ? 'property_type' : 'intent']} clearError={clearError} />
+      <Field label="City / Location of Interest" name="city" placeholder="Enter your city or location" autoComplete="address-level2" error={errors.city} clearError={clearError} />
+      <Field label={hero ? 'Message (optional)' : 'Your Message'} name="message" textarea placeholder="Tell us how we can help you..." autoComplete="off" error={errors.message} clearError={clearError} />
+      {status === 'success' && <div className="form-status success" role="status">✓ Your enquiry has been received and will be reviewed by LANDLOGY.</div>}
+      {status === 'error' && <div className="form-status error" role="alert">✕ {errorMsg}</div>}
+      <button type="submit" className="btn btn-primary submit-btn" disabled={busy}>{busy ? 'Sending...' : hero ? 'Send Enquiry' : 'Send Message'}</button>
+    </form>
+  );
+}
+
+function Head({ eyebrow, title, text, dark }) {
+  return (
+    <div className="sec-head" data-reveal>
+      <div className="eyebrow">{eyebrow}</div>
+      <h2 className={dark ? 'dark-title' : ''}>{title}</h2>
+      {text && <p>{text}</p>}
+    </div>
+  );
+}
+
+function Info({ icon, title, children }) {
+  return (
+    <div className="cinfo-block">
+      <div className="cinfo-icon">{icon}</div>
+      <div>
+        <strong>{title}</strong>
+        <p>{children}</p>
+      </div>
+    </div>
+  );
+}
+
+function SellerCapabilities({ site }) {
+  return (
+    <>
+      <section id="land-aggregation" className="capability-section land-capability">
+        <div className="container capability-grid">
+          <div className="capability-copy" data-reveal>
+            <span className="eyebrow">LANDLOGY Signature Capability</span>
+            <h2>Land Aggregation</h2>
+            <p>Bringing fragmented land opportunities together through structured property intelligence, verification and coordinated development or sale strategy.</p>
+            <div className="capability-points">
+              <span><strong>01</strong>Identify connected land opportunities</span>
+              <span><strong>02</strong>Organise property and location information</span>
+              <span><strong>03</strong>Shape a coordinated next-step strategy</span>
+            </div>
+            <a href="#contact" className="btn btn-primary">Discuss Land Strategy <ArrowUpRight size={15} /></a>
+          </div>
+          <div className="land-visual" data-reveal>
+            <div className="land-map-grid" />
+            <div className="land-parcel parcel-a">A</div>
+            <div className="land-parcel parcel-b">B</div>
+            <div className="land-parcel parcel-c">C</div>
+            <div className="land-parcel parcel-d">D</div>
+            <div className="land-connect connect-one" />
+            <div className="land-connect connect-two" />
+            <span className="land-label label-location">LOCATION INTELLIGENCE</span>
+            <span className="land-label label-verified">VERIFICATION LAYER</span>
+            <span className="land-coordinates">LAND / STRATEGY / CONTEXT</span>
+          </div>
+        </div>
+      </section>
+      <section id="visualization" className="capability-section visualization-section">
+        <div className="container visualization-grid">
+          <div className="visualization-stage" data-reveal>
+            <div className="viz-frame">
+              <div className="viz-building viz-building-one"><i /><i /><i /><i /></div>
+              <div className="viz-building viz-building-two"><i /><i /><i /></div>
+              <span className="viz-hotspot hotspot-one">01</span>
+              <span className="viz-hotspot hotspot-two">02</span>
+              <span className="viz-axis">SPATIAL VIEW / 03</span>
+            </div>
+            <div className="viz-controls"><span>PROPERTY PRESENTATION CONCEPT</span><span>◊ &nbsp; 01 / 03 &nbsp; ▾</span></div>
+          </div>
+          <div className="capability-copy" data-reveal>
+            <span className="eyebrow">Visual Clarity</span>
+            <h2>3D Visualization with Context</h2>
+            <p>Present a property with the surrounding context, use-case, and spatial clarity required for serious decision-making.</p>
+            <div className="capability-points">
+              <span><strong>01</strong>Clarify space and positioning</span>
+              <span><strong>02</strong>Highlight property potential</span>
+              <span><strong>03</strong>Support buyer understanding</span>
+            </div>
+            <a href="#contact" className="btn btn-secondary">Request Property Presentation <ArrowUpRight size={15} /></a>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+export function SellerLandingPage() {
+  const [menu, setMenu] = useState(false);
+  const { site, error, load } = useSiteData();
+  useReveal(!!site);
+
+  useEffect(() => {
+    document.body.classList.toggle('menu-open', menu);
+    return () => document.body.classList.remove('menu-open');
+  }, [menu]);
+
+  useEffect(() => {
+    if (!site) return;
+    const mountPoint = document.querySelector('.seller-landing #why-sell');
+    if (!mountPoint || document.querySelector('.seller-capabilities-root')) return;
+
+    const rootElement = document.createElement('div');
+    rootElement.className = 'seller-capabilities-root';
+    mountPoint.parentNode.insertBefore(rootElement, mountPoint);
+
+    const root = createRoot(rootElement);
+    root.render(<SellerCapabilities site={site} />);
+
+    return () => {
+      root.unmount();
+      rootElement.remove();
+    };
+  }, [site]);
+
+  useEffect(() => {
+    const addCapabilityLinks = () => {
+      const nav = document.querySelector('.seller-landing .navlinks');
+      if (nav && !nav.querySelector('[href="#land-aggregation"]')) {
+        nav.insertAdjacentHTML('beforeend', '<a href="#land-aggregation">Land Aggregation</a><a href="#visualization">3D Visualization</a>');
+      }
+
+      const menuRoot = document.querySelector('.seller-landing .seller-mobile-menu');
+      if (menuRoot && !menuRoot.querySelector('[href="#land-aggregation"]')) {
+        menuRoot.insertAdjacentHTML('afterbegin', '<a href="#land-aggregation">Land Aggregation</a><a href="#visualization">3D Visualization</a>');
+      }
+    };
+
+    addCapabilityLinks();
+    const observer = new MutationObserver(addCapabilityLinks);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [menu]);
+
+  if (!site) {
+    return (
+      <div className="seller-loading">
+        {error ? (
+          <>
+            <strong>LANDLOGY is temporarily unavailable.</strong>
+            <button className="btn btn-primary" onClick={load}>Retry</button>
+          </>
+        ) : (
+          'Loading LANDLOGY...'
+        )}
+      </div>
+    );
+  }
+
+  const services = [
+    ['📍', 'Property Assessment', 'Understand your property, its location and its position before deciding the right next step.'],
+    ['📊', 'Pricing & Positioning', 'Use a considered view of the property and market context to prepare a sensible selling strategy.'],
+    ['✓', 'Verification Support', 'Organise relevant property information and documentation before serious promotion begins.'],
+    ['▣', 'Professional Presentation', 'Present the property clearly with a considered description and materials that communicate its value.'],
+    ['◌', 'Relevant Buyer Reach', 'Connect the property with prospective buyers whose requirements are relevant to what it offers.'],
+    ['↗', 'Negotiation & Closing Support', 'Receive guidance through offers, discussions and the closing stages of the sale.'],
+    ['◬', 'Land Aggregation', 'Bring fragmented land opportunities together through structured property intelligence, verification and coordinated strategy.'],
+    ['◫', '3D Property Visualization', 'Present property and space through immersive visualization concepts where multiple angles and spatial understanding add value.'],
+    ['◈', 'Property Intelligence & Presentation', 'Shape a clearer property story using location context, structured information and high-quality presentation.']
+  ];
+
+  const steps = [
+    ['01', 'Tell Us About Your Property', 'Share the essentials so LANDLOGY can understand your property and selling objective.'],
+    ['02', 'LANDLOGY Reviews Your Enquiry', 'Our team reviews the connection request and determines the appropriate next conversation.'],
+    ['03', 'Property Assessment & Verification', 'Relevant property information and documentation are understood and organised.'],
+    ['04', 'Selling Strategy & Preparation', 'We discuss positioning, presentation and practical preparation for the market.'],
+    ['05', 'Marketing, Buyer Reach & Support', 'The property can move forward with relevant outreach and support through the sale.']
+  ];
+
+  return (
+    <main className="seller-landing">
+      <nav>
+        <div className="container nav-inner">
+          <a className="brand" href="#hero"><img src={logo} alt="LANDLOGY" /></a>
+          <div className="navlinks">
+            <a href="#how-it-works">How It Works</a>
+            <a href="#services">Our Services</a>
+            <a href="#why-sell">Why LANDLOGY</a>
+            <a href="#team">Our Team</a>
+            <a href="#contact">Contact</a>
+          </div>
+          <div className="nav-cta">
+            <a href={`tel:${site.contact.phoneRaw}`} className="btn btn-outline"><Phone size={15} /> Call Us</a>
+            <a href="/client-login" className="btn btn-client-login">Client Login</a>
+            <a href="#contact" className="btn btn-primary">List Your Property <ArrowUpRight size={15} /></a>
+          </div>
+          <button className="ham" type="button" onClick={() => setMenu((value) => !value)} aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu}>
+            {menu ? <X /> : <Menu />}
+          </button>
+        </div>
+      </nav>
+
+      {menu && (
+        <div className="mobile-menu seller-mobile-menu">
+          <a href="#how-it-works" onClick={() => setMenu(false)}>How It Works</a>
+          <a href="#services" onClick={() => setMenu(false)}>Our Services</a>
+          <a href="#why-sell" onClick={() => setMenu(false)}>Why LANDLOGY</a>
+          <a href="#team" onClick={() => setMenu(false)}>Our Team</a>
+          <a href="#contact" onClick={() => setMenu(false)}>Contact</a>
+          <a className="client-login-link" href="/client-login">Client Login</a>
+          <a className="mobile-primary-link" href="#contact" onClick={() => setMenu(false)}>List Your Property <ArrowUpRight size={15} /></a>
+        </div>
+      )}
+
+      <header id="hero" className="seller-hero">
+        <div className="seller-hero-backdrop" />
+        <div className="container seller-hero-inner">
+          <div className="seller-hero-copy" data-reveal>
+            <span className="eyebrow">For Property Owners Across India</span>
+            <h1>Sell Your Property<br /><span>With Confidence.</span></h1>
+            <p>LANDLOGY helps property owners sell through a structured process, considered positioning, clear presentation and support at every important step.</p>
+            <div className="hero-actions">
+              <a href="#contact" className="btn btn-primary">List Your Property <ArrowUpRight size={16} /></a>
+              <a href="#how-it-works" className="btn btn-outline">See How It Works <ChevronRight size={16} /></a>
+            </div>
+            <div className="seller-trust-strip">
+              <span>Research-led approach</span>
+              <span>Verification support</span>
+              <span>Professional presentation</span>
+              <span>Guided selling process</span>
+            </div>
+          </div>
+          <div className="hero-card seller-enquiry-card" data-reveal>
+            <div className="hero-card-title">Tell Us About Your Property</div>
+            <p className="seller-card-sub">Start with a property-selling enquiry. LANDLOGY will review the information you share.</p>
+            <Form hero />
+          </div>
+        </div>
+      </header>
+
+      <section className="seller-pain-section">
+        <div className="container">
+          <div className="sec-head" data-reveal>
+            <span className="eyebrow">A Better Starting Point</span>
+            <h2>Selling property should feel clearer.</h2>
+            <p>Owners often need help understanding the right price, preparing information and reaching relevant buyers. LANDLOGY brings those conversations into one structured process.</p>
+          </div>
+          <div className="seller-pain-grid">
+            {['Uncertainty about the right price', 'Unqualified or irrelevant enquiries', 'Property information and documents', 'Presenting the property properly', 'Negotiation and closing decisions', 'Knowing the right next step'].map((item, index) => (
+              <article className="seller-pain-card" data-reveal key={item}>
+                <span>0{index + 1}</span>
+                <h3>{item}</h3>
+                <p>Start with a clearer, more informed way to approach this part of selling.</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="seller-trust-band">
+        <div className="container seller-trust-grid">
+          {[['Research', 'Decisions begin with understanding.'], ['Verification', 'Relevant information is organised early.'], ['Reach', 'Focus on relevant prospective buyers.'], ['Support', 'Guidance continues through the process.']].map(([title, text]) => (
+            <div data-reveal key={title}>
+              <strong>{title}</strong>
+              <span>{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <section id="how-it-works" className="sec-slate">
+        <div className="container">
+          <div className="sec-head seller-centered-head" data-reveal>
+            <span className="eyebrow">The Selling Process</span>
+            <h2>A clearer way to sell your property.</h2>
+            <p>Five high-level steps explain what happens from your first enquiry through preparation and support.</p>
+          </div>
+          <div className="seller-steps">
+            {steps.map(([number, title, text]) => (
+              <article data-reveal key={number}>
+                <span>{number}</span>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="services">
+        <div className="container">
+          <div className="sec-head" data-reveal>
+            <span className="eyebrow">What LANDLOGY Helps With</span>
+            <h2>Seller-focused support, end to end.</h2>
+            <p>Every service is designed around helping a property owner make informed decisions and move forward with confidence.</p>
+          </div>
+          <div className="services-grid">
+            {services.map(([icon, title, text], index) => (
+              <article className="svc-card seller-service-card" data-reveal key={title}>
+                <div className="svc-icon">{icon}</div>
+                <h3>{title}</h3>
+                <p>{text}</p>
+                <a href="#contact" className="svc-link">Discuss this with us <ArrowUpRight size={14} /></a>
+                <span className="card-index">0{index + 1}</span>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="why-sell" className="sec-slate">
+        <div className="container seller-why-grid">
+          <div data-reveal>
+            <span className="eyebrow">Why Property Owners Choose LANDLOGY</span>
+            <h2>Selling with better clarity and support.</h2>
+            <p className="seller-why-intro">LANDLOGY is a service for owners who want a thoughtful selling process rather than simply placing a listing and waiting.</p>
+            {['Research before recommendation', 'Verification before promotion', 'Clearer property presentation', 'Human guidance when decisions matter'].map((title, index) => (
+              <div className="seller-why-row" key={title}>
+                <span>{index + 1}</span>
+                <div>
+                  <h3>{title}</h3>
+                  <p>We keep the focus on understanding your property, your objective and the next appropriate step.</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="seller-why-panel" data-reveal>
+            <span className="eyebrow">A private client journey later</span>
+            <h3>Stay informed as your property progresses.</h3>
+            <p>After LANDLOGY reviews and accepts a client enquiry, approved clients may later receive secure access to a private portal for their own property information and status.</p>
+            <a href="/client-login" className="btn btn-white">Client Login <ArrowUpRight size={15} /></a>
+          </div>
+        </div>
+      </section>
+
+      <section id="team">
+        <div className="container">
+          <div className="sec-head" data-reveal>
+            <span className="eyebrow">Our Approach</span>
+            <h2>Professional support, focused on your property.</h2>
+            <p>LANDLOGY brings the relevant conversations together so property owners can understand what is needed before moving ahead.</p>
+          </div>
+          <div className="seller-team-note" data-reveal>
+            <div className="portal-mark">L</div>
+            <div>
+              <h3>One clear conversation to begin</h3>
+              <p>Tell us about your property, location and selling objective. The LANDLOGY team will review your enquiry before any later client access or property workflow begins.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact">
+        <div className="container">
+          <div className="sec-head" data-reveal>
+            <span className="eyebrow">Start With A Conversation</span>
+            <h2>Tell us about your property.</h2>
+            <p>Whether you want to list, understand value or plan the next steps, our team is ready to speak with you.</p>
+          </div>
+          <div className="contact-grid">
+            <div data-reveal>
+              <div className="contact-info">
+                <Info icon={<Phone />} title="Call / WhatsApp"><a href={`tel:${site.contact.phoneRaw}`}>{site.contact.phone}</a></Info>
+                <Info icon={<Mail />} title="Email Us"><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></Info>
+                <Info icon={<MapPin />} title="Head Office">{site.contact.address}</Info>
+                <Info icon={<Clock />} title="Working Hours">{site.contact.workingHours.weekday}<br />{site.contact.workingHours.sunday}</Info>
+              </div>
+            </div>
+            <div className="contact-form" data-reveal>
+              <h3>Send us a message</h3>
+              <p>Our team will get back to you within 24 hours.</p>
+              <Form />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <div className="container">
+          <div className="foot-grid">
+            <div className="foot-brand">
+              <strong>LANDLOGY</strong>
+              <small>PROPERTY SELLING SUPPORT</small>
+              <p>A structured, research-led service for property owners who want to sell with confidence.</p>
+            </div>
+            <div className="foot-col">
+              <h4>For Property Owners</h4>
+              <a href="#contact">List Your Property</a>
+              <a href="#services">Our Services</a>
+              <a href="#how-it-works">How It Works</a>
+              <a href="#why-sell">Why LANDLOGY</a>
+            </div>
+            <div className="foot-col">
+              <h4>Client Access</h4>
+              <a href="/client-login">Client Login</a>
+              <a href="#contact">Contact LANDLOGY</a>
+            </div>
+            <div className="foot-col">
+              <h4>Connect</h4>
+              <a href={`tel:${site.contact.phoneRaw}`}>{site.contact.phone}</a>
+              <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+            </div>
+          </div>
+          <div className="foot-bottom">
+            <p>© 2026 LANDLOGY. All rights reserved.</p>
+            <p>Information provided is for general guidance only.</p>
+          </div>
+        </div>
+      </footer>
+      <a className="whatsapp-btn" href={`https://wa.me/${site.contact.phoneRaw.replace(/\D/g, '')}?text=${encodeURIComponent(site.contact.whatsappMessage)}`} target="_blank" aria-label="Chat on WhatsApp"><MessageCircle /></a>
+      <div className="cursor-glow" />
+    </main>
+  );
+}
+
+export default SellerLandingPage;
