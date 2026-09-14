@@ -74,3 +74,68 @@ export const setClientPasswordApi = (currentPassword, newPassword, token) =>
     body: { current_password: currentPassword, new_password: newPassword },
     token
   });
+
+export const createClientProperty = (payload, token) =>
+  clientApi('/api/client/properties', {
+    method: 'POST',
+    body: payload,
+    token
+  });
+
+// Upload a single property image via multipart/form-data.
+// Backend field name must be "image" (mirrors admin upload config).
+// Supports is_primary caption via FormData fields.
+export function uploadClientPropertyImage(propertyId, file, token, options = {}) {
+  const { isPrimary = false, caption = '' } = options;
+  const formData = new FormData();
+  formData.append('image', file);
+  if (isPrimary) formData.append('is_primary', 'true');
+  if (caption) formData.append('caption', caption);
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const url = `${API_BASE}/api/client/properties/${encodeURIComponent(propertyId)}/images`;
+
+    const authToken = token || CLIENT_STORE.get(CLIENT_TOKEN_KEY);
+
+    xhr.open('POST', url);
+    if (authToken) xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        if (typeof options.onProgress === 'function') {
+          options.onProgress(percent);
+        }
+      }
+    };
+
+    xhr.onload = () => {
+      const status = xhr.status;
+      let data = null;
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch {}
+
+      if (status < 200 || status >= 300) {
+        const error = new Error((data && data.error) || `Upload failed (HTTP ${status})`);
+        error.status = status;
+        error.response = data;
+        reject(error);
+        return;
+      }
+
+      // Backend returns: { ok: true, image: { id, url, caption, is_primary, sort_order, created_at } }
+      const image = (data && (data.image || data)) || null;
+      resolve(image);
+    };
+
+    xhr.onerror = () => {
+      const error = new Error('network');
+      error.code = 'NETWORK';
+      reject(error);
+    };
+
+    xhr.send(formData);
+  });
+}

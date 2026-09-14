@@ -1,10 +1,10 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Plus } from 'lucide-react';
 import { PropertyCard } from '../../components/client/PropertyCard';
 import { EmptyState } from '../../components/client/EmptyState';
 import { PropertyCardSkeleton } from '../../components/loading/PortalSkeletons';
 
-export function PropertiesPage({ properties, loading, error, onViewProperty }) {
+export function PropertiesPage({ properties, loading, error, onViewProperty, onAddProperty }) {
   if (loading) {
     return <PropertyCardSkeleton count={3} />;
   }
@@ -19,7 +19,12 @@ export function PropertiesPage({ properties, loading, error, onViewProperty }) {
         title="No properties available"
         description="This client account does not currently have any seller-owned properties returned by the backend."
         icon="properties"
-        action={<a href="/client-portal" className="btn btn-primary"><ArrowRight size={14} /> Return to dashboard</a>}
+        action={
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button type="button" className="btn btn-primary" onClick={onAddProperty}><Plus size={14} /> Add Property</button>
+            <a href="/client-portal" className="btn btn-secondary"><ArrowRight size={14} /> Return to dashboard</a>
+          </div>
+        }
       />
     );
   }
@@ -32,6 +37,7 @@ export function PropertiesPage({ properties, loading, error, onViewProperty }) {
           <h1>Property portfolio</h1>
           <p>Review every property linked to your authenticated seller account.</p>
         </div>
+        <button type="button" className="btn btn-primary" onClick={onAddProperty}><Plus size={14} /> Add Property</button>
       </div>
 
       <section className="portal-section" style={{ display: 'grid', gap: '18px' }}>

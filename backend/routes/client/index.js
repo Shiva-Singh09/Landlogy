@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth.js';
-import { getMe, listProperties, getProperty } from '../../controllers/client/clientController.js';
+import { uploadMulti } from '../../config/upload.js';
+import { getMe, createProperty, listProperties, getProperty, uploadImages } from '../../controllers/client/clientController.js';
 
 const router = Router();
 
@@ -8,7 +9,26 @@ const router = Router();
 const sellerOnly = [authenticate, authorize('seller')];
 
 router.get('/me', sellerOnly, getMe);
+router.post('/properties', sellerOnly, createProperty);          // owner always derived server-side; status forced to under_review
 router.get('/properties', sellerOnly, listProperties);            // owner always derived server-side
 router.get('/properties/:id', sellerOnly, getProperty);          // foreign property → 404
+router.post('/properties/:id/images', sellerOnly, uploadMulti.array('image', 10), uploadImages); // Seller attaches images to own property
+
+// Convert multer upload validation errors into proper JSON responses for the
+// Seller image endpoint (file type / size / count). This error handler is scoped
+// to the client router and does not affect Admin image behavior (separate router).
+router.use((err, req, res, next) => {
+  if (err?.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ ok: false, error: 'File too large. Maximum size is 5 MB.' });
+  }
+  if (err?.code === 'LIMIT_FILE_COUNT') {
+    return res.status(400).json({ ok: false, error: 'Too many files. Maximum 10 images per request.' });
+  }
+  if (/unsupported file type/i.test(err?.message || '')) {
+    return res.status(400).json({ ok: false, error: 'Unsupported file type. Allowed: JPEG, PNG, WebP.' });
+  }
+  console.error('[CLIENT] Unhandled router error:', err?.message || err);
+  return res.status(502).json({ ok: false, error: 'Unable to process the request right now. Please try again later.' });
+});
 
 export default router;

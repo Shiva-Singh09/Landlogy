@@ -7,6 +7,7 @@ export function getClientPortalSection() {
 
   if (path === '/client-portal') return 'dashboard';
   if (path === '/client-portal/properties') return 'properties';
+  if (path === '/client-portal/add-property') return 'add-property';
   if (path === '/client-portal/status') return 'status';
   if (path === '/client-portal/documents') return 'documents';
   if (path === '/client-portal/notifications') return 'notifications';

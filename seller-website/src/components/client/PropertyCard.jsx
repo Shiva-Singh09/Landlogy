@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, PencilLine } from 'lucide-react';
+import { MapPin, PencilLine, ImageIcon } from 'lucide-react';
 import { formatDate, formatPriceINR, statusLabel } from '../../config/constants';
 
 export function PropertyCard({ property, onViewDetails }) {
@@ -8,7 +8,13 @@ export function PropertyCard({ property, onViewDetails }) {
 
   return (
     <article className="owner-property-card">
-      <img src={image || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=80'} alt={property?.title || 'Property'} />
+      {image ? (
+        <img src={image} alt={property?.title || 'Property'} />
+      ) : (
+        <div className="property-image-placeholder">
+          <ImageIcon size={32} />
+        </div>
+      )}
       <div className="owner-property-info">
         <div className="property-title-row">
           <div>

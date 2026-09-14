@@ -58,4 +58,15 @@ export const upload = multer({
   },
 });
 
+// Multi-file upload instance for the Seller (client) image flow.
+// Reuses the SAME disk storage, MIME allow-list and 5 MB per-file size limit as the
+// single-file `upload` above — only the global file-count cap is dropped so a Seller
+// can attach several images in one request. Does NOT alter the Admin route, which
+// still imports the single-file `upload` (limits.files = 1).
+export const uploadMulti = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: MAX_FILE_SIZE },
+});
+
 export { UPLOAD_DIR, ALLOWED_MIME_TYPES, MAX_FILE_SIZE };

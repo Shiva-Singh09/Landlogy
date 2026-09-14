@@ -1,5 +1,7 @@
+import fs from 'fs';
 import db from '../../models/index.js';
 import { safeClientProperty, UUID_RE } from '../../services/client/sellerProvisioning.js';
+import { clean } from '../../utils/validation.js';
 
 // ── GET /api/client/me (Seller only) ─────────────────────────────
 export const getMe = async (req, res) => {
@@ -11,6 +13,114 @@ export const getMe = async (req, res) => {
       force_password_change: req.user.force_password_change,
     },
   });
+};
+
+// ── POST /api/client/properties (Seller only; owner derived server-side) ──
+// Creates a Seller-owned property starting in 'under_review'. Admin keeps
+// final authority over status transitions.
+export const createProperty = async (req, res) => {
+  try {
+    const b = req.body || {};
+
+    // Extract and sanitize string fields (same limits as the Admin property workflow).
+    const title = clean(b.title, 200);
+    const description = clean(b.description, 5000) || null;
+    const address = clean(b.address, 300) || null;
+    const city = clean(b.city, 120) || null;
+    const state = clean(b.state, 120) || null;
+    const pincode = clean(b.pincode, 10) || null;
+
+    // Required: title
+    if (!title || title.length < 3) {
+      return res.status(400).json({ ok: false, error: 'Property title is required (min 3 characters).' });
+    }
+
+    // Optional pincode: digits only, sensible length
+    if (pincode && !/^[0-9]{4,10}$/.test(pincode)) {
+      return res.status(400).json({ ok: false, error: 'Invalid pincode. Must be 4-10 digits.' });
+    }
+
+    // Optional numeric fields with same bounds as Admin create
+    let latitude = null;
+    if (b.latitude !== undefined && b.latitude !== null && b.latitude !== '') {
+      latitude = parseFloat(b.latitude);
+      if (isNaN(latitude) || latitude < -90 || latitude > 90) {
+        return res.status(400).json({ ok: false, error: 'Invalid latitude. Must be between -90 and 90.' });
+      }
+    }
+
+    let longitude = null;
+    if (b.longitude !== undefined && b.longitude !== null && b.longitude !== '') {
+      longitude = parseFloat(b.longitude);
+      if (isNaN(longitude) || longitude < -180 || longitude > 180) {
+        return res.status(400).json({ ok: false, error: 'Invalid longitude. Must be between -180 and 180.' });
+      }
+    }
+
+    let askingPrice = null;
+    if (b.asking_price !== undefined && b.asking_price !== null && b.asking_price !== '') {
+      askingPrice = parseFloat(b.asking_price);
+      if (isNaN(askingPrice) || askingPrice < 0) {
+        return res.status(400).json({ ok: false, error: 'Invalid asking price. Must be a non-negative number.' });
+      }
+    }
+
+    // Optional property_type_id: UUID format + must exist
+    let propertyTypeId = null;
+    if (b.property_type_id) {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(b.property_type_id)) {
+        return res.status(400).json({ ok: false, error: 'Invalid property type ID format.' });
+      }
+      const propertyType = await db.PropertyType.findByPk(b.property_type_id);
+      if (!propertyType) {
+        return res.status(400).json({ ok: false, error: 'Property type not found.' });
+      }
+      propertyTypeId = b.property_type_id;
+    }
+
+    // Optional property_category_id: UUID format + must exist
+    let propertyCategoryId = null;
+    if (b.property_category_id) {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(b.property_category_id)) {
+        return res.status(400).json({ ok: false, error: 'Invalid property category ID format.' });
+      }
+      const propertyCategory = await db.PropertyCategory.findByPk(b.property_category_id);
+      if (!propertyCategory) {
+        return res.status(400).json({ ok: false, error: 'Property category not found.' });
+      }
+      propertyCategoryId = b.property_category_id;
+    }
+
+    // SECURITY: ownership always derived from the authenticated Seller.
+    // Never trust owner_id/status/status_history/reviewed_by from the client.
+    const ownerId = req.user.id;
+    const initialHistory = [{ status: 'under_review', at: new Date().toISOString(), by: ownerId }];
+
+    const property = await db.Property.create({
+      owner_id: ownerId,
+      property_type_id: propertyTypeId,
+      property_category_id: propertyCategoryId,
+      title,
+      description,
+      address,
+      city,
+      state,
+      pincode,
+      latitude,
+      longitude,
+      asking_price: askingPrice,
+      status: 'under_review',
+      status_history: initialHistory,
+    });
+
+    console.log(`[CLIENT] Property created: ${property.id} by seller ${ownerId}`);
+
+    // Safe client-visible response (same allowlist as list/detail).
+    return res.status(201).json({ ok: true, property: safeClientProperty(property) });
+  } catch (err) {
+    console.error('[CLIENT] Property create failed:', err?.message || err);
+    return res.status(502).json({ ok: false, error: 'Unable to create property right now. Please try again later.' });
+  }
 };
 
 // ── GET /api/client/properties (Seller only; owner derived server-side) ──
@@ -49,10 +159,91 @@ export const getProperty = async (req, res) => {
       property: {
         ...safeClientProperty(property),
         images: images.map((img) => ({ id: img.id, url: img.url, caption: img.caption, is_primary: img.is_primary, sort_order: img.sort_order })),
-      },
+            },
     });
   } catch (err) {
     console.error('[CLIENT] Failed to get property:', err?.message || err);
     return res.status(502).json({ ok: false, error: 'Unable to retrieve property right now. Please try again later.' });
+  }
+};
+
+// ── Safe projection for a property image — never expose owner/internal columns ──
+const safeClientImage = (img) => ({
+  id: img.id,
+  url: img.url,
+  caption: img.caption,
+  is_primary: img.is_primary,
+  sort_order: img.sort_order,
+  created_at: img.created_at,
+});
+
+// Remove uploaded temp files from disk. `keep` = paths already persisted to DB.
+const cleanupUploadedFiles = (files, keep = new Set()) => {
+  const list = Array.isArray(files) ? files : files ? [files] : [];
+  for (const f of list) {
+    try {
+      if (f?.path && !keep.has(f.path)) fs.unlinkSync(f.path);
+    } catch {}
+  }
+};
+
+// ── POST /api/client/properties/:id/images (Seller only) ────────────────────────
+// Adds one or more images to a property the authenticated Seller owns. Ownership is
+// resolved as `property.owner_id === req.user.id`; foreign properties 404 so their
+// existence is not disclosed. Reuses the project's `uploadMulti` instance (same
+// disk storage / MIME allow-list / 5 MB per-file cap as the Admin flow) with field
+// name "image". Property ownership, status, reviewed_by and status_history are
+// never written here — they are immutable from this endpoint.
+export const uploadImages = async (req, res) => {
+  const pid = req.params.id;
+  const files = Array.isArray(req.files) ? req.files : req.files ? [req.files] : [];
+  let persistedPaths = new Set();
+
+  try {
+    if (!UUID_RE.test(pid)) {
+      cleanupUploadedFiles(files);
+      return res.status(400).json({ ok: false, error: 'Invalid property ID format.' });
+    }
+
+    // Ownership enforced at the query — only the Seller's own property is accepted.
+    const property = await db.Property.findOne({ where: { id: pid, owner_id: req.user.id } });
+    if (!property) {
+      cleanupUploadedFiles(files);
+      return res.status(404).json({ ok: false, error: 'Property not found.' });
+    }
+
+    if (!files.length) {
+      return res.status(400).json({ ok: false, error: 'No image files provided. Use field name "image".' });
+    }
+
+    const isPrimaryFlag = req.body.is_primary === 'true' || req.body.is_primary === true;
+
+    const lastOrder = await db.PropertyImage.max('sort_order', { where: { property_id: pid } });
+    const baseOrder = (Number.isInteger(lastOrder) && lastOrder > 0 ? lastOrder : 0) + 1;
+
+    // Keep a single primary per property (Seller-only convenience; Admin route untouched).
+    if (isPrimaryFlag) {
+      await db.PropertyImage.update({ is_primary: false }, { where: { property_id: pid, is_primary: true } });
+    }
+
+    const saved = [];
+    for (let i = 0; i < files.length; i += 1) {
+      const image = await db.PropertyImage.create({
+        property_id: pid,
+        url: `/uploads/${files[i].filename}`,
+        caption: clean(req.body.caption, 200) || null,
+        is_primary: isPrimaryFlag && i === 0,
+        sort_order: baseOrder + i,
+      });
+      persistedPaths.add(files[i].path);
+      saved.push(safeClientImage(image));
+    }
+
+    console.log(`[CLIENT] Uploaded ${saved.length} image(s) for property ${pid} by seller ${req.user.id}`);
+    return res.status(201).json({ ok: true, images: saved });
+  } catch (err) {
+    cleanupUploadedFiles(files, persistedPaths);
+    console.error('[CLIENT] Failed to upload property images:', err?.message || err);
+    return res.status(502).json({ ok: false, error: 'Unable to upload images right now. Please try again later.' });
   }
 };
