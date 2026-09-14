@@ -66,6 +66,8 @@ const Enquiry = sequelize.define(
       { fields: ['created_at'] },
       { fields: ['reviewed_by'] },
       { fields: ['phone'] },
+      { fields: ['status', 'created_at'] },
+      { fields: ['email'] },
     ],
   }
 );

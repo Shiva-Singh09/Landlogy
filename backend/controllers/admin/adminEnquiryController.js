@@ -43,13 +43,16 @@ export const listEnquiries = async (req, res) => {
       ];
     }
 
-    // Query with pagination
-    const { count, rows: enquiries } = await db.Enquiry.findAndCountAll({
+    // findAndCountAll: one COUNT + one page of rows on the warm pool
+    // connection. Heavy message column excluded from the list rows.
+    const { count, rows } = await db.Enquiry.findAndCountAll({
       where,
+      attributes: ['id', 'name', 'phone', 'email', 'city', 'intent', 'property_type', 'status', 'reviewed_by', 'notes', 'created_at', 'updated_at'],
       order: [['created_at', 'DESC']],
       limit: limitNum,
       offset,
     });
+    const enquiries = rows;
 
     // Return safe fields only
     const safeEnquiries = enquiries.map((e) => ({

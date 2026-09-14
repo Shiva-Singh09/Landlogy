@@ -312,12 +312,16 @@ export const listProperties = async (req, res) => {
         { address: { [db.Sequelize.Op.iLike]: searchTerm } },
       ];
     }
-    const { count, rows: properties } = await db.Property.findAndCountAll({
+    // findAndCountAll: one COUNT + one page of rows on the warm pool
+    // connection (heavy status_history JSONB excluded from the list).
+    const { count, rows } = await db.Property.findAndCountAll({
       where,
+      attributes: ['id', 'title', 'description', 'city', 'state', 'asking_price', 'status', 'property_type_id', 'property_category_id', 'owner_id', 'reviewed_by', 'created_at', 'updated_at'],
       order: [['created_at', 'DESC']],
       limit: limitNum,
       offset,
     });
+    const properties = rows;
     const safeProperties = properties.map((p) => ({
       id: p.id,
       title: p.title,

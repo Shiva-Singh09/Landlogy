@@ -28,16 +28,24 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
   },
   pool: {
     max: 10,
-    min: 0,
+    min: 2,
     acquire: 30000,
-    idle: 10000,
+    idle: 30000,
+    evict: 10000,
+    // Keep warm connections alive (Supabase remote DB). Eviction every 15s
+    // would otherwise sweep an idle min connection and force a ~9s TLS
+    // handshake onto the next request.
   },
+  keepDefaultTimezone: true,
   dialectOptions: sslEnabled
     ? {
         ssl: {
           require: true,
           rejectUnauthorized: false,
         },
+        // Recycle warm sockets to the remote DB instead of tearing down TLS.
+        keepAlive: true,
+        keepAliveInitialDelayMillis: 10000,
       }
     : {},
 });

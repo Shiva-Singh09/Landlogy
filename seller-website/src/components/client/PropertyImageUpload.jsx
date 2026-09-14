@@ -231,6 +231,10 @@ export function PropertyImageUpload({ propertyId, token, onImagesUploaded, onErr
           onDrop={onDrop}
           onDragOver={onDragOver}
           onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          onClick={() => { const el = document.getElementById(inputId); if (el) el.click(); }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const el = document.getElementById(inputId); if (el) el.click(); } }}
         >
           <div className="image-drop-inner">
             <Upload size={32} className="image-drop-icon" />

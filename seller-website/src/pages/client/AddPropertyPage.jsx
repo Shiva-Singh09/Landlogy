@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { createClientProperty } from '../../api/clientApi';
-import { formatPriceINR } from '../../config/constants';
-import { PropertyImageUpload } from '../../components/client/PropertyImageUpload';
+import { createClientProperty, uploadClientPropertyImage } from '../../api/clientApi';
+import { IMAGE_UPLOAD, formatFileSize, formatPriceINR } from '../../config/constants';
+import { PropertyImageSelector } from '../../components/client/PropertyImageSelector';
 
 const PROPERTY_TYPES = ['Villa', 'Apartment', 'Plot', 'House', 'Commercial', 'Farmhouse', 'Other'];
 const PROPERTY_CATEGORIES = ['Residential', 'Commercial', 'Agricultural', 'Industrial'];
@@ -40,11 +40,26 @@ export function AddPropertyPage({ token, onBack, onSuccess }) {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [uploadPhase, setUploadPhase] = useState('idle'); // idle | uploading | done
+  const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
   const [submitError, setSubmitError] = useState('');
-    const [success, setSuccess] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [success, setSuccess] = useState(false);
   const [createdProperty, setCreatedProperty] = useState(null);
   const [uploadedImages, setUploadedImages] = useState([]);
+  const [failedImages, setFailedImages] = useState([]);
   const [imageUploadError, setImageUploadError] = useState('');
+  const objectUrlsRef = useRef([]);
+
+  // Revoke local preview URLs on unmount.
+  useEffect(() => {
+    const urls = objectUrlsRef.current;
+    return () => { urls.forEach((url) => { try { URL.revokeObjectURL(url); } catch {} }); };
+  }, []);
+
+  const handleSelectionChange = useCallback((next) => {
+    setSelectedImages(next);
+  }, []);
 
   const handleChange = (field) => (event) => {
     const value = event.target.value;
@@ -58,9 +73,43 @@ export function AddPropertyPage({ token, onBack, onSuccess }) {
     }
   };
 
+  const uploadSelectedImages = async (propertyId, images) => {
+    setUploadPhase('uploading');
+    setUploadProgress({ done: 0, total: images.length });
+    setImageUploadError('');
+    const ok = [];
+    const failed = [];
+    for (const entry of images) {
+      try {
+        const uploaded = await uploadClientPropertyImage(propertyId, entry.file, token, {
+          isPrimary: entry.isPrimary,
+        });
+        if (uploaded) ok.push(uploaded);
+      } catch (err) {
+        failed.push({ name: entry.file?.name || 'image' });
+      }
+      setUploadProgress((prev) => ({ done: prev.done + 1, total: images.length }));
+    }
+    setUploadedImages((prev) => [...prev, ...ok]);
+    setFailedImages(failed);
+    if (failed.length > 0) {
+      setImageUploadError(`Property created, but ${failed.length} of ${images.length} image${images.length === 1 ? '' : 's'} could not be uploaded.`);
+    }
+    setUploadPhase('done');
+    return failed.length;
+  };
+
+  const retryFailedUploads = async () => {
+    if (!createdProperty?.id || selectedImages.length === 0) return;
+    const failedNames = new Set(failedImages.map((f) => f.name));
+    const toRetry = selectedImages.filter((entry) => failedNames.has(entry.file?.name));
+    const list = toRetry.length > 0 ? toRetry : selectedImages;
+    await uploadSelectedImages(createdProperty.id, list);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (submitting) return;
+    if (submitting || uploadPhase === 'uploading') return;
 
     const validationErrors = validate(form);
     if (Object.keys(validationErrors).length > 0) {
@@ -70,6 +119,8 @@ export function AddPropertyPage({ token, onBack, onSuccess }) {
 
     setSubmitting(true);
     setSubmitError('');
+    setImageUploadError('');
+    setFailedImages([]);
 
     const payload = {
       title: form.title.trim(),
@@ -85,20 +136,36 @@ export function AddPropertyPage({ token, onBack, onSuccess }) {
       ...(form.longitude ? { longitude: Number(form.longitude) } : {})
     };
 
+    let property = null;
     try {
       const response = await createClientProperty(payload, token);
-      const property = response?.property || response?.data || response;
-      setCreatedProperty(property);
-      setSuccess(true);
+      property = response?.property || response?.data || response;
+      setCreatedProperty(property || null);
     } catch (err) {
       if (err?.code === 'NETWORK') {
         setSubmitError('Unable to reach LANDLOGY services. Please check your connection and try again.');
       } else {
         setSubmitError(err?.message || 'Failed to create property. Please try again.');
       }
-        } finally {
       setSubmitting(false);
+      return;
     }
+
+    const propertyId = property && property.id;
+    if (!propertyId) {
+      setSubmitError('Property was created but no property ID was returned. Please check My Properties.');
+      setSubmitting(false);
+      return;
+    }
+    if (selectedImages.length === 0) {
+      setSubmitting(false);
+      setSuccess(true);
+      return;
+    }
+
+    setSubmitting(false);
+    await uploadSelectedImages(propertyId, selectedImages);
+    setSuccess(true);
   };
 
   if (success) {
@@ -134,39 +201,30 @@ export function AddPropertyPage({ token, onBack, onSuccess }) {
               </p>
             )}
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button type="button" className="btn btn-primary" onClick={() => { setSuccess(false); setForm(initialForm); setCreatedProperty(null); setUploadedImages([]); setImageUploadError(''); }}>
+              <button type="button" className="btn btn-primary" onClick={() => { setSuccess(false); setForm(initialForm); setCreatedProperty(null); setUploadedImages([]); setFailedImages([]); setSelectedImages([]); setUploadPhase('idle'); setImageUploadError(''); }}>
                 Add Another Property
               </button>
             </div>
           </div>
 
-          {/* Step 2: Add property images */}
+          {/* Image upload result — images were selected in the form and uploaded right after creation. */}
           <div className="portal-mini-card" style={{ padding: '28px' }}>
             <div className="section-heading" style={{ marginBottom: '16px' }}>
-              <span className="eyebrow">Step 2</span>
-              <h2 style={{ margin: 0, color: '#192536' }}>Add property images</h2>
+              <span className="eyebrow">Property images</span>
+              <h2 style={{ margin: 0, color: '#192536' }}>Image upload result</h2>
               <p style={{ margin: 0, color: '#5e6c7b', fontSize: '14px', marginTop: '6px' }}>
-                Your property has been created (ID: {createdProperty?.id}). Add images so buyers can see it.
+                Property ID: {createdProperty?.id}
               </p>
             </div>
 
             {imageUploadError && (
-              <div style={{ padding: '12px 16px', borderRadius: '8px', background: '#fff1f2', color: '#7f1d1d', fontSize: '13px', marginBottom: '16px' }}>
-                {imageUploadError}
+              <div style={{ padding: '12px 16px', borderRadius: '8px', background: '#fff1f2', color: '#7f1d1d', fontSize: '13px', marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <span>{imageUploadError}</span>
+                <button type="button" className="btn btn-secondary" onClick={retryFailedUploads}>
+                  Retry Failed Uploads
+                </button>
               </div>
             )}
-
-            <PropertyImageUpload
-              propertyId={createdProperty?.id}
-              token={token}
-              onImagesUploaded={(images) => {
-                setUploadedImages((prev) => [...prev, ...images]);
-                setImageUploadError('');
-              }}
-              onError={(err) => {
-                setImageUploadError(err?.message || 'An error occurred during image upload.');
-              }}
-            />
 
             {uploadedImages.length > 0 && (
               <div style={{ marginTop: '18px', padding: '14px 18px', borderRadius: '10px', background: '#ecfdf3', color: '#037a3c', fontSize: '14px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -176,13 +234,10 @@ export function AddPropertyPage({ token, onBack, onSuccess }) {
             )}
 
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between', marginTop: uploadedImages.length > 0 || imageUploadError ? '18px' : '0', flexWrap: 'wrap' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { setSuccess(false); setForm(initialForm); setCreatedProperty(null); setUploadedImages([]); setImageUploadError(''); }}>
+              <button type="button" className="btn btn-secondary" onClick={() => { setSuccess(false); setForm(initialForm); setCreatedProperty(null); setUploadedImages([]); setFailedImages([]); setSelectedImages([]); setUploadPhase('idle'); setImageUploadError(''); }}>
                 <ArrowLeft size={14} /> Add Another Property
               </button>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <button type="button" className="btn btn-outline" onClick={onSuccess}>
-                  Continue without images
-                </button>
                 <button type="button" className="btn btn-primary" onClick={onSuccess}>
                   View My Properties
                 </button>
@@ -362,12 +417,17 @@ export function AddPropertyPage({ token, onBack, onSuccess }) {
             </div>
           </div>
 
+          <div className="field-group">
+            <label>Property Images</label>
+            <PropertyImageSelector onSelectionChange={handleSelectionChange} disabled={submitting || uploadPhase === 'uploading'} />
+          </div>
+
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px', flexWrap: 'wrap' }}>
-            <button type="button" className="btn btn-secondary" onClick={onBack} disabled={submitting}>
+            <button type="button" className="btn btn-secondary" onClick={onBack} disabled={submitting || uploadPhase === 'uploading'}>
               <ArrowLeft size={14} /> Back
             </button>
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? <><Loader2 size={14} className="spin" /> Submitting...</> : 'Submit Property'}
+            <button type="submit" className="btn btn-primary" disabled={submitting || uploadPhase === 'uploading'}>
+              {submitting ? <><Loader2 size={14} className="spin" /> Creating property...</> : uploadPhase === 'uploading' ? <><Loader2 size={14} className="spin" /> Uploading images</> : 'Submit Property'}
             </button>
           </div>
         </form>

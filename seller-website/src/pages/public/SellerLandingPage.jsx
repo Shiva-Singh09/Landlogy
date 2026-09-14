@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createRoot } from 'react-dom/client';
 import { ArrowUpRight, Bell, Check, ChevronRight, CircleHelp, Download, Eye, EyeOff, FileText, KeyRound, LayoutDashboard, LogOut, Menu, X, Phone, Mail, MapPin, Clock, MessageCircle, Search, ShieldCheck, TrendingUp, Building2, Home, Landmark, Users, Scale, Send, UserRound } from 'lucide-react';
 import logo from '../../assets/Logo.png';
 
@@ -373,42 +372,7 @@ export function SellerLandingPage() {
     return () => document.body.classList.remove('menu-open');
   }, [menu]);
 
-  useEffect(() => {
-    if (!site) return;
-    const mountPoint = document.querySelector('.seller-landing #why-sell');
-    if (!mountPoint || document.querySelector('.seller-capabilities-root')) return;
 
-    const rootElement = document.createElement('div');
-    rootElement.className = 'seller-capabilities-root';
-    mountPoint.parentNode.insertBefore(rootElement, mountPoint);
-
-    const root = createRoot(rootElement);
-    root.render(<SellerCapabilities site={site} />);
-
-    return () => {
-      root.unmount();
-      rootElement.remove();
-    };
-  }, [site]);
-
-  useEffect(() => {
-    const addCapabilityLinks = () => {
-      const nav = document.querySelector('.seller-landing .navlinks');
-      if (nav && !nav.querySelector('[href="#land-aggregation"]')) {
-        nav.insertAdjacentHTML('beforeend', '<a href="#land-aggregation">Land Aggregation</a><a href="#visualization">3D Visualization</a>');
-      }
-
-      const menuRoot = document.querySelector('.seller-landing .seller-mobile-menu');
-      if (menuRoot && !menuRoot.querySelector('[href="#land-aggregation"]')) {
-        menuRoot.insertAdjacentHTML('afterbegin', '<a href="#land-aggregation">Land Aggregation</a><a href="#visualization">3D Visualization</a>');
-      }
-    };
-
-    addCapabilityLinks();
-    const observer = new MutationObserver(addCapabilityLinks);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [menu]);
 
   if (!site) {
     return (
@@ -425,25 +389,8 @@ export function SellerLandingPage() {
     );
   }
 
-  const services = [
-    ['📍', 'Property Assessment', 'Understand your property, its location and its position before deciding the right next step.'],
-    ['📊', 'Pricing & Positioning', 'Use a considered view of the property and market context to prepare a sensible selling strategy.'],
-    ['✓', 'Verification Support', 'Organise relevant property information and documentation before serious promotion begins.'],
-    ['▣', 'Professional Presentation', 'Present the property clearly with a considered description and materials that communicate its value.'],
-    ['◌', 'Relevant Buyer Reach', 'Connect the property with prospective buyers whose requirements are relevant to what it offers.'],
-    ['↗', 'Negotiation & Closing Support', 'Receive guidance through offers, discussions and the closing stages of the sale.'],
-    ['◬', 'Land Aggregation', 'Bring fragmented land opportunities together through structured property intelligence, verification and coordinated strategy.'],
-    ['◫', '3D Property Visualization', 'Present property and space through immersive visualization concepts where multiple angles and spatial understanding add value.'],
-    ['◈', 'Property Intelligence & Presentation', 'Shape a clearer property story using location context, structured information and high-quality presentation.']
-  ];
-
-  const steps = [
-    ['01', 'Tell Us About Your Property', 'Share the essentials so LANDLOGY can understand your property and selling objective.'],
-    ['02', 'LANDLOGY Reviews Your Enquiry', 'Our team reviews the connection request and determines the appropriate next conversation.'],
-    ['03', 'Property Assessment & Verification', 'Relevant property information and documentation are understood and organised.'],
-    ['04', 'Selling Strategy & Preparation', 'We discuss positioning, presentation and practical preparation for the market.'],
-    ['05', 'Marketing, Buyer Reach & Support', 'The property can move forward with relevant outreach and support through the sale.']
-  ];
+  const services = site.sellerServices;
+  const steps = site.sellerSteps;
 
   return (
     <main className="seller-landing">
@@ -575,6 +522,8 @@ export function SellerLandingPage() {
           </div>
         </div>
       </section>
+
+      <SellerCapabilities site={site} />
 
       <section id="why-sell" className="sec-slate">
         <div className="container seller-why-grid">

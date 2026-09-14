@@ -8,13 +8,31 @@
   },
   "nav": {
     "links": [
-      { "label": "Why Sell With LANDLOGY", "href": "#why-sell" },
-      { "label": "How It Works", "href": "#how" },
-      { "label": "Our Services", "href": "#services" },
-      { "label": "Seller Stories", "href": "#stories" },
-      { "label": "Contact", "href": "#contact" }
+      {
+        "label": "Why Sell With LANDLOGY",
+        "href": "#why-sell"
+      },
+      {
+        "label": "How It Works",
+        "href": "#how"
+      },
+      {
+        "label": "Our Services",
+        "href": "#services"
+      },
+      {
+        "label": "Seller Stories",
+        "href": "#stories"
+      },
+      {
+        "label": "Contact",
+        "href": "#contact"
+      }
     ],
-    "primaryCta": { "label": "List Your Property", "href": "#hero" },
+    "primaryCta": {
+      "label": "List Your Property",
+      "href": "#hero"
+    },
     "mobileMenuLabel": "Menu",
     "userLabel": "Find your perfect property"
   },
@@ -24,56 +42,156 @@
     "h1": "Sell your property at the right price.",
     "sub": "From research-backed pricing and verification to professional marketing and closing support — LANDLOGY helps property owners sell with confidence. Tell us about your property and we will handle the rest.",
     "cta": {
-      "primary": { "label": "List Your Property", "size": "lg", "haptic": true },
-      "secondary": { "label": "Get Free Property Valuation", "size": "lg" }
+      "primary": {
+        "label": "List Your Property",
+        "size": "lg",
+        "haptic": true
+      },
+      "secondary": {
+        "label": "Get Free Property Valuation",
+        "size": "lg"
+      }
     },
     "announce": "Ready when you are. Free, no-obligation property assessment.",
     "formDefaultTab": "Sell"
   },
   "heroStats": [
-    { "value": "500+", "label": "Properties listed" },
-    { "value": "15+", "label": "Cities covered" },
-    { "value": "98%", "label": "Client satisfaction" }
+    {
+      "value": "500+",
+      "label": "Properties listed"
+    },
+    {
+      "value": "15+",
+      "label": "Cities covered"
+    },
+    {
+      "value": "98%",
+      "label": "Client satisfaction"
+    }
   ],
   "numbersBand": {
     "title": "What property owners value most",
     "items": [
-      { "label": "Research-led pricing", "value": "Priced to the market", "color": "gold" },
-      { "label": "Verification first", "value": "Title, ownership & documents", "color": "navy" },
-      { "label": "Professional marketing", "value": "Clean listings, buyer reach", "color": "gold" },
-      { "label": "Closing support", "value": "Negotiation to handover", "color": "navy" }
+      {
+        "label": "Research-led pricing",
+        "value": "Priced to the market",
+        "color": "gold"
+      },
+      {
+        "label": "Verification first",
+        "value": "Title, ownership & documents",
+        "color": "navy"
+      },
+      {
+        "label": "Professional marketing",
+        "value": "Clean listings, buyer reach",
+        "color": "gold"
+      },
+      {
+        "label": "Closing support",
+        "value": "Negotiation to handover",
+        "color": "navy"
+      }
     ]
   },
   "services": [
     {
-      "value": "500+",
-      "label": "Properties Listed"
+      "icon": "🏠",
+      "title": "Buy Property",
+      "desc": "Homes, villas, plots, commercial spaces and investment assets across India’s key markets.",
+      "linkLabel": "Find a Property"
     },
     {
-      "value": "15+",
-      "label": "Cities Pan-India"
+      "icon": "↗",
+      "title": "Sell Property",
+      "desc": "Market-led pricing, professional photography, verified buyer network and end-to-end support.",
+      "linkLabel": "List Your Property"
     },
     {
-      "value": "98%",
-      "label": "Client Satisfaction"
+      "icon": "🔑",
+      "title": "Rent & Lease",
+      "desc": "Residential and commercial rental discovery for owners, tenants and corporate clients.",
+      "linkLabel": "Find a Rental"
+    },
+    {
+      "icon": "▦",
+      "title": "3D Visualization",
+      "desc": "Visualize proposed developments, buildings, site plans and property concepts with realistic 3D presentation.",
+      "linkLabel": "Discuss a Concept"
+    },
+    {
+      "icon": "🔍",
+      "title": "Land & Market Research",
+      "desc": "Location intelligence, pricing trends, demand analysis and infrastructure impact studies.",
+      "linkLabel": "Explore Intelligence"
+    },
+    {
+      "icon": "◫",
+      "title": "Land Aggregation",
+      "desc": "Bring suitable land parcels together for larger development and investment opportunities.",
+      "linkLabel": "Discuss Land Strategy"
+    },
+    {
+      "icon": "✅",
+      "title": "Property Verification",
+      "desc": "Title check, document verification, ownership validation and due-diligence workflows.",
+      "linkLabel": "Request Verification"
+    },
+    {
+      "icon": "📈",
+      "title": "Investment Intelligence",
+      "desc": "Opportunity screening, ROI analysis, risk assessment and market benchmarking for investors.",
+      "linkLabel": "Invest Smarter"
+    },
+    {
+      "icon": "🏗️",
+      "title": "Development & R&D",
+      "desc": "Feasibility studies, land procurement strategy and project research for developers.",
+      "linkLabel": "Explore Development"
+    },
+    {
+      "icon": "🤝",
+      "title": "Broker Network",
+      "desc": "A professional network connecting verified brokers, agents and real estate professionals.",
+      "linkLabel": "Join Network"
+    },
+    {
+      "icon": "🏦",
+      "title": "Allied Services",
+      "desc": "Home loans, legal assistance, valuation, interior design, construction and property management.",
+      "linkLabel": "View Services"
     }
   ],
   "networks": [
     {
-      "value": "500+",
-      "label": "Properties Across India"
+      "icon": "🏠",
+      "title": "Owners",
+      "desc": "List your property, reach verified buyers and tenants, and get research-backed pricing guidance."
     },
     {
-      "value": "15+",
-      "label": "Cities Covered"
+      "icon": "💼",
+      "title": "Investors",
+      "desc": "Access research-led opportunities, market intelligence and curated investment-grade assets."
     },
     {
-      "value": "₹200Cr+",
-      "label": "Deals Facilitated"
+      "icon": "🏗️",
+      "title": "Developers",
+      "desc": "Discover land opportunities, understand market demand and get feasibility research support."
     },
     {
-      "value": "1000+",
-      "label": "Happy Clients"
+      "icon": "🤝",
+      "title": "Brokers & Agents",
+      "desc": "Expand your pipeline, access a professional network and grow your real estate business."
+    },
+    {
+      "icon": "👨‍👩‍👧",
+      "title": "Buyers & Tenants",
+      "desc": "Search, compare, verify and connect across residential and commercial property categories."
+    },
+    {
+      "icon": "⚖️",
+      "title": "Service Partners",
+      "desc": "Legal, finance, valuation, construction and property management specialists — connect with clients who need you."
     }
   ],
   "properties": [
@@ -165,7 +283,7 @@
       "verified": true
     }
   ],
-    "team": [
+  "team": [
     {
       "initial": "S",
       "name": "Shiva Singh",
@@ -242,104 +360,78 @@
     "whatsappMessage": "Hi LANDLOGY, I have a property enquiry",
     "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3771.2782085447396!2d72.86508!3d19.0589!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTnCsDAzJzMyLjAiTiA3MsKwNTInMzQuMyJF!5e0!3m2!1sen!2sin!4v1620000000000!5m2!1sen!2sin"
   },
-  "services": [
-    {
-      "icon": "🏠",
-      "title": "Buy Property",
-      "desc": "Homes, villas, plots, commercial spaces and investment assets across India’s key markets.",
-      "linkLabel": "Find a Property"
-    },
-    {
-      "icon": "↗",
-      "title": "Sell Property",
-      "desc": "Market-led pricing, professional photography, verified buyer network and end-to-end support.",
-      "linkLabel": "List Your Property"
-    },
-    {
-      "icon": "🔑",
-      "title": "Rent & Lease",
-      "desc": "Residential and commercial rental discovery for owners, tenants and corporate clients.",
-      "linkLabel": "Find a Rental"
-    },
-        {
-      "icon": "▦",
-      "title": "3D Visualization",
-      "desc": "Visualize proposed developments, buildings, site plans and property concepts with realistic 3D presentation.",
-      "linkLabel": "Discuss a Concept"
-    },
-    {
-      "icon": "🔍",
-      "title": "Land & Market Research",
-      "desc": "Location intelligence, pricing trends, demand analysis and infrastructure impact studies.",
-      "linkLabel": "Explore Intelligence"
-    },
-    {
-      "icon": "◫",
-      "title": "Land Aggregation",
-      "desc": "Bring suitable land parcels together for larger development and investment opportunities.",
-      "linkLabel": "Discuss Land Strategy"
-    },
-    {
-      "icon": "✅",
-      "title": "Property Verification",
-      "desc": "Title check, document verification, ownership validation and due-diligence workflows.",
-      "linkLabel": "Request Verification"
-    },
-    {
-      "icon": "📈",
-      "title": "Investment Intelligence",
-      "desc": "Opportunity screening, ROI analysis, risk assessment and market benchmarking for investors.",
-      "linkLabel": "Invest Smarter"
-    },
-    {
-      "icon": "🏗️",
-      "title": "Development & R&D",
-      "desc": "Feasibility studies, land procurement strategy and project research for developers.",
-      "linkLabel": "Explore Development"
-    },
-    {
-      "icon": "🤝",
-      "title": "Broker Network",
-      "desc": "A professional network connecting verified brokers, agents and real estate professionals.",
-      "linkLabel": "Join Network"
-    },
-    {
-      "icon": "🏦",
-      "title": "Allied Services",
-      "desc": "Home loans, legal assistance, valuation, interior design, construction and property management.",
-      "linkLabel": "View Services"
-    }
+  "sellerServices": [
+    [
+      "📍",
+      "Property Assessment",
+      "Understand your property, its location and its position before deciding the right next step."
+    ],
+    [
+      "📊",
+      "Pricing & Positioning",
+      "Use a considered view of the property and market context to prepare a sensible selling strategy."
+    ],
+    [
+      "✓",
+      "Verification Support",
+      "Organise relevant property information and documentation before serious promotion begins."
+    ],
+    [
+      "▣",
+      "Professional Presentation",
+      "Present the property clearly with a considered description and materials that communicate its value."
+    ],
+    [
+      "◌",
+      "Relevant Buyer Reach",
+      "Connect the property with prospective buyers whose requirements are relevant to what it offers."
+    ],
+    [
+      "↗",
+      "Negotiation & Closing Support",
+      "Receive guidance through offers, discussions and the closing stages of the sale."
+    ],
+    [
+      "◬",
+      "Land Aggregation",
+      "Bring fragmented land opportunities together through structured property intelligence, verification and coordinated strategy."
+    ],
+    [
+      "◫",
+      "3D Property Visualization",
+      "Present property and space through immersive visualization concepts where multiple angles and spatial understanding add value."
+    ],
+    [
+      "◈",
+      "Property Intelligence & Presentation",
+      "Shape a clearer property story using location context, structured information and high-quality presentation."
+    ]
   ],
-  "networks": [
-    {
-      "icon": "🏠",
-      "title": "Owners",
-      "desc": "List your property, reach verified buyers and tenants, and get research-backed pricing guidance."
-    },
-    {
-      "icon": "💼",
-      "title": "Investors",
-      "desc": "Access research-led opportunities, market intelligence and curated investment-grade assets."
-    },
-    {
-      "icon": "🏗️",
-      "title": "Developers",
-      "desc": "Discover land opportunities, understand market demand and get feasibility research support."
-    },
-    {
-      "icon": "🤝",
-      "title": "Brokers & Agents",
-      "desc": "Expand your pipeline, access a professional network and grow your real estate business."
-    },
-    {
-      "icon": "👨‍👩‍👧",
-      "title": "Buyers & Tenants",
-      "desc": "Search, compare, verify and connect across residential and commercial property categories."
-    },
-    {
-      "icon": "⚖️",
-      "title": "Service Partners",
-      "desc": "Legal, finance, valuation, construction and property management specialists — connect with clients who need you."
-    }
+  "sellerSteps": [
+    [
+      "01",
+      "Tell Us About Your Property",
+      "Share the essentials so LANDLOGY can understand your property and selling objective."
+    ],
+    [
+      "02",
+      "LANDLOGY Reviews Your Enquiry",
+      "Our team reviews the connection request and determines the appropriate next conversation."
+    ],
+    [
+      "03",
+      "Property Assessment & Verification",
+      "Relevant property information and documentation are understood and organised."
+    ],
+    [
+      "04",
+      "Selling Strategy & Preparation",
+      "We discuss positioning, presentation and practical preparation for the market."
+    ],
+    [
+      "05",
+      "Marketing, Buyer Reach & Support",
+      "The property can move forward with relevant outreach and support through the sale."
+    ]
   ]
 }

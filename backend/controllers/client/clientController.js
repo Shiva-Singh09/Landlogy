@@ -1,6 +1,8 @@
 import fs from 'fs';
 import db from '../../models/index.js';
-import { safeClientProperty, UUID_RE } from '../../services/client/sellerProvisioning.js';
+import {
+  safeClientProperty, UUID_RE, getCachedPropertyType, getCachedPropertyCategory,
+} from '../../services/client/sellerProvisioning.js';
 import { clean } from '../../utils/validation.js';
 
 // ── GET /api/client/me (Seller only) ─────────────────────────────
@@ -65,26 +67,27 @@ export const createProperty = async (req, res) => {
       }
     }
 
-    // Optional property_type_id: UUID format + must exist
+    // Optional property_type_id: UUID format + must exist. Reference data is
+    // static, so a short in-process cache avoids a DB round-trip per create.
     let propertyTypeId = null;
     if (b.property_type_id) {
       if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(b.property_type_id)) {
         return res.status(400).json({ ok: false, error: 'Invalid property type ID format.' });
       }
-      const propertyType = await db.PropertyType.findByPk(b.property_type_id);
+      const propertyType = await getCachedPropertyType(b.property_type_id);
       if (!propertyType) {
         return res.status(400).json({ ok: false, error: 'Property type not found.' });
       }
       propertyTypeId = b.property_type_id;
     }
 
-    // Optional property_category_id: UUID format + must exist
+    // Optional property_category_id: UUID format + must exist (same cache).
     let propertyCategoryId = null;
     if (b.property_category_id) {
       if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(b.property_category_id)) {
         return res.status(400).json({ ok: false, error: 'Invalid property category ID format.' });
       }
-      const propertyCategory = await db.PropertyCategory.findByPk(b.property_category_id);
+      const propertyCategory = await getCachedPropertyCategory(b.property_category_id);
       if (!propertyCategory) {
         return res.status(400).json({ ok: false, error: 'Property category not found.' });
       }
@@ -123,13 +126,19 @@ export const createProperty = async (req, res) => {
   }
 };
 
+const CLIENT_PROPERTY_ATTRS = ['id', 'owner_id', 'property_type_id', 'property_category_id', 'title', 'description', 'address', 'city', 'state', 'pincode', 'latitude', 'longitude', 'asking_price', 'status', 'created_at', 'updated_at'];
+
 // ── GET /api/client/properties (Seller only; owner derived server-side) ──
 export const listProperties = async (req, res) => {
   try {
     const pageNum = Math.max(1, parseInt(req.query?.page, 10) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(req.query?.limit, 10) || 20));
+    const ownerId = req.user.id;
+    // Single round-trip: findAndCountAll issues the filtered COUNT + the page
+    // rows on the warmed pool connection instead of two sequential queries.
     const { count, rows } = await db.Property.findAndCountAll({
-      where: { owner_id: req.user.id },
+      where: { owner_id: ownerId },
+      attributes: CLIENT_PROPERTY_ATTRS,
       order: [['created_at', 'DESC']],
       limit: limitNum, offset: (pageNum - 1) * limitNum,
     });
@@ -149,11 +158,16 @@ export const getProperty = async (req, res) => {
   try {
     const cid = req.params.id;
     if (!UUID_RE.test(cid)) return res.status(400).json({ ok: false, error: 'Invalid property ID format.' });
-    const property = await db.Property.findOne({ where: { id: cid, owner_id: req.user.id } });
+    // Property and its images are independent reads — fetch in parallel. Non-
+    // owned property still yields a 404; the discarded image rows are never
+    // exposed, so owner scoping is unchanged.
+    const [property, images] = await Promise.all([
+      db.Property.findOne({ where: { id: cid, owner_id: req.user.id }, attributes: CLIENT_PROPERTY_ATTRS }),
+      db.PropertyImage.findAll({
+        where: { property_id: cid }, attributes: ['id', 'url', 'caption', 'is_primary', 'sort_order'], order: [['sort_order', 'ASC'], ['created_at', 'ASC']],
+      }),
+    ]);
     if (!property) return res.status(404).json({ ok: false, error: 'Property not found.' });
-    const images = await db.PropertyImage.findAll({
-      where: { property_id: property.id }, order: [['sort_order', 'ASC'], ['created_at', 'ASC']],
-    });
     return res.json({
       ok: true,
       property: {

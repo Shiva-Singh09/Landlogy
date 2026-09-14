@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import db from '../../models/index.js';
-import { generateToken } from '../../middleware/auth.js';
+import { generateToken, invalidateAuthCache } from '../../middleware/auth.js';
 import { clean } from '../../utils/validation.js';
 
 // ── POST /api/auth/login ──────────────────────────────────────────
@@ -43,9 +43,12 @@ export const login = async (req, res) => {
     // Generate JWT token
     const token = generateToken(user.id, user.role);
 
-    // Update last login timestamp
-    user.last_login_at = new Date();
-    await user.save();
+    // Update last login timestamp after responding. Awaiting this write adds a
+    // full extra DB round-trip (~400ms to the remote DB) to every login, so
+    // fire-and-forget with error logging instead.
+    user.update({ last_login_at: new Date() }).catch((loginErr) => {
+      console.error('[AUTH] Failed to update last_login_at:', loginErr?.message || loginErr);
+    });
 
     console.log(`[AUTH] Login successful: ${user.email} (${user.role})`);
 
@@ -94,6 +97,9 @@ export const setPassword = async (req, res) => {
     user.password_hash = await bcrypt.hash(String(new_password), 10);
     user.force_password_change = false;
     await user.save();
+    // force_password_change changed — drop the cached whoami row so the next
+    // request reflects it immediately instead of after the 60s TTL.
+    invalidateAuthCache(user.id);
     return res.json({ ok: true, message: 'Password updated successfully.', force_password_change: false });
   } catch (err) {
     console.error('[AUTH] set-password failed:', err?.message || err);

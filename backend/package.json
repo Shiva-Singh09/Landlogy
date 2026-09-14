@@ -3,6 +3,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "test": "node --test \"tests/*.test.js\"",
     "db:migrate": "node scripts/migrate.js",
     "db:rollback": "node scripts/migrate.js rollback",
     "db:seed": "node scripts/seed.js",

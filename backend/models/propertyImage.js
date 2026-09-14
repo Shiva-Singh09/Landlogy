@@ -38,6 +38,7 @@ const PropertyImage = sequelize.define(
       { fields: ['property_id'] },
       { fields: ['is_primary'] },
       { fields: ['property_id', 'is_primary'] },
+      { fields: ['property_id', 'sort_order'] },
     ],
   }
 );

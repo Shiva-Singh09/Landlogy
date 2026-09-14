@@ -81,6 +81,8 @@ const Property = sequelize.define(
       { fields: ['property_type_id'] },
       { fields: ['created_at'] },
       { fields: ['asking_price'] },
+      { fields: ['owner_id', 'created_at'] },
+      { fields: ['status', 'created_at'] },
     ],
   }
 );

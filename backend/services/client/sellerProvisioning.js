@@ -10,6 +10,30 @@ const clean = (v, max = 500) => String(v ?? '').trim().slice(0, max);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+// ── Static reference-data cache ──────────────────────────────────────
+// property_types / property_categories change only via migrations/seeds, so a
+// short in-process cache (5 min TTL, id→row map) is safe here and avoids a DB
+// round-trip on every property create that validates these foreign keys.
+// Never used for per-user, enquiry, or auth data.
+const REF_TTL_MS = 5 * 60 * 1000;
+const refCache = {
+  types: { at: 0, byId: new Map() },
+  categories: { at: 0, byId: new Map() },
+};
+
+const loadRefCache = async (kind) => {
+  const entry = kind === 'types' ? refCache.types : refCache.categories;
+  if (Date.now() - entry.at < REF_TTL_MS && entry.byId.size) return entry.byId;
+  const Model = kind === 'types' ? db.PropertyType : db.PropertyCategory;
+  const rows = await Model.findAll({ attributes: ['id', 'name', 'slug', 'is_active'] });
+  entry.byId = new Map(rows.map((r) => [String(r.id), r]));
+  entry.at = Date.now();
+  return entry.byId;
+};
+
+export const getCachedPropertyType = async (id) => (await loadRefCache('types')).get(String(id)) || null;
+export const getCachedPropertyCategory = async (id) => (await loadRefCache('categories')).get(String(id)) || null;
+
 // Strong random temporary password (~14 chars, alphanumeric + suffix).
 export const genTempPassword = () =>
   'Ll-' + crypto.randomBytes(9).toString('base64').replace(/[^A-Za-z0-9]/g, '').slice(0, 10) + '!1A';

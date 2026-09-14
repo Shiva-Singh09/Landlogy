@@ -3,6 +3,36 @@ import db from '../models/index.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 
+// Auth middleware — every protected read passes through here, so keep the
+// per-request lookup minimal: only the columns authorize()/controllers use.
+// password_hash is intentionally never fetched on the hot path.
+// Short-lived (60s) in-process whoami cache. A JWT is presented on EVERY
+// authenticated request and the backing DB is remote (~0.4-0.5s per round
+// trip), so this re-verification lookup is the single largest cost on the
+// read path. Status/role are re-checked on every request by re-reading the
+// cached row; user-mutating writers MUST call invalidateAuthCache(userId) so
+// revocations propagate within seconds.
+const AUTH_WHOAMI_TTL_MS = 60 * 1000;
+const authWhoamiCache = new Map();
+
+const getWhoami = async (userId) => {
+  const key = String(userId);
+  const hit = authWhoamiCache.get(key);
+  if (hit && Date.now() - hit.at < AUTH_WHOAMI_TTL_MS) return hit.row;
+  const row = await db.User.findByPk(userId, {
+    attributes: ['id', 'name', 'email', 'phone', 'role', 'status', 'force_password_change'],
+  });
+  if (row) authWhoamiCache.set(key, { at: Date.now(), row });
+  else authWhoamiCache.delete(key);
+  return row;
+};
+
+export const invalidateAuthCache = (userId) => {
+  if (userId) authWhoamiCache.delete(String(userId));
+  else authWhoamiCache.clear();
+};
+
+
 export const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -12,7 +42,10 @@ export const authenticate = async (req, res, next) => {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await db.User.findByPk(decoded.userId);
+    // The JWT is still verified on every request; only the whoami lookup is
+    // served from the 60s cache (re-checked for active status below). This
+    // removes one remote DB round trip per authenticated read.
+    const user = await getWhoami(decoded.userId);
     if (!user || user.status !== 'active') {
       return res.status(401).json({ ok: false, error: 'Invalid or inactive user.' });
     }
