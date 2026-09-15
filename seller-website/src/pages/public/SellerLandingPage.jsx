@@ -25,39 +25,97 @@ function useReveal(enabled = true, rescan = '') {
   }, [enabled, rescan]);
 }
 
+
+function useMotionVars() {
+  useEffect(() => {
+    const root = document.documentElement;
+    const fine = matchMedia('(pointer:fine)').matches;
+    const still = matchMedia('(prefers-reduced-motion:reduce)').matches;
+    let frame = 0, mx = 0, my = 0, px = 0, py = 0;
+
+    const apply = () => {
+      frame = 0;
+      root.style.setProperty('--mx', mx.toFixed(3));
+      root.style.setProperty('--my', my.toFixed(3));
+      root.style.setProperty('--mxpx', px + 'px');
+      root.style.setProperty('--mypx', py + 'px');
+    };
+
+    const onMove = (e) => {
+      mx = (e.clientX / innerWidth) * 2 - 1;
+      my = (e.clientY / innerHeight) * 2 - 1;
+      px = e.clientX; py = e.clientY;
+      const card = e.target.closest?.('[data-spot]');
+      if (card) {
+        const b = card.getBoundingClientRect();
+        card.style.setProperty('--cx', ((e.clientX - b.left) / b.width) * 100 + '%');
+        card.style.setProperty('--cy', ((e.clientY - b.top) / b.height) * 100 + '%');
+      }
+      if (!frame) frame = requestAnimationFrame(apply);
+    };
+
+    const onScroll = () => {
+      const y = scrollY;
+      const max = document.documentElement.scrollHeight - innerHeight;
+      root.style.setProperty('--sy', y + 'px');
+      root.style.setProperty('--progress', max > 0 ? (y / max).toFixed(4) : '0');
+      document.body.classList.toggle('is-scrolled', y > 24);
+      const stack = document.querySelector('.steps-stack');
+      if (stack) {
+        const b = stack.getBoundingClientRect();
+        const p = (innerHeight * 0.62 - b.top) / b.height;
+        stack.style.setProperty('--rail', Math.max(0, Math.min(1, p)).toFixed(3));
+      }
+    };
+
+    if (fine && !still) addEventListener('mousemove', onMove, { passive: true });
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    return () => {
+      removeEventListener('mousemove', onMove);
+      removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+}
 function useCounters(enabled = true) {
   useEffect(() => {
     if (!enabled) return;
-    const elements = document.querySelectorAll('.counter');
-    const parse = (value) => Number(value.replace(/[^0-9.]/g, ''));
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting || entry.target.dataset.done) return;
-          entry.target.dataset.done = '1';
-          const raw = entry.target.dataset.target;
-          const targetNumber = parse(raw);
-          const prefix = raw.trim().startsWith('₹') ? '₹' : '';
-          const suffix = raw.includes('Cr') ? 'Cr+' : raw.includes('%') ? '%' : raw.includes('+') ? '+' : '';
-          let start = 0;
-          const startTime = performance.now();
-          const tick = (now) => {
-            const progress = Math.min((now - startTime) / 1300, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            entry.target.textContent = prefix + (targetNumber % 1 ? targetNumber * eased : Math.round(targetNumber * eased)) + suffix;
-            if (progress < 1) requestAnimationFrame(tick);
-          };
-          requestAnimationFrame(tick);
-        });
-      },
-      { threshold: 0.7 }
-    );
+    const still = matchMedia('(prefers-reduced-motion:reduce)').matches;
+    const nodes = document.querySelectorAll('.counter:not([data-done])');
 
-    elements.forEach((element) => observer.observe(element));
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        observer.unobserve(el);
+        el.dataset.done = '1';
+
+        const raw = el.dataset.target || el.textContent;
+        const match = raw.match(/^([^\d]*)([\d.]+)(.*)$/);
+        if (!match) return;
+        const [, prefix, numStr, suffix] = match;
+        const target = parseFloat(numStr);
+        const decimals = (numStr.split('.')[1] || '').length;
+
+        if (still) { el.textContent = raw; return; }
+
+        const start = performance.now();
+        const tick = (now) => {
+          const p = Math.min((now - start) / 1400, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = prefix + (target * eased).toFixed(decimals) + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    }, { threshold: 0.6 });
+
+    nodes.forEach((n) => observer.observe(n));
     return () => observer.disconnect();
   }, [enabled]);
 }
-
 function useSiteData() {
   const [site, setSite] = useState(null);
   const [error, setError] = useState(null);
@@ -362,10 +420,63 @@ function SellerCapabilities({ site }) {
   );
 }
 
+function Listings({ site }) {
+  const [filter, setFilter] = useState('all');
+  useReveal(true, filter);
+
+  const tabs = [['all', 'All'], ['sale', 'For Sale'], ['rent', 'For Rent'], ['invest', 'Investment']];
+  const shown = filter === 'all' ? site.properties : site.properties.filter((p) => p.category === filter);
+
+  return (
+    <section id="listings">
+      <div className="container">
+        <div className="sec-head" data-reveal>
+          <span className="eyebrow">Listed With LANDLOGY</span>
+          <h2>Properties moving through our process.</h2>
+          <p>A view of the kinds of properties owners bring to LANDLOGY — across categories, cities and price ranges.</p>
+        </div>
+        <div className="listings-filter" data-reveal>
+          {tabs.map(([key, label]) => (
+            <button key={key} type="button" className={`ftag ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="listings-grid">
+          {shown.map((p) => (
+            <article className="prop-card" data-reveal data-spot key={p.title}>
+              <div className="prop-img">
+                <span>{p.icon}</span>
+                <span className="image-shine" />
+                <span className={`prop-badge ${p.category}`}>{p.badge}</span>
+              </div>
+              <div className="prop-body">
+                <h3>{p.title}</h3>
+                <p className="prop-loc">{p.location}</p>
+                <div className="prop-specs">{p.specs.map((s) => <span key={s}>{s}</span>)}</div>
+                <div className="prop-price">{p.price} <small>{p.priceSuffix}</small></div>
+              </div>
+              <div className="prop-footer">
+                {p.verified && <span className="verified-tag"><Check size={11} /> Verified</span>}
+                <a href="#contact">Enquire <ArrowUpRight size={13} /></a>
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className="listings-cta" data-reveal>
+          <a href="#contact" className="btn btn-primary">List Your Property <ArrowUpRight size={15} /></a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function SellerLandingPage() {
   const [menu, setMenu] = useState(false);
-  const { site, error, load } = useSiteData();
-  useReveal(!!site);
+const { site, error, load } = useSiteData();
+useReveal(!!site);
+useMotionVars();
+useCounters(!!site);
 
   useEffect(() => {
     document.body.classList.toggle('menu-open', menu);
@@ -401,6 +512,8 @@ export function SellerLandingPage() {
             <a href="#how-it-works">How It Works</a>
             <a href="#services">Our Services</a>
             <a href="#why-sell">Why LANDLOGY</a>
+               <a href="#listings">Properties</a>
+            <a href="#who-we-serve">Who We Serve</a>
             <a href="#team">Our Team</a>
             <a href="#contact">Contact</a>
           </div>
@@ -413,13 +526,16 @@ export function SellerLandingPage() {
             {menu ? <X /> : <Menu />}
           </button>
         </div>
+        <span className="nav-progress" aria-hidden="true" />
       </nav>
 
       {menu && (
         <div className="mobile-menu seller-mobile-menu">
           <a href="#how-it-works" onClick={() => setMenu(false)}>How It Works</a>
           <a href="#services" onClick={() => setMenu(false)}>Our Services</a>
-          <a href="#why-sell" onClick={() => setMenu(false)}>Why LANDLOGY</a>
+                 <a href="#why-sell" onClick={() => setMenu(false)}>Why LANDLOGY</a>
+                   <a href="#listings" onClick={() => setMenu(false)}>Properties</a>
+          <a href="#who-we-serve" onClick={() => setMenu(false)}>Who We Serve</a>
           <a href="#team" onClick={() => setMenu(false)}>Our Team</a>
           <a href="#contact" onClick={() => setMenu(false)}>Contact</a>
           <a className="client-login-link" href="/client-login">Client Login</a>
@@ -431,20 +547,31 @@ export function SellerLandingPage() {
         <div className="seller-hero-backdrop" />
         <div className="container seller-hero-inner">
           <div className="seller-hero-copy" data-reveal>
-            <span className="eyebrow">For Property Owners Across India</span>
-            <h1>Sell Your Property<br /><span>With Confidence.</span></h1>
-            <p>LANDLOGY helps property owners sell through a structured process, considered positioning, clear presentation and support at every important step.</p>
-            <div className="hero-actions">
-              <a href="#contact" className="btn btn-primary">List Your Property <ArrowUpRight size={16} /></a>
-              <a href="#how-it-works" className="btn btn-outline">See How It Works <ChevronRight size={16} /></a>
-            </div>
-            <div className="seller-trust-strip">
-              <span>Research-led approach</span>
-              <span>Verification support</span>
-              <span>Professional presentation</span>
-              <span>Guided selling process</span>
-            </div>
-          </div>
+  <span className="eyebrow">For Property Owners Across India</span>
+  <h1>
+    <span className="reveal-line"><span>Sell Your Property</span></span>
+    <span className="reveal-line"><span className="accent">With Confidence.</span></span>
+  </h1>
+  <p>LANDLOGY helps property owners sell through a structured process, considered positioning, clear presentation and support at every important step.</p>
+  <div className="hero-actions">
+    <Magnetic href="#contact" className="btn-primary">List Your Property <ArrowUpRight size={16} /></Magnetic>
+    <Magnetic href="#how-it-works" className="btn-outline">See How It Works <ChevronRight size={16} /></Magnetic>
+  </div>
+  <div className="seller-hero-stats">
+    {site.heroStats.map((stat) => (
+      <div className="sh-stat" key={stat.label}>
+        <strong className="counter" data-target={stat.value}>0</strong>
+        <span>{stat.label}</span>
+      </div>
+    ))}
+  </div>
+  <div className="seller-trust-strip">
+    <span>Research-led approach</span>
+    <span>Verification support</span>
+    <span>Professional presentation</span>
+    <span>Guided selling process</span>
+  </div>
+</div>
           <div className="hero-card seller-enquiry-card" data-reveal>
             <div className="hero-card-title">Tell Us About Your Property</div>
             <p className="seller-card-sub">Start with a property-selling enquiry. LANDLOGY will review the information you share.</p>
@@ -462,7 +589,7 @@ export function SellerLandingPage() {
           </div>
           <div className="seller-pain-grid">
             {['Uncertainty about the right price', 'Unqualified or irrelevant enquiries', 'Property information and documents', 'Presenting the property properly', 'Negotiation and closing decisions', 'Knowing the right next step'].map((item, index) => (
-              <article className="seller-pain-card" data-reveal key={item}>
+             <article className="seller-pain-card" data-reveal data-spot key={item}>
                 <span>0{index + 1}</span>
                 <h3>{item}</h3>
                 <p>Start with a clearer, more informed way to approach this part of selling.</p>
@@ -490,14 +617,19 @@ export function SellerLandingPage() {
             <h2>A clearer way to sell your property.</h2>
             <p>Five high-level steps explain what happens from your first enquiry through preparation and support.</p>
           </div>
-          <div className="seller-steps">
-            {steps.map(([number, title, text]) => (
-              <article data-reveal key={number}>
-                <span>{number}</span>
-                <h3>{title}</h3>
-                <p>{text}</p>
-              </article>
-            ))}
+          <div className="steps-stack">
+            <div className="steps-rail" aria-hidden="true"><span /></div>
+            <div className="steps-list">
+              {steps.map(([number, title, text], i) => (
+                <article className="step-row" data-reveal key={number} style={{ '--i': i }}>
+                  <span className="step-num">{number}</span>
+                  <div>
+                    <h3>{title}</h3>
+                    <p>{text}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -511,7 +643,7 @@ export function SellerLandingPage() {
           </div>
           <div className="services-grid">
             {services.map(([icon, title, text], index) => (
-              <article className="svc-card seller-service-card" data-reveal key={title}>
+             <article className="svc-card seller-service-card" data-reveal data-spot key={title}>
                 <div className="svc-icon">{icon}</div>
                 <h3>{title}</h3>
                 <p>{text}</p>
@@ -550,19 +682,95 @@ export function SellerLandingPage() {
         </div>
       </section>
 
+      
+      <Listings site={site} />
+
+         <section id="who-we-serve" className="sec-navy">
+        <div className="container">
+          <div className="sec-head" data-reveal>
+            <span className="eyebrow">Who We Work With</span>
+            <h2 className="dark-title">Built around the people in every property decision.</h2>
+            <p>LANDLOGY brings owners, investors, developers and professionals into one structured process.</p>
+          </div>
+          <div className="network-grid" data-reveal-stagger>
+            {site.networks.map((n) => (
+              <article className="ncard" data-reveal data-spot key={n.title}>
+                <div className="ncard-icon">{n.icon}</div>
+                <h3>{n.title}</h3>
+                <p>{n.desc}</p>
+                <ArrowUpRight className="narrow" size={17} />
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="team">
         <div className="container">
           <div className="sec-head" data-reveal>
-            <span className="eyebrow">Our Approach</span>
-            <h2>Professional support, focused on your property.</h2>
-            <p>LANDLOGY brings the relevant conversations together so property owners can understand what is needed before moving ahead.</p>
+            <span className="eyebrow">The LANDLOGY Team</span>
+            <h2>The people who handle your property.</h2>
+            <p>Every enquiry is reviewed by a small, accountable team — research, advisory, verification and strategy in one place.</p>
           </div>
-          <div className="seller-team-note" data-reveal>
-            <div className="portal-mark">L</div>
-            <div>
-              <h3>One clear conversation to begin</h3>
-              <p>Tell us about your property, location and selling objective. The LANDLOGY team will review your enquiry before any later client access or property workflow begins.</p>
-            </div>
+          <div className="team-grid" data-reveal-stagger>
+            {site.team.map((member) => (
+              <article className="team-card" data-reveal key={member.name}>
+                <div className="team-avatar">
+                  <span>{member.initial}</span>
+                  {member.photo && (
+                    <img
+                      className="team-photo"
+                      src={member.photo}
+                      alt={member.name}
+                      loading="lazy"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  )}
+                </div>
+                <div className="team-card-body">
+                  <h3>{member.name}</h3>
+                  <p className="role">{member.role}<span>{member.detail}</span></p>
+                  <p className="focus">{member.focus}</p>
+                  <p className="team-bio">{member.bio}</p>
+                </div>
+                <div className="team-card-meta">
+                  <span className="team-marker">{member.marker}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="trust-strip" data-reveal>
+            <span>✓ Single point of contact</span>
+            <span>✓ Enquiries reviewed before onboarding</span>
+            <span>✓ Documentation handled in-house</span>
+            <span>✓ Support through to closing</span>
+          </div>
+          <div className="team-cta" data-reveal>
+            <a href="#contact" className="btn btn-primary">Speak With The Team <ArrowUpRight size={15} /></a>
+          </div>
+        </div>
+      </section>
+
+      <section id="stories" className="sec-slate">
+        <div className="container">
+          <div className="sec-head" data-reveal>
+            <span className="eyebrow">In Their Words</span>
+            <h2>What people say about working with us.</h2>
+          </div>
+          <div className="testi-grid" data-reveal-stagger>
+            {site.reviews.map((review) => (
+              <article className="testi-card" data-reveal key={review.name}>
+                <div className="stars" aria-label={`${review.rating} out of 5`}>{'★'.repeat(review.rating)}</div>
+                <blockquote>{review.text}</blockquote>
+                <div className="testi-author">
+                  <div className="tav">{review.initial}</div>
+                  <div>
+                    <strong>{review.name}</strong>
+                    <span>{review.role}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -580,7 +788,10 @@ export function SellerLandingPage() {
                 <Info icon={<Phone />} title="Call / WhatsApp"><a href={`tel:${site.contact.phoneRaw}`}>{site.contact.phone}</a></Info>
                 <Info icon={<Mail />} title="Email Us"><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></Info>
                 <Info icon={<MapPin />} title="Head Office">{site.contact.address}</Info>
-                <Info icon={<Clock />} title="Working Hours">{site.contact.workingHours.weekday}<br />{site.contact.workingHours.sunday}</Info>
+                              <Info icon={<Clock />} title="Working Hours">{site.contact.workingHours.weekday}<br />{site.contact.workingHours.sunday}</Info>
+              </div>
+              <div className="map-wrap">
+                <iframe src={site.contact.mapEmbedUrl} title="LANDLOGY office location" loading="lazy" allowFullScreen referrerPolicy="no-referrer-when-downgrade" />
               </div>
             </div>
             <div className="contact-form" data-reveal>
