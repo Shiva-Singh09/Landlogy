@@ -420,57 +420,6 @@ function SellerCapabilities({ site }) {
   );
 }
 
-function Listings({ site }) {
-  const [filter, setFilter] = useState('all');
-  useReveal(true, filter);
-
-  const tabs = [['all', 'All'], ['sale', 'For Sale'], ['rent', 'For Rent'], ['invest', 'Investment']];
-  const shown = filter === 'all' ? site.properties : site.properties.filter((p) => p.category === filter);
-
-  return (
-    <section id="listings">
-      <div className="container">
-        <div className="sec-head" data-reveal>
-          <span className="eyebrow">Listed With LANDLOGY</span>
-          <h2>Properties moving through our process.</h2>
-          <p>A view of the kinds of properties owners bring to LANDLOGY — across categories, cities and price ranges.</p>
-        </div>
-        <div className="listings-filter" data-reveal>
-          {tabs.map(([key, label]) => (
-            <button key={key} type="button" className={`ftag ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>
-              {label}
-            </button>
-          ))}
-        </div>
-        <div className="listings-grid">
-          {shown.map((p) => (
-            <article className="prop-card" data-reveal data-spot key={p.title}>
-              <div className="prop-img">
-                <span>{p.icon}</span>
-                <span className="image-shine" />
-                <span className={`prop-badge ${p.category}`}>{p.badge}</span>
-              </div>
-              <div className="prop-body">
-                <h3>{p.title}</h3>
-                <p className="prop-loc">{p.location}</p>
-                <div className="prop-specs">{p.specs.map((s) => <span key={s}>{s}</span>)}</div>
-                <div className="prop-price">{p.price} <small>{p.priceSuffix}</small></div>
-              </div>
-              <div className="prop-footer">
-                {p.verified && <span className="verified-tag"><Check size={11} /> Verified</span>}
-                <a href="#contact">Enquire <ArrowUpRight size={13} /></a>
-              </div>
-            </article>
-          ))}
-        </div>
-        <div className="listings-cta" data-reveal>
-          <a href="#contact" className="btn btn-primary">List Your Property <ArrowUpRight size={15} /></a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export function SellerLandingPage() {
   const [menu, setMenu] = useState(false);
 const { site, error, load } = useSiteData();
@@ -512,7 +461,7 @@ useCounters(!!site);
             <a href="#how-it-works">How It Works</a>
             <a href="#services">Our Services</a>
             <a href="#why-sell">Why LANDLOGY</a>
-               <a href="#listings">Properties</a>
+               
             <a href="#who-we-serve">Who We Serve</a>
             <a href="#team">Our Team</a>
             <a href="#contact">Contact</a>
@@ -534,7 +483,7 @@ useCounters(!!site);
           <a href="#how-it-works" onClick={() => setMenu(false)}>How It Works</a>
           <a href="#services" onClick={() => setMenu(false)}>Our Services</a>
                  <a href="#why-sell" onClick={() => setMenu(false)}>Why LANDLOGY</a>
-                   <a href="#listings" onClick={() => setMenu(false)}>Properties</a>
+        
           <a href="#who-we-serve" onClick={() => setMenu(false)}>Who We Serve</a>
           <a href="#team" onClick={() => setMenu(false)}>Our Team</a>
           <a href="#contact" onClick={() => setMenu(false)}>Contact</a>
@@ -683,7 +632,7 @@ useCounters(!!site);
       </section>
 
       
-      <Listings site={site} />
+      
 
          <section id="who-we-serve" className="sec-navy">
         <div className="container">
@@ -751,29 +700,6 @@ useCounters(!!site);
         </div>
       </section>
 
-      <section id="stories" className="sec-slate">
-        <div className="container">
-          <div className="sec-head" data-reveal>
-            <span className="eyebrow">In Their Words</span>
-            <h2>What people say about working with us.</h2>
-          </div>
-          <div className="testi-grid" data-reveal-stagger>
-            {site.reviews.map((review) => (
-              <article className="testi-card" data-reveal key={review.name}>
-                <div className="stars" aria-label={`${review.rating} out of 5`}>{'★'.repeat(review.rating)}</div>
-                <blockquote>{review.text}</blockquote>
-                <div className="testi-author">
-                  <div className="tav">{review.initial}</div>
-                  <div>
-                    <strong>{review.name}</strong>
-                    <span>{review.role}</span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <section id="contact">
         <div className="container">

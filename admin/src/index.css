@@ -1,22 +1,39 @@
-:root {
-  --navy: #151f2e;
-  --navy-light: #1e293b;
-  --gold: #c8922a;
-  --gold-light: #f5e6cc;
-  --slate: #f4f6f9;
-  --text: #3d4a5c;
-  --muted: #718096;
-  --white: #ffffff;
-  --border: #e2e8f0;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --info: #3b82f6;
-  --radius: 8px;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-}
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&display=swap');
 
+:root {
+  /* Modern Premium — matches seller site */
+  --ink: #191724;
+  --indigo: #45206B;
+  --amber: #FFB400;
+  --amber-lt: #FFF3D6;
+  --emerald: #00A884;
+  --blue: #3867FF;
+  --coral: #FF5A5F;
+  --stone: #F7F7F9;
+
+  /* legacy aliases so nothing breaks */
+  --navy: var(--ink);
+  --navy-light: var(--indigo);
+  --gold: var(--amber);
+  --gold-light: var(--amber-lt);
+  --slate: var(--stone);
+
+  --text: #4a4458;
+  --muted: #7b7489;
+  --white: #ffffff;
+  --border: #e7e5ec;
+  --success: var(--emerald);
+  --warning: var(--amber);
+  --danger: var(--coral);
+  --info: var(--blue);
+
+  --serif: 'DM Serif Display', Georgia, serif;
+  --sans: Manrope, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(25,23,36,.07), 0 1px 2px rgba(25,23,36,.04);
+  --shadow-lg: 0 10px 30px rgba(25,23,36,.09), 0 2px 6px rgba(25,23,36,.05);
+}
 * {
   margin: 0;
   padding: 0;
@@ -24,7 +41,7 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-family: var(--sans);
   background: var(--slate);
   color: var(--text);
   line-height: 1.5;
@@ -32,7 +49,7 @@ body {
 }
 
 h1, h2, h3 {
-  font-family: 'DM Serif Display', 'Inter', Georgia, serif;
+  font-family: var(--serif);
   font-weight: 400;
   letter-spacing: 0.01em;
 }
@@ -302,7 +319,7 @@ input:focus, select:focus, textarea:focus {
 .dash-kpi-label { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 600; }
 .dash-kpi-value { font-family: 'DM Serif Display', 'Inter', Georgia, serif; font-size: 2.25rem; line-height: 1; color: var(--navy); }
 .dash-kpi-foot { font-size: 0.75rem; color: var(--muted); }
-.dash-split, .dash-lower { display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.75rem; margin: 4rem 0 2rem 0; align-items: start;border: 1px solid var(--border); background: var(--white); box-shadow: 0 1px 2px rgba(21, 31, 46, 0.04); border-radius: var(--radius); overflow: hidden; }
+.dash-split, .dash-lower { display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.5rem; margin: 1.5rem 0; align-items: start; }
 .dash-panel { background: var(--white); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(21, 31, 46, 0.04); animation: dash-rise 0.5s ease both; overflow: hidden; }
 .dash-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.35rem; border-bottom: 1px solid var(--border); }
 .dash-panel-head h2 { font-size: 1.15rem; color: var(--navy); }
@@ -416,3 +433,129 @@ input:focus, select:focus, textarea:focus {
   .dash-attention-item, .dash-prop { flex-wrap: wrap; }
   .dash-attention-cta { display: none; }
 }
+
+
+
+
+/* ═══════════ LANDLOGY admin — unified pass ═══════════ */
+
+/* ── ribbon (was navy-on-navy) ── */
+.ribbon-brand { color: #fff; }
+.ribbon-brand em { color: rgba(255,255,255,.55); }
+.ribbon-name { color: var(--amber); }
+.ribbon-role { color: rgba(255,255,255,.55); }
+.ribbon-avatar { background: linear-gradient(135deg, var(--indigo), var(--blue)); color: #fff; border-color: rgba(255,255,255,.2); }
+.top-ribbon { border-bottom: 0; box-shadow: 0 1px 0 rgba(255,255,255,.08); }
+.ribbon-right .btn-secondary { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18); color: #fff; }
+.ribbon-right .btn-secondary:hover:not(:disabled) { background: rgba(255,255,255,.16); }
+
+/* ── sidebar ── */
+.sidebar-header h1 { font-family: var(--serif); color: var(--amber); }
+.nav-link.active { color: var(--amber); background: rgba(255,180,0,.1); border-left-color: var(--amber); }
+
+/* ── one status system everywhere ── */
+.badge,
+.dash-status {
+  display: inline-block;
+  padding: .25rem .6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: var(--sans);
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge-new,        .dash-status.is-new,
+.badge-under_review, .dash-status.is-under_review,
+.badge-converted,  .dash-status.is-converted
+  { background: var(--amber-lt); border-color: #f2ddad; color: #8a5f00; }
+
+.badge-active,     .dash-status.is-active,
+.badge-reviewed,   .dash-status.is-reviewed
+  { background: #E4F7F1; border-color: #b7ecd3; color: #067a60; }
+
+.badge-sold,       .dash-status.is-sold
+  { background: #E8EEFF; border-color: #ccd9ff; color: #1d3fbf; }
+
+.badge-draft,      .dash-status.is-draft,
+.badge-archived,   .dash-status.is-archived,
+.badge-inactive,   .dash-status.is-inactive
+  { background: var(--stone); border-color: var(--border); color: var(--muted); }
+
+.badge-rejected,   .dash-status.is-rejected
+  { background: #FFECED; border-color: #ffd0d2; color: #b3252a; }
+
+/* ── buttons ── */
+.btn-primary { background: var(--amber); color: var(--ink); font-weight: 700; }
+.btn-primary:hover:not(:disabled) { background: #FFC94A; }
+.btn-danger { background: var(--coral); }
+.btn-danger:hover:not(:disabled) { background: #f0464b; }
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(255,180,0,.14);
+}
+
+/* ── dashboard ── */
+.dash-eyebrow { color: var(--amber); }
+.dash-title, .dash-kpi-value, .dash-donut-hole strong { font-family: var(--serif); color: var(--ink); }
+.dash-kpi.is-gold::after { background: var(--amber); }
+.dash-kpi.is-warning::after { background: var(--blue); }
+.dash-kpi.is-success::after { background: var(--emerald); }
+.dash-kpis { border-radius: var(--radius); }
+.dash-panel { border-radius: var(--radius); }
+.dash-panel-link { color: var(--blue); }
+.dash-attention-icon { background: var(--amber-lt); border-color: #f2ddad; color: var(--ink); border-radius: 8px; }
+.dash-attention-cta { color: var(--blue); }
+.dash-clear { background: #E4F7F1; color: #067a60; }
+.dash-quick-btn.is-primary { background: var(--ink); }
+.dash-quick-btn.is-primary .dash-quick-note { color: var(--amber-lt); }
+.dash-quick-btn.is-primary:hover { background: var(--indigo); }
+.dash-cell-link:hover { color: var(--blue); }
+
+/* ── make .data-table behave like .dash-table ── */
+.table-container { border: 1px solid var(--border); box-shadow: none; }
+.data-table th {
+  background: var(--stone);
+  font-family: var(--sans);
+  font-size: .6875rem;
+  letter-spacing: .1em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.data-table td { vertical-align: middle; }
+.data-table tr:hover { background: var(--stone); }
+
+@media (max-width: 768px) {
+  .sidebar { top: 56px; }
+  .data-table thead { display: none; }
+  .data-table, .data-table tbody, .data-table tr, .data-table td { display: block; width: 100%; }
+  .data-table tr { padding: .85rem 1rem; border-bottom: 1px solid var(--border); }
+  .data-table tr:last-child { border-bottom: none; }
+  .data-table td { padding: .2rem 0; border: none; }
+  .data-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: .625rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+}
+
+/* ── sidebar footer ── */
+.sidebar-footer { display: flex; flex-direction: column; gap: .6rem; }
+.user-name { text-transform: capitalize; }
+.sidebar-site { font-size: .8125rem; color: var(--amber); font-weight: 600; }
+.sidebar-site:hover { text-decoration: underline; }
+.sidebar-version { font-size: .625rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.3); }
+
+/* ── polish ── */
+.dash-date { border-radius: 999px; }
+.dash-sub { text-transform: none; }
+.dash-sub strong, .ribbon-name { text-transform: capitalize; }
+.ribbon-name { text-transform: capitalize; }

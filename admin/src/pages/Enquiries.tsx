@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getEnquiries, Enquiry } from '../api/enquiries';
+import { getEnquiries } from '../api/enquiries';
+import type { Enquiry } from '../api/enquiries';
 
 export default function Enquiries() {
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
@@ -31,7 +32,23 @@ export default function Enquiries() {
   };
 
   useEffect(() => {
-    fetchEnquiries();
+    let active = true;
+    (async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await getEnquiries({ page, limit: 10, status: statusFilter || undefined, search: search || undefined });
+        if (!active) return;
+        setEnquiries(res.enquiries);
+        setTotalPages(res.pagination.totalPages);
+      } catch (err) {
+        if (active) setError(err instanceof Error ? err.message : 'Failed to load enquiries');
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, statusFilter]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -93,16 +110,16 @@ export default function Enquiries() {
             <tbody>
               {enquiries.map((enquiry) => (
                 <tr key={enquiry.id}>
-                  <td><strong>{enquiry.name}</strong></td>
-                  <td>
+                           <td data-label="Name"><strong>{enquiry.name}</strong></td>
+                  <td data-label="Contact">
                     <div>{enquiry.phone}</div>
                     {enquiry.email && <div className="text-muted">{enquiry.email}</div>}
                   </td>
-                  <td>{enquiry.city || '-'}</td>
-                  <td>{enquiry.intent || '-'}</td>
-                  <td><span className={`badge badge-${enquiry.status}`}>{enquiry.status}</span></td>
-                  <td>{new Date(enquiry.created_at).toLocaleDateString()}</td>
-                  <td>
+                  <td data-label="City">{enquiry.city || '—'}</td>
+                  <td data-label="Intent">{enquiry.intent?.replace(/_/g, ' ') || '—'}</td>
+                  <td data-label="Status"><span className={`badge badge-${enquiry.status}`}>{enquiry.status.replace(/_/g, ' ')}</span></td>
+                  <td data-label="Received">{new Date(enquiry.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                  <td data-label="">
                     <Link to={`/enquiries/${enquiry.id}`} className="btn-secondary btn-sm">View</Link>
                   </td>
                 </tr>

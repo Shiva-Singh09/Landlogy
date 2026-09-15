@@ -25,10 +25,7 @@ export default function Layout() {
       <header className="top-ribbon">
         <div className="ribbon-left">
           <button className="mobile-menu" onClick={() => setOpen(true)} aria-label="Open navigation">☰</button>
-          <div className="sidebar-header">
-          <h1>LANDLOGY</h1>
-          <span className="sidebar-subtitle">Admin Panel</span>
-        </div>
+                 <span className="ribbon-brand">LANDLOGY<em>Admin</em></span>
         </div>
         <div className="ribbon-right">
           <span className="ribbon-avatar" aria-hidden="true">{initials}</span>
@@ -51,10 +48,18 @@ export default function Layout() {
           <NavLink onClick={() => setOpen(false)} to="/properties" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             Properties
           </NavLink>
-          <NavLink onClick={() => setOpen(false)} to="/settings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+             <NavLink onClick={() => setOpen(false)} to="/settings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             Settings
           </NavLink>
         </nav>
+        <div className="sidebar-footer">
+          <div className="user-info">
+            <span className="user-name">{user?.name}</span>
+            <span className="user-role">{user?.role}</span>
+          </div>
+          <a className="sidebar-site" href="/" target="_blank" rel="noreferrer">View seller site ↗</a>
+          <span className="sidebar-version">LANDLOGY · Phase 1</span>
+        </div>
       </aside>
       <main className="main-content">
         <Outlet />
