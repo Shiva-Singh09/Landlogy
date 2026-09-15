@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowUpRight, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import logo from '../../assets/Logo.png';
 import { useClientAuth } from '../../hooks/useClientAuth';
+import { navigate } from '../../utils/bus';
 
 export function ClientLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,8 +14,8 @@ export function ClientLoginPage() {
   const { isAuthenticated, login } = useClientAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      window.location.replace('/client-portal');
+        if (isAuthenticated) {
+      navigate('/client-portal');
     }
   }, [isAuthenticated]);
 
@@ -35,8 +36,8 @@ export function ClientLoginPage() {
 
     setLoading(true);
     try {
-      await login(id, password, remember);
-      window.location.href = '/client-portal';
+            await login(id, password, remember);
+      navigate('/client-portal');
     } catch (err) {
       if (err && err.code === 'NETWORK') {
         setError('Unable to reach LANDLOGY services. Please check your connection and try again.');

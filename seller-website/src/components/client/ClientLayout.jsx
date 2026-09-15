@@ -72,11 +72,6 @@ export function ClientLayout({ user, currentPath, onLogout, children }) {
 
       <div className="portal-shell">
         <aside className="portal-sidebar" aria-label="Client portal navigation">
-          <div className="sidebar-context">
-            <span className="eyebrow">Private workspace</span>
-            <strong>{user?.accountId || user?.account_id || user?.reference || 'Client workspace'}</strong>
-          </div>
-
           <nav>
             {navItems.map(({ label, path, icon: Icon }) => {
               const active = path === '/client-portal'
@@ -90,13 +85,9 @@ export function ClientLayout({ user, currentPath, onLogout, children }) {
               );
             })}
           </nav>
-
-          <button type="button" onClick={onLogout} className="sidebar-logout">
-            <LogOut size={17} /> Log out
-          </button>
         </aside>
 
-        {mobileOpen && <button type="button" className="backdrop" aria-label="Close menu" onClick={() => setMobileOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.45)', zIndex: 40, border: 'none' }} />}
+        {mobileOpen && <button type="button" className="backdrop" aria-label="Close menu" onClick={() => setMobileOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.45)', zIndex: 55, border: 'none' }} />}
 
         <aside className={`portal-sidebar mobile-drawer ${mobileOpen ? 'open' : ''}`} aria-label="Mobile client menu" aria-expanded={mobileOpen}>
           <div className="mobile-drawer-head">

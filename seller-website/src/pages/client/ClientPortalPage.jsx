@@ -3,6 +3,7 @@ import { fetchClientMe, fetchClientProperties } from '../../api/clientApi';
 import { ClientLayout } from '../../components/client/ClientLayout';
 import { useClientAuth } from '../../hooks/useClientAuth';
 import { getClientPortalPropertyId, getClientPortalSection } from '../../app/routes';
+import { navigate } from '../../utils/bus';
 import { PasswordSetupPage } from '../auth/PasswordSetupPage';
 import { DashboardPage } from './DashboardPage';
 import { DocumentsPage } from './DocumentsPage';
@@ -73,8 +74,8 @@ export function ClientPortalPage() {
   }, [token, logout]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      window.location.replace('/client-login');
+        if (!isAuthenticated) {
+      navigate('/client-login');
       return;
     }
   }, [isAuthenticated]);
@@ -142,10 +143,10 @@ export function ClientPortalPage() {
 
   const renderPage = () => {
     switch (route) {
-      case 'add-property':
-        return <AddPropertyPage token={token} onBack={() => { window.location.href = '/client-portal/properties'; }} onSuccess={() => { refreshProperties(); window.location.href = '/client-portal/properties'; }} />;
-      case 'properties':
-        return <PropertiesPage properties={properties} loading={loading} error={error} onViewProperty={(id) => { window.location.href = `/client-portal/properties/${encodeURIComponent(id)}`; }} onAddProperty={() => { window.location.href = '/client-portal/add-property'; }} />;
+            case 'add-property':
+        return <AddPropertyPage token={token} onBack={() => { navigate('/client-portal/properties'); }} onSuccess={() => { refreshProperties(); navigate('/client-portal/properties'); }} />;
+            case 'properties':
+        return <PropertiesPage properties={properties} loading={loading} error={error} onViewProperty={(id) => { navigate(`/client-portal/properties/${encodeURIComponent(id)}`); }} onAddProperty={() => { navigate('/client-portal/add-property'); }} />;
       case 'property-detail':
         return <PropertyDetailsPage propertyId={propertyId} token={token} onLogout={logout} fallbackProperties={properties} />;
       case 'status':

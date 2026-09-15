@@ -8,6 +8,7 @@ import EnquiryDetail from './pages/EnquiryDetail';
 import Properties from './pages/Properties';
 import PropertyDetail from './pages/PropertyDetail';
 import CreateProperty from './pages/CreateProperty';
+import Settings from './pages/Settings';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -36,6 +37,7 @@ function App() {
         <Route path="properties" element={<Properties />} />
         <Route path="properties/new" element={<CreateProperty />} />
         <Route path="properties/:id" element={<PropertyDetail />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
