@@ -4,6 +4,7 @@ import { StatusTimeline } from '../../components/client/StatusTimeline';
 import { EmptyState } from '../../components/client/EmptyState';
 import { StatusTimelineSkeleton } from '../../components/loading/PortalSkeletons';
 import { formatDate, statusLabel } from '../../config/constants';
+import { SpaLink } from '../../utils/bus';
 
 export function PropertyStatusPage({ properties, loading, error }) {
   const [selectedId, setSelectedId] = useState(properties[0]?.id || '');
@@ -27,7 +28,7 @@ export function PropertyStatusPage({ properties, loading, error }) {
         title="No property status available"
         description="This client account currently has no properties to inspect."
         icon="properties"
-        action={<a href="/client-portal" className="btn btn-primary">Back to dashboard</a>}
+        action={<SpaLink to="/client-portal" className="btn btn-primary">Back to dashboard</SpaLink>}
       />
     );
   }

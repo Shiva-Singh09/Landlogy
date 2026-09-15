@@ -1,3 +1,5 @@
+import React from 'react';
+
 // In-app SPA navigation. Uses the History API to update the URL without a
 // full document reload, so React re-renders the existing tree and the path-based
 // router (app/routes.jsx) switches the visible section. Falls back to a server
@@ -10,6 +12,17 @@ export function navigate(to) {
   // Preserve hash fragments and external anchors untouched.
   window.history.pushState(null, '', to);
   window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
+export function SpaLink({ to, children, onClick, ...props }) {
+  const handleClick = (event) => {
+    onClick?.(event);
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    navigate(to);
+  };
+
+  return React.createElement('a', { ...props, href: to, onClick: handleClick }, children);
 }
 
 export const revealSidePanel = (serviceType, serviceId) => {

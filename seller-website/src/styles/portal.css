@@ -1,0 +1,201 @@
+/* ============================================================
+   LANDLOGY Client Portal Foundation (Phase 1)
+   SECTIONS: CLIENT PORTAL (authoritative)
+   Loads AFTER styles.css + shared.css; wins over duplicates.
+   styles.css left intact this phase (no dead-code deletion).
+   ============================================================ */
+
+/* ---------- owner-property-card: ONE authoritative rule ----------
+   Desktop: ~275px image, 4-column facts. Mobile (existing query
+   in styles.css): stacked, ~205px image, 2-column facts. */
+.owner-property-card {
+  display: grid;
+  grid-template-columns: 275px 1fr;
+  min-height: 220px;
+  overflow: hidden;
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 14px;
+  background: #fff;
+  transition: box-shadow .25s ease;
+}
+.owner-property-card:hover { box-shadow: var(--ll-shadow-card, 0 8px 30px rgba(21, 31, 46, .08)); }
+.owner-property-card > img,
+.owner-property-card img {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  object-fit: cover;
+}
+.owner-property-info { padding: 27px 30px; }
+.property-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+.property-owner-tag { display: inline-flex; align-items: center; gap: 5px; margin-bottom: 7px; padding: 4px 10px; border-radius: 20px; background: var(--ll-gold-100, #f5e6cc); color: var(--ll-gold-500, #c8922a); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.owner-property-card .property-title-row h3 { margin: 6px 0 4px; color: var(--ll-navy-700, #151f2e); font: 600 20px/1.3 var(--serif); }
+.portal-mini-card .property-title-row h3 { font-size: 27px; }
+.property-title-row p { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--muted, #718096); font-size: 12px; }
+.property-facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--line, #e2e8f0); }
+.property-facts > span { display: flex; flex-direction: column; gap: 2px; font-size: 12px; font-weight: 800; color: var(--ll-navy-700, #151f2e); }
+.property-facts small { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted, #718096); }
+
+/* ---------- profile-list: ONE consistent structure ---------- */
+.profile-list { display: grid; grid-template-columns: 1fr 1fr; gap: 17px 24px; margin-top: 18px; }
+.profile-list > div { display: block; padding: 0; border-bottom: 0; }
+.profile-list dt { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted, #718096); margin: 0 0 4px; }
+.profile-list dd { font-size: 13px; font-weight: 700; color: var(--ll-navy-700, #151f2e); margin: 0; overflow-wrap: anywhere; }
+/* Quick-links buttons are actions, not definition rows. */
+.profile-list.quick-links-grid { grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+.profile-list.quick-links-grid > a { width: 100%; }
+
+/* ---------- Portfolio summary rows (was inline hexes) ---------- */
+.portfolio-rows { display: grid; gap: 16px; }
+.portfolio-row { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--ll-line-soft, #eef0f3); }
+.portfolio-row:last-child { border-bottom: 0; }
+.portfolio-row-title { display: block; color: var(--ll-navy-600, #192536); font-size: 15px; }
+
+/* ---------- Premium polish (restrained, no marketing effects) ---------- */
+.portal-page .portal-welcome,
+.portal-page .portal-section,
+.portal-page .portal-section-wrapper {
+  animation: sectionFade .25s ease both;
+}
+.portal-page .portal-welcome { animation-delay: .04s; }
+/* Calm, one-step hover for interactive portal cards only. */
+.card-hover-lift { transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s, border-color .3s; }
+.card-hover-lift:hover { transform: translateY(-4px); box-shadow: var(--ll-shadow-lg, 0 22px 55px rgba(21, 31, 46, .13)); border-color: var(--ll-gold-200, #d6bd8b); }
+/* Back/breadcrumb row used by property detail. */
+.back-link-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+/* Card action footer for property cards. */
+.card-action-row { display: flex; justify-content: flex-end; margin-top: 20px; }
+/* Success state icon (add-property success card). */
+.success-icon-circle { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: var(--ll-success-strong, #ecfdf3); color: var(--ll-success-text, #037a3c); margin-bottom: 18px; }
+/* Status page: position indicator (read-only progress). */
+.status-position-card { margin-bottom: 18px; }
+
+/* ---------- Upload success note (was inline hexes) ---------- */
+.upload-success-note { margin-top: 18px; padding: 14px 18px; border-radius: 10px; background: var(--ll-success-strong, #ecfdf3); color: var(--ll-success-text, #037a3c); font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+
+/* ---------- Empty-state actions ---------- */
+.empty-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.portal-grid-section { display: grid; gap: 18px; }
+
+/* ---------- icon-button: ONE authoritative implementation ---------- */
+.icon-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--line, #e2e8f0);
+  background: #fff;
+  color: var(--ll-navy-700, #151f2e);
+  cursor: pointer;
+  transition: background .25s, color .25s, border-color .25s;
+}
+.icon-button:hover { background: var(--ll-navy-700, #151f2e); border-color: var(--ll-navy-700, #151f2e); color: #fff; }
+.icon-button.active { background: var(--ll-gold-100, #f5e6cc); border-color: var(--ll-gold-500, #c8922a); color: var(--ll-gold-500, #c8922a); }
+.icon-button:focus-visible { outline: 2px solid var(--ll-gold-500, #c8922a); outline-offset: 2px; }
+.icon-button i { position: absolute; top: 7px; right: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--ll-gold-500, #c8922a); }
+
+/* ---------- mini-card paragraph fix (was global flex) ---------- */
+.portal-mini-card p { display: block; }
+.portal-mini-card p.meta-inline { display: flex; align-items: center; gap: 5px; }
+
+/* ---------- EmptyState shared treatment ---------- */
+.empty-state-card { text-align: center; padding: 32px 24px; }
+.empty-state-icon { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 18px; background: var(--ll-gold-050, #f5efe3); color: var(--ll-gold-600, #aa781f); margin-bottom: 18px; }
+.empty-state-title { margin: 0 0 8px; color: var(--ll-navy-600, #192536); font-size: 28px; font-weight: 600; }
+.empty-state-desc { margin: 0 auto 18px; max-width: 520px; color: var(--ll-text-500, #5e6c7b); line-height: 1.7; }
+
+/* ---------- Status timeline card text ---------- */
+.status-timeline-card h3 { margin: 0 0 12px; color: var(--ll-navy-600, #192536); }
+.status-timeline-card h3.timeline-title-lg { margin: 0 0 18px; }
+.status-timeline-card p { margin: 0; color: var(--ll-text-500, #5e6c7b); }
+
+/* ---------- mobile drawer + backdrop (replaces inline styles) ---------- */
+.portal-backdrop { position: fixed; inset: 0; z-index: var(--ll-z-backdrop, 40); border: 0; background: rgba(0, 0, 0, .45); }
+.mobile-drawer-logo { display: flex; align-items: center; gap: 12px; }
+.mobile-drawer-logo-img { width: 100px; }
+/* Drawer lives only on mobile; desktop keeps the single persistent sidebar. */
+.portal-sidebar.mobile-drawer { display: none; }
+@media(max-width:680px) {
+  .portal-sidebar.mobile-drawer { display: flex; position: fixed !important; left: 0; top: 0; bottom: 0; width: 280px; z-index: var(--ll-z-drawer, 45); transform: translateX(-110%); transition: transform .2s ease; box-shadow: 18px 0 30px rgba(21, 31, 46, .12); }
+}
+
+/* ---------- SAFER SCOPE: global nav must not leak into portal ---------- */
+.portal-page nav,
+.portal-sidebar nav,
+.mobile-drawer nav {
+  position: static;
+  top: auto;
+  z-index: auto;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 0;
+  box-shadow: none;
+  transition: none;
+}
+
+/* ---------- document rows: keep status visible on mobile ---------- */
+.property-gallery--spaced { margin-bottom: 0; }
+@media(max-width:680px) {
+  .document-row { grid-template-columns: 36px 1fr 32px; }
+  .document-row > *:nth-child(3) { grid-column: 2; grid-row: 2; justify-self: start; margin-top: 8px; }
+  .document-row > *:nth-child(4) { grid-column: 3; grid-row: 1; }
+  .document-status { display: inline-flex !important; }
+}
+
+/* ---------- portal responsive alignment ---------- */
+@media(max-width:680px) {
+  .profile-list { grid-template-columns: 1fr; }
+  .property-skeleton-card { display: block; }
+  .skeleton-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .skeleton-gallery-grid { grid-template-columns: 1fr; }
+  .skeleton-gallery-main { height: 205px; }
+  .skeleton-gallery-side { display: flex; overflow: hidden; }
+  .skeleton-gallery-thumb { min-width: 120px; height: 100px; }
+}
+
+/* ============================================================
+   SECTION: LOADING / SKELETON
+   Restrained shimmer sweep (not opacity blink). Preloader
+   untouched (stays 220ms). Reduced-motion safe.
+   ============================================================ */
+@keyframes llSkeletonSweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.shimmer-block {
+  background: linear-gradient(100deg, var(--ll-slate-line, #edf2f6) 20%, var(--ll-slate-line-3, #f7f9fb) 40%, var(--ll-slate-line-2, #eef1f5) 50%, var(--ll-slate-line-3, #f7f9fb) 60%, var(--ll-slate-line, #edf2f6) 80%);
+  background-size: 200% 100%;
+  animation: llSkeletonSweep var(--ll-duration-skeleton, 1.4s) linear infinite;
+}
+.skeleton-line,
+.skeleton-dot,
+.skeleton-thumb {
+  background: linear-gradient(100deg, var(--ll-slate-line, #edf2f6) 20%, var(--ll-slate-line-3, #f7f9fb) 40%, var(--ll-slate-line-2, #eef1f5) 50%, var(--ll-slate-line-3, #f7f9fb) 60%, var(--ll-slate-line, #edf2f6) 80%);
+  background-size: 200% 100%;
+  animation: llSkeletonSweep var(--ll-duration-skeleton, 1.4s) linear infinite;
+}
+.portal-overview-grid.skeleton-grid { grid-template-columns: 1.2fr .8fr; }
+.skeleton-progress { display: block; height: 4px; border-radius: 999px; margin-top: 27px; }
+.property-skeleton-card { grid-template-columns: 275px 1fr; padding: 0; }
+.property-skeleton-card .owner-property-info { padding: 27px 30px; }
+.skeleton-thumb { min-height: 220px; height: 100%; border-radius: 0; }
+.skeleton-facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.timeline-skeleton-row { grid-template-columns: 37px 1fr; }
+.skeleton-dot { width: 37px; height: 37px; }
+.skeleton-gallery-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 18px; }
+.skeleton-gallery-main { height: 320px; border-radius: 12px; }
+.skeleton-gallery-side { display: grid; gap: 12px; }
+.skeleton-gallery-thumb { height: 154px; border-radius: 12px; }
+.skeleton-back-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 2px; }
+.empty-skeleton { display: grid; justify-items: center; gap: 14px; text-align: center; padding: 32px 24px; }
+.skeleton-icon { width: 64px; height: 64px; border-radius: 18px; margin-bottom: 4px; }
+.skeleton-line.title-sm { width: min(100%, 260px); height: 28px; border-radius: 10px; }
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line, .skeleton-dot, .skeleton-thumb, .shimmer-block, .skeleton-icon, .skeleton-progress { animation: none; }
+}
+
+

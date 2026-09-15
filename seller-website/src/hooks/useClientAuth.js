@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { CLIENT_STORE, CLIENT_TOKEN_KEY, CLIENT_USER_KEY, clientLoginApi } from '../api/clientApi';
+import { navigate } from '../utils/bus';
 
 export function readClientSession() {
   try {
@@ -41,7 +42,7 @@ export function useClientAuth() {
     CLIENT_STORE.clear(CLIENT_TOKEN_KEY);
     CLIENT_STORE.clear(CLIENT_USER_KEY);
     setAuth({ token: null, user: null });
-    window.location.href = '/client-login';
+    navigate('/client-login');
   }, []);
 
   const passwordSetupDone = useCallback(() => {

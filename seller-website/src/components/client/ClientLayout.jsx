@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Bell, CircleHelp, FileText, Home, LayoutDashboard, LogOut, Menu, MessageCircle, TrendingUp, UserRound, X } from 'lucide-react';
 import logo from '../../assets/Logo.png';
 import { initialsFor } from '../../config/constants';
+import { SpaLink } from '../../utils/bus';
 
 const navItems = [
   { label: 'Dashboard', path: '/client-portal', icon: LayoutDashboard },
@@ -41,10 +42,10 @@ export function ClientLayout({ user, currentPath, onLogout, children }) {
   return (
     <main className="portal-page">
       <header className="portal-topbar">
-        <a href="/" className="portal-logo">
+        <SpaLink to="/" className="portal-logo">
           <img src={logo} alt="LANDLOGY" />
           <span>Client Portal</span>
-        </a>
+        </SpaLink>
 
         <div className="portal-top-actions">
           <button type="button" className="icon-button" aria-label="Notifications">
@@ -79,9 +80,9 @@ export function ClientLayout({ user, currentPath, onLogout, children }) {
                 : activePath === path || activePath.startsWith(`${path}/`);
 
               return (
-                <a key={path} href={path} className={active ? 'active' : ''}>
+                <SpaLink key={path} to={path} className={active ? 'active' : ''}>
                   <Icon size={17} /> {label}
-                </a>
+                </SpaLink>
               );
             })}
           </nav>
@@ -91,9 +92,9 @@ export function ClientLayout({ user, currentPath, onLogout, children }) {
 
         <aside className={`portal-sidebar mobile-drawer ${mobileOpen ? 'open' : ''}`} aria-label="Mobile client menu" aria-expanded={mobileOpen}>
           <div className="mobile-drawer-head">
-            <a href="/" className="portal-logo" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <SpaLink to="/" className="portal-logo" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <img src={logo} alt="LANDLOGY" style={{ width: '100px' }} />
-            </a>
+            </SpaLink>
             <button type="button" onClick={() => setMobileOpen(false)} className="icon-button" aria-label="Close menu">
               <X size={18} />
             </button>
@@ -106,9 +107,9 @@ export function ClientLayout({ user, currentPath, onLogout, children }) {
                 : activePath === path || activePath.startsWith(`${path}/`);
 
               return (
-                <a key={path} href={path} className={active ? 'active' : ''} onClick={() => setMobileOpen(false)}>
+                <SpaLink key={path} to={path} className={active ? 'active' : ''} onClick={() => setMobileOpen(false)}>
                   <Icon size={17} /> {label}
-                </a>
+                </SpaLink>
               );
             })}
           </nav>

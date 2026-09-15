@@ -17,13 +17,20 @@ import { AddPropertyPage } from './AddPropertyPage';
 
 export function ClientPortalPage() {
   const { client, token, isAuthenticated, logout, passwordSetupDone } = useClientAuth();
+  const [, setPathname] = useState(() => window.location.pathname);
   const [me, setMe] = useState(client);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const propertiesLoadedRef = useRef(false);
 
-  const loadPortalData = useCallback(async (forceProperties = false) => {
+  useEffect(() => {
+    const syncNestedRoute = () => setPathname(window.location.pathname);
+    window.addEventListener('popstate', syncNestedRoute);
+    return () => window.removeEventListener('popstate', syncNestedRoute);
+  }, []);
+
+  const loadPortalData = useCallback((forceProperties = false) => {
     if (!token) return;
 
     let active = true;

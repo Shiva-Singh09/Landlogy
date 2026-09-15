@@ -2,6 +2,7 @@ import React from 'react'
 import { Home } from 'lucide-react';
 import { DashboardSkeleton } from '../../components/loading/PortalSkeletons';
 import { formatDate, formatPriceINR, statusLabel, STATUS_ORDER } from '../../config/constants';
+import { SpaLink } from '../../utils/bus';
 
 const TIMELINE_STEPS = [
   { key: 'draft', label: 'Submitted' },
@@ -86,7 +87,7 @@ export function DashboardPage({ user, properties, loading, error }) {
             <h2 className="dash-section-title">Your Properties</h2>
             <p className="dash-section-sub">Properties currently managed through LANDLOGY.</p>
           </div>
-          <a href="/client-portal/properties" className="text-link"><span>View all</span></a>
+          <SpaLink to="/client-portal/properties" className="text-link"><span>View all</span></SpaLink>
         </div>
 
         {propertyCount === 0 ? (
@@ -94,7 +95,7 @@ export function DashboardPage({ user, properties, loading, error }) {
             <span className="dash-empty-ico">LANDLOGY</span>
             <h3>No property records yet</h3>
             <p>This account is active, but no seller-owned properties have been returned from the backend.</p>
-            <a href="/client-portal/add-property" className="btn btn-primary"><span>+ </span>Add your first property</a>
+            <SpaLink to="/client-portal/add-property" className="btn btn-primary"><span>+ </span>Add your first property</SpaLink>
           </div>
         ) : (
           <>
@@ -109,7 +110,7 @@ export function DashboardPage({ user, properties, loading, error }) {
                 <div className="dash-featured-fact"><span>Asking price</span><span>{formatPriceINR(featured.asking_price ?? featured.price)}</span></div>
                 <div className="dash-featured-fact"><span>Updated</span><span>{formatDate(featured.updated_at || featured.updatedAt)}</span></div>
                 <div className="dash-featured-cta">
-                  <a href={'/client-portal/properties/' + featured.id} className="btn btn-primary">View property</a>
+                  <SpaLink to={'/client-portal/properties/' + featured.id} className="btn btn-primary">View property</SpaLink>
                 </div>
               </div>
             </div>
@@ -131,7 +132,7 @@ export function DashboardPage({ user, properties, loading, error }) {
                         <span className="status-pill">{statusLabel(property.status)}</span>
                         <span className="dash-row-price">{formatPriceINR(property.asking_price ?? property.price)}</span>
                       </div>
-                      <a href={'/client-portal/properties/' + property.id} className="dash-row-view" aria-label={'View ' + (property.title || 'property')}>→</a>
+                      <SpaLink to={'/client-portal/properties/' + property.id} className="dash-row-view" aria-label={'View ' + (property.title || 'property')}>→</SpaLink>
                     </div>
                   );
                 })}
@@ -178,8 +179,8 @@ export function DashboardPage({ user, properties, loading, error }) {
             <h2 className="dash-section-title">Quick Actions</h2>
           </div>
           <div className="dash-quick-actions">
-            <a href="/client-portal/add-property" className="btn btn-primary dash-action"><span>+ </span>Add Property</a>
-            <a href="/client-portal/properties" className="btn btn-outline dash-action"><Home size={15} /> View My Properties</a>
+            <SpaLink to="/client-portal/add-property" className="btn btn-primary dash-action"><span>+ </span>Add Property</SpaLink>
+            <SpaLink to="/client-portal/properties" className="btn btn-outline dash-action"><Home size={15} /> View My Properties</SpaLink>
             <a href={SUPPORT_WHATSAPP} target="_blank" rel="noreferrer" className="btn btn-outline dash-action"><span>💬 </span>Contact LANDLOGY</a>
           </div>
         </div>

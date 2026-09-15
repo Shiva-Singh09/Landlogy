@@ -3,6 +3,7 @@ import { ArrowRight, Plus } from 'lucide-react';
 import { PropertyCard } from '../../components/client/PropertyCard';
 import { EmptyState } from '../../components/client/EmptyState';
 import { PropertyCardSkeleton } from '../../components/loading/PortalSkeletons';
+import { SpaLink } from '../../utils/bus';
 
 export function PropertiesPage({ properties, loading, error, onViewProperty, onAddProperty }) {
   if (loading) {
@@ -22,7 +23,7 @@ export function PropertiesPage({ properties, loading, error, onViewProperty, onA
         action={
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
             <button type="button" className="btn btn-primary" onClick={onAddProperty}><Plus size={14} /> Add Property</button>
-            <a href="/client-portal" className="btn btn-secondary"><ArrowRight size={14} /> Return to dashboard</a>
+            <SpaLink to="/client-portal" className="btn btn-secondary"><ArrowRight size={14} /> Return to dashboard</SpaLink>
           </div>
         }
       />

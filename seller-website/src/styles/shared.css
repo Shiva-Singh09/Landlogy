@@ -1,0 +1,114 @@
+/* ============================================================
+   LANDLOGY Shared UI Foundation (Phase 1)
+   SECTION: SHARED UI — buttons / cards / pills / forms / utilities
+   - Token-driven, no redesign. Loads AFTER styles.css, so these
+     authoritative rules win over earlier duplicates in styles.css.
+   - styles.css is intentionally left intact this phase.
+   ============================================================ */
+
+/* ---------- Buttons ---------- */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  border: 1.5px solid var(--ll-line, #e2e8f0);
+  background: #fff;
+  color: var(--ll-navy-700, #151f2e);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform .25s cubic-bezier(.2,.8,.2,1), background .25s, border-color .25s, box-shadow .25s, color .25s;
+}
+.btn-secondary:hover {
+  background: var(--ll-navy-700, #151f2e);
+  border-color: var(--ll-navy-700, #151f2e);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(21, 31, 46, .18);
+}
+.btn-secondary:active { transform: none; }
+.btn-secondary:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-outline:focus-visible,
+.btn-white:focus-visible {
+  outline: 2px solid var(--ll-gold-500, #c8922a);
+  outline-offset: 2px;
+}
+
+/* ---------- Cards (existing LANDLOGY language) ---------- */
+.ll-card {
+  background: #fff;
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 16px;
+  box-shadow: var(--ll-shadow-sm, 0 12px 28px rgba(21, 31, 46, .045));
+}
+.ll-card-lift { transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s; }
+.ll-card-lift:hover {
+  transform: translateY(-6px);
+  border-color: var(--ll-gold-200, #d6bd8b);
+  box-shadow: var(--ll-shadow-lg, 0 22px 55px rgba(21, 31, 46, .13));
+}
+.ll-card-navy {
+  background: linear-gradient(145deg, #172234, #101926);
+  border: 1px solid rgba(200, 146, 42, .25);
+  border-radius: 17px;
+  color: #fff;
+  box-shadow: 0 25px 70px rgba(21, 31, 46, .18);
+}
+/* Subtle unification for existing portal cards (square -> shared 14px radius). */
+.portal-mini-card {
+  border-radius: 14px;
+  box-shadow: var(--ll-shadow-sm, 0 12px 28px rgba(21, 31, 46, .045));
+}
+
+/* ---------- Status pills: single base + tone variants ---------- */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  line-height: 1.4;
+  background: var(--ll-gold-100, #f5e6cc);
+  color: var(--ll-warn-text, #8a631e);
+}
+.status-pill.tone-neutral { background: var(--ll-muted-pill-bg, #e5e7eb); color: var(--ll-muted-pill-text, #374151); }
+.status-pill.tone-gold { background: var(--ll-gold-100, #f5e6cc); color: var(--ll-warn-text, #8a631e); }
+.status-pill.tone-success { background: var(--ll-success-bg, #e8f5ee); color: var(--ll-success, #197044); }
+.status-pill.tone-warning { background: var(--ll-warning-bg, #fef3c7); color: var(--ll-warning, #92400e); }
+.status-pill.tone-error { background: var(--ll-error-admin-bg, #fee2e2); color: var(--ll-error-admin, #991b1b); }
+.status-pill.tone-info { background: var(--ll-info-bg, #dbeafe); color: var(--ll-info-strong, #1e40af); }
+
+/* ---------- Forms (landing treatment as base) ---------- */
+.req { color: var(--ll-error, #b42318); font-weight: 800; }
+.opt { color: var(--ll-text-400, #718096); font-size: 11px; font-weight: 600; }
+.form-hint { color: var(--ll-text-400, #718096); font-size: 12px; line-height: 1.6; }
+.portal-select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--ll-line-faint, #dfe5eb);
+  background: #fff;
+  color: var(--ll-text-700, #3d4a5c);
+  font-size: 14px;
+}
+.portal-select:focus { border-color: var(--ll-gold-500, #c8922a); box-shadow: 0 0 0 4px rgba(200, 146, 42, .1); outline: none; }
+.portal-label { display: grid; gap: 8px; color: var(--ll-text-600, #48596b); font-weight: 600; font-size: 14px; }
+
+/* ---------- Shared text / state utilities ---------- */
+.muted-text { color: var(--ll-text-500, #5e6c7b); }
+.strong-navy { color: var(--ll-navy-600, #192536); }
+.center-text { text-align: center; }
+.meta-inline { display: flex; align-items: center; gap: 5px; }
+.error-card { color: #7f1d1d; background: #fff1f2; border: 1px solid #fecaca; border-radius: 12px; }
