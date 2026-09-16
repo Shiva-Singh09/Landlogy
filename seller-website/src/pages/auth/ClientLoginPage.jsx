@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowUpRight, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import logo from '../../assets/Logo.png';
 import { useClientAuth } from '../../hooks/useClientAuth';
-import { navigate } from '../../utils/bus';
+import { navigate, SpaLink } from '../../utils/bus';
 
 export function ClientLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +56,7 @@ export function ClientLoginPage() {
   return (
     <main className="client-login-page">
       <div className="client-login-art">
-        <a href="/" className="portal-brand"><img src={logo} alt="LANDLOGY" /><span>Private client workspace</span></a>
+        <SpaLink to="/" className="portal-brand"><img src={logo} alt="LANDLOGY" /><span>Private client workspace</span></SpaLink>
         <div className="client-login-message">
           <span className="eyebrow">LANDLOGY Client Portal</span>
           <h1>Your property journey, with clarity.</h1>
@@ -67,7 +67,7 @@ export function ClientLoginPage() {
       </div>
 
       <section className="client-login-panel" aria-labelledby="client-login-title">
-        <a className="login-back" href="/"><ChevronRight size={15} /> Back to LANDLOGY</a>
+        <SpaLink className="login-back" to="/"><ChevronRight size={15} /> Back to LANDLOGY</SpaLink>
         <div className="login-card">
           <div className="login-card-heading">
             <div className="portal-mark">L</div>

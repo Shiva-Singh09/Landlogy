@@ -92,27 +92,36 @@ export default function PropertyDetail() {
   if (!property) return <div className="page-error">Property not found</div>;
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <button onClick={() => navigate('/properties')} className="btn-secondary btn-sm">&larr; Back</button>
-        <h2>Property Details</h2>
-      </div>
+    <section className="property-detail-page">
+      <header className="property-detail-header">
+        <button onClick={() => navigate('/properties')} className="property-back">&larr; Back to Properties</button>
+        <div className="property-detail-title-row">
+          <div><h1>{property.title}</h1><p>{[property.address, property.city, property.state].filter(Boolean).join(', ') || 'Location not set'}</p></div>
+          <span className={`properties-status is-${property.status}`}>{property.status === 'under_review' ? 'Pending' : property.status.replace('_', ' ')}</span>
+        </div>
+      </header>
       {successMsg && <div className="success-message">{successMsg}</div>}
       {error && <div className="error-message">{error}</div>}
-      <div className="detail-card">
-        <div className="detail-section">
-          <h3>Property Information</h3>
+      <section className="property-detail-gallery">
+        {images.length > 0 ? <div className="property-gallery-grid">{images.map((img, index) => <div key={img.id} className={`property-gallery-image ${index === 0 ? 'is-primary' : ''}`}><img src={img.url} alt={img.caption || property.title} />{img.is_primary && <span className="image-badge">Primary</span>}<button onClick={() => handleDeleteImage(img.id)} className="btn-danger btn-sm delete-btn">Delete</button></div>)}</div> : <div className="property-gallery-empty">No property images yet</div>}
+      </section>
+      <div className="property-detail-columns">
+        <section className="property-detail-card">
+          <h2>Property Information</h2>
           <div className="detail-grid">
             <div className="detail-item full-width"><label>Title</label><span>{property.title}</span></div>
-            <div className="detail-item"><label>Status</label><span className={`badge badge-${property.status}`}>{property.status.replace('_', ' ')}</span></div>
             <div className="detail-item"><label>Price</label><span>{formatPrice(property.asking_price)}</span></div>
             <div className="detail-item"><label>City</label><span>{property.city || '-'}</span></div>
             <div className="detail-item"><label>State</label><span>{property.state || '-'}</span></div>
+            <div className="detail-item"><label>Address</label><span>{property.address || '-'}</span></div>
+            <div className="detail-item"><label>Pincode</label><span>{property.pincode || '-'}</span></div>
           </div>
-          {property.description && <div className="detail-item full-width"><label>Description</label><p>{property.description}</p></div>}
-        </div>
-        <div className="detail-section">
-          <h3>Update Status</h3>
+        </section>
+        <section className="property-detail-card property-seller-card"><h2>Seller / Client Information</h2><div className="detail-grid"><div className="detail-item full-width"><label>Owner ID</label><span className="property-owner-id">{property.owner_id || '-'}</span></div><div className="detail-item"><label>Reviewed by</label><span>{property.reviewed_by || '-'}</span></div></div></section>
+      </div>
+      {property.description && <section className="property-detail-card property-description"><h2>Description</h2><p>{property.description}</p></section>}
+      <section className="property-detail-card property-status-card">
+          <h2>Update Status</h2>
           <div className="status-actions">
             <button onClick={() => handleStatusUpdate('draft')} disabled={updating || property.status === 'draft'} className="btn-secondary btn-sm">Draft</button>
             <button onClick={() => handleStatusUpdate('under_review')} disabled={updating || property.status === 'under_review'} className="btn-secondary btn-sm">Review</button>
@@ -120,29 +129,15 @@ export default function PropertyDetail() {
             <button onClick={() => handleStatusUpdate('rejected')} disabled={updating || property.status === 'rejected'} className="btn-danger btn-sm">Reject</button>
             <button onClick={() => handleStatusUpdate('sold')} disabled={updating || property.status === 'sold'} className="btn-secondary btn-sm">Sold</button>
           </div>
-        </div>
-        <div className="detail-section">
-          <h3>Images ({images.length})</h3>
+      </section>
+      <section className="property-detail-card property-images-card">
+          <h2>Images ({images.length})</h2>
           <div className="image-upload-section">
             <input ref={fileInputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={handleImageUpload} style={{ display: 'none' }} id="image-upload" />
             <label htmlFor="image-upload" className={`btn-primary ${uploading ? 'disabled' : ''}`}>{uploading ? 'Uploading...' : 'Upload Image'}</label>
             <span className="upload-hint">JPEG, PNG, WebP. Max 5MB.</span>
           </div>
-          {images.length > 0 ? (
-            <div className="image-gallery">
-              {images.map((img) => (
-                <div key={img.id} className="image-item">
-                  <img src={img.url} alt={img.caption || 'Property'} />
-                  {img.is_primary && <span className="image-badge">Primary</span>}
-                  <button onClick={() => handleDeleteImage(img.id)} className="btn-danger btn-sm delete-btn">Delete</button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state-small">No images yet</div>
-          )}
-        </div>
-      </div>
-    </div>
+      </section>
+    </section>
   );
 }

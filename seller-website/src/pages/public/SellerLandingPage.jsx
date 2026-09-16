@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpRight, Bell, Check, ChevronRight, CircleHelp, Download, Eye, EyeOff, FileText, KeyRound, LayoutDashboard, LogOut, Menu, X, Phone, Mail, MapPin, Clock, MessageCircle, Search, ShieldCheck, TrendingUp, Building2, Home, Landmark, Users, Scale, Send, UserRound } from 'lucide-react';
 import logo from '../../assets/Logo.png';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+import { API_BASE } from '../../config/constants';
+import { SpaLink } from '../../utils/bus';
 
 function useReveal(enabled = true, rescan = '') {
   useEffect(() => {
@@ -468,7 +468,7 @@ useCounters(!!site);
           </div>
           <div className="nav-cta">
             <a href={`tel:${site.contact.phoneRaw}`} className="btn btn-outline"><Phone size={15} /> Call Us</a>
-            <a href="/client-login" className="btn btn-client-login">Client Login</a>
+            <SpaLink to="/client-login" className="btn btn-client-login">Client Login</SpaLink>
             <a href="#contact" className="btn btn-primary">List Your Property <ArrowUpRight size={15} /></a>
           </div>
           <button className="ham" type="button" onClick={() => setMenu((value) => !value)} aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu}>
@@ -487,7 +487,7 @@ useCounters(!!site);
           <a href="#who-we-serve" onClick={() => setMenu(false)}>Who We Serve</a>
           <a href="#team" onClick={() => setMenu(false)}>Our Team</a>
           <a href="#contact" onClick={() => setMenu(false)}>Contact</a>
-          <a className="client-login-link" href="/client-login">Client Login</a>
+          <SpaLink className="client-login-link" to="/client-login">Client Login</SpaLink>
           <a className="mobile-primary-link" href="#contact" onClick={() => setMenu(false)}>List Your Property <ArrowUpRight size={15} /></a>
         </div>
       )}
@@ -626,7 +626,30 @@ useCounters(!!site);
             <span className="eyebrow">A private client journey later</span>
             <h3>Stay informed as your property progresses.</h3>
             <p>After LANDLOGY reviews and accepts a client enquiry, approved clients may later receive secure access to a private portal for their own property information and status.</p>
-            <a href="/client-login" className="btn btn-white">Client Login <ArrowUpRight size={15} /></a>
+            <SpaLink to="/client-login" className="btn btn-white">Client Login <ArrowUpRight size={15} /></SpaLink>
+          </div>
+        </div>
+      </section>
+
+      
+      
+
+         <section id="who-we-serve" className="sec-navy">
+        <div className="container">
+          <div className="sec-head" data-reveal>
+            <span className="eyebrow">Who We Work With</span>
+            <h2 className="dark-title">Built around the people in every property decision.</h2>
+            <p>LANDLOGY brings owners, investors, developers and professionals into one structured process.</p>
+          </div>
+          <div className="network-grid" data-reveal-stagger>
+            {site.networks.map((n) => (
+              <article className="ncard" data-reveal data-spot key={n.title}>
+                <div className="ncard-icon">{n.icon}</div>
+                <h3>{n.title}</h3>
+                <p>{n.desc}</p>
+                <ArrowUpRight className="narrow" size={17} />
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -746,7 +769,7 @@ useCounters(!!site);
             </div>
             <div className="foot-col">
               <h4>Client Access</h4>
-              <a href="/client-login">Client Login</a>
+              <SpaLink to="/client-login">Client Login</SpaLink>
               <a href="#contact">Contact LANDLOGY</a>
             </div>
             <div className="foot-col">

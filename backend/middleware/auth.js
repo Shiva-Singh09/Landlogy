@@ -1,7 +1,15 @@
 import jwt from 'jsonwebtoken';
 import db from '../models/index.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+// Defense-in-depth: reject the well-known dev fallback in production.
+// server.js also enforces this at boot, but auth.js is imported before that
+// check runs, and may be imported directly by test harnesses — so mirror the
+// same rule here rather than silently using a weak secret in production.
+const KNOWN_WEAK_JWT_FALLBACK = 'dev-secret-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || KNOWN_WEAK_JWT_FALLBACK;
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === KNOWN_WEAK_JWT_FALLBACK)) {
+  throw new Error('[AUTH] JWT_SECRET must be set to a strong secret when NODE_ENV=production; the development fallback is not allowed.');
+}
 
 // Auth middleware — every protected read passes through here, so keep the
 // per-request lookup minimal: only the columns authorize()/controllers use.

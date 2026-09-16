@@ -1,4 +1,12 @@
-export const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const configuredApiBase = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '');
+
+// Production builds must explicitly target the deployed API. Local development
+// retains its existing backend URL so the current workflow continues to work.
+export const API_BASE = configuredApiBase || (import.meta.env.DEV
+  ? 'http://localhost:5000'
+  : (() => {
+      throw new Error('VITE_API_BASE_URL is required for production builds.');
+    })());
 
 export const SUPPORT_CONTACT = {
   phone: '+91 9044936565',

@@ -9,14 +9,20 @@ import clientRoutes from './routes/client/index.js';
 import { createProperty } from './controllers/admin/adminPropertyController.js';
 
 // Production safety: never boot with the development JWT secret fallback.
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-  throw new Error('[BOOT] JWT_SECRET must be set when NODE_ENV=production; dev fallback is not allowed.');
+// Two checks:
+//   1. JWT_SECRET must be set (non-empty) when NODE_ENV=production.
+//   2. The well-known dev-fallback value is rejected even if somehow "set",
+//      because it is a predictable, low-entropy secret unsuitable for production.
+const KNOWN_WEAK_JWT_FALLBACK = 'dev-secret-change-in-production';
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === KNOWN_WEAK_JWT_FALLBACK)) {
+  throw new Error('[BOOT] JWT_SECRET must be set to a strong secret when NODE_ENV=production; the development fallback is not allowed.');
 }
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Cross-cutting middleware (CORS, JSON body limit, static uploads, global rate limiting).
+app.set('trust proxy', 1);
 applySecurityMiddleware(app);
 
 // Route composition — one mount point per application surface.
@@ -31,7 +37,7 @@ app.post('/api/properties', authenticate, authorize('admin'), createProperty);
 // unexpected errors all return JSON instead of an unparseable HTML/text page.
 applyApiErrorHandlers(app);
 
-app.listen(PORT, async () => {
+app.listen(PORT,'0.0.0.0', async () => {
   console.log(`LANDLOGY API running on http://localhost:${PORT}`);
   try {
     await db.sequelize.authenticate();

@@ -8,11 +8,17 @@ import './styles.css';
 
 export default function App() {
   const [bootReady, setBootReady] = useState(false);
-  const route = getCurrentRoute();
+  const [route, setRoute] = useState(() => getCurrentRoute());
 
   useEffect(() => {
     const timer = window.setTimeout(() => setBootReady(true), 220);
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const syncRoute = () => setRoute(getCurrentRoute());
+    window.addEventListener('popstate', syncRoute);
+    return () => window.removeEventListener('popstate', syncRoute);
   }, []);
 
   return (

@@ -4,6 +4,7 @@ import { fetchClientProperty } from '../../api/clientApi';
 import { PropertyImageUpload } from '../../components/client/PropertyImageUpload';
 import { PropertyDetailsSkeleton } from '../../components/loading/PortalSkeletons';
 import { formatDate, formatPriceINR, statusLabel, resolveImageURL } from '../../config/constants';
+import { SpaLink } from '../../utils/bus';
 
 export function PropertyDetailsPage({ propertyId, token, onLogout, fallbackProperties = [] }) {
   const [property, setProperty] = useState(null);
@@ -103,7 +104,7 @@ export function PropertyDetailsPage({ propertyId, token, onLogout, fallbackPrope
           <span className="eyebrow">Property Details</span>
           <h1>{property.title || 'Property Record'}</h1>
         </div>
-        <a href="/client-portal/properties" className="btn btn-secondary"><ArrowLeft size={14} /> Back to properties</a>
+        <SpaLink to="/client-portal/properties" className="btn btn-secondary"><ArrowLeft size={14} /> Back to properties</SpaLink>
       </div>
 
       <section className="portal-section" style={{ display: 'grid', gap: '18px' }}>
