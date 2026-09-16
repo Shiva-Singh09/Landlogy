@@ -58,6 +58,10 @@ const Enquiry = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    rejection_remark: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   },
   {
     tableName: 'enquiries',
