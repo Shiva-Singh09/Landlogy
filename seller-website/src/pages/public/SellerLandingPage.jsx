@@ -654,6 +654,29 @@ useCounters(!!site);
         </div>
       </section>
 
+      
+      
+
+         <section id="who-we-serve" className="sec-navy">
+        <div className="container">
+          <div className="sec-head" data-reveal>
+            <span className="eyebrow">Who We Work With</span>
+            <h2 className="dark-title">Built around the people in every property decision.</h2>
+            <p>LANDLOGY brings owners, investors, developers and professionals into one structured process.</p>
+          </div>
+          <div className="network-grid" data-reveal-stagger>
+            {site.networks.map((n) => (
+              <article className="ncard" data-reveal data-spot key={n.title}>
+                <div className="ncard-icon">{n.icon}</div>
+                <h3>{n.title}</h3>
+                <p>{n.desc}</p>
+                <ArrowUpRight className="narrow" size={17} />
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="team">
         <div className="container">
           <div className="sec-head" data-reveal>

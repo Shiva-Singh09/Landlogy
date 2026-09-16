@@ -207,186 +207,44 @@ export default function Layout() {
   }, [mobileSidebarOpen, searchOpen]);
 
   return (
-    <div
-      className={[
-        'min-h-screen bg-slate-50 text-slate-800 lg:grid',
-        sidebarCollapsed
-          ? 'lg:grid-cols-[76px_minmax(0,1fr)]'
-          : 'lg:grid-cols-[248px_minmax(0,1fr)]',
-      ].join(' ')}
-    >
-      {/* Mobile backdrop */}
-      {mobileSidebarOpen && (
-        <button
-          type="button"
-          aria-label="Close navigation"
-          onClick={() => setMobileSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-[2px] lg:hidden"
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={[
-          'fixed inset-y-0 left-0 z-50 flex flex-col lg:fixed',
-          'border-r border-slate-800/80 bg-[#151f2e]',
-          'admin-sidebar',
-          'transition-all duration-300 ease-out',
-          'lg:translate-x-0',
-          mobileSidebarOpen
-            ? 'translate-x-0'
-            : '-translate-x-full lg:translate-x-0',
-          sidebarCollapsed ? 'admin-sidebar-collapsed lg:w-[76px]' : 'w-[248px]',
-        ].join(' ')}
-      >
-        {/* Brand */}
-        <div
-          className={[
-            'flex h-[76px] shrink-0 items-center border-b border-white/8',
-            sidebarCollapsed
-              ? 'justify-center px-3'
-              : 'justify-between px-4',
-          ].join(' ')}
-        >
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="group flex items-center gap-3"
-          >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#c8922a] text-[#151f2e] shadow-lg shadow-black/10 transition-transform duration-200 group-hover:scale-105">
-              <Building2 size={21} strokeWidth={2.3} />
-            </span>
-
-            {!sidebarCollapsed && (
-              <span className="text-left">
-                <span className="block text-[17px] font-bold tracking-[0.12em] text-white">
-                  LANDLOGY
-                </span>
-                <span className="block text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                  Admin Console
-                </span>
-              </span>
-            )}
-          </button>
-
-          {/* Mobile close */}
-          <button
-            type="button"
-            onClick={() => setMobileSidebarOpen(false)}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-white/8 hover:text-white lg:hidden"
-            aria-label="Close sidebar"
-          >
-            <X size={19} />
-          </button>
+    <div className="admin-layout">
+      <header className="top-ribbon">
+        <div className="ribbon-left">
+          <button className="mobile-menu" onClick={() => setOpen(true)} aria-label="Open navigation">☰</button>
+                 <span className="ribbon-brand">LANDLOGY<em>Admin</em></span>
         </div>
-
-        {/* Navigation */}
-        <nav className="admin-sidebar-nav flex-1 overflow-y-auto px-3 py-5 scrollbar-thin">
-          {navSections.map((section) => (
-            <div key={section.label} className="admin-nav-section mb-7 last:mb-0">
-              {!sidebarCollapsed && (
-                <div className="admin-nav-section-label mb-2.5 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
-                  {section.label}
-                </div>
-              )}
-
-              <div className="space-y-1">
-                {section.items.map((item) => {
-                  const Icon = item.icon;
-                  const itemClassName = [
-                    'admin-nav-item group relative flex h-11 w-full items-center rounded-lg',
-                    'text-[13px] font-medium transition-colors duration-200',
-                    sidebarCollapsed
-                      ? 'justify-center'
-                      : 'gap-3 px-3',
-                  ].join(' ');
-
-                  if (item.unavailable) {
-                    return (
-                      <span
-                        key={item.label}
-                        title={sidebarCollapsed ? 'Clients (unavailable)' : undefined}
-                        aria-disabled="true"
-                        className={`${itemClassName} admin-nav-item-unavailable cursor-not-allowed text-slate-600`}
-                      >
-                        <Icon size={18} strokeWidth={1.9} className="shrink-0 text-slate-600" />
-                        {!sidebarCollapsed && (
-                          <span className="truncate">{item.label}</span>
-                        )}
-                      </span>
-                    );
-                  }
-
-                  return (
-                    <NavLink
-                      key={item.to!}
-                      to={item.to!}
-                      end={item.to === '/'}
-                      title={sidebarCollapsed ? item.label : undefined}
-                      className={({ isActive }) =>
-                        [
-                          itemClassName,
-                          isActive
-                            ? 'admin-nav-item-active bg-[#c8922a]/15 text-[#f3d7a0] shadow-[inset_0_0_0_1px_rgba(200,146,42,0.12)]'
-                            : 'text-slate-300 hover:bg-white/[0.06] hover:text-white',
-                        ].join(' ')
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          {isActive && (
-                            <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-[#d6a143]" />
-                          )}
-
-                          <Icon
-                            size={18}
-                            strokeWidth={isActive ? 2.2 : 1.9}
-                            className={[
-                              'shrink-0 transition-colors duration-200',
-                              isActive
-                                ? 'text-[#e7bb63]'
-                                : 'text-slate-500 group-hover:text-slate-200',
-                            ].join(' ')}
-                          />
-
-                          {!sidebarCollapsed && (
-                            <span className="truncate">{item.label}</span>
-                          )}
-
-                          {!sidebarCollapsed && isActive && (
-                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#d6a143]" />
-                          )}
-                        </>
-                      )}
-                    </NavLink>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        <div className="ribbon-right">
+          <span className="ribbon-avatar" aria-hidden="true">{initials}</span>
+          <span className="ribbon-user">
+            <span className="ribbon-name">{user?.name}</span>
+            <span className="ribbon-role">{user?.role}</span>
+          </span>
+          <button onClick={handleLogout} className="btn-secondary btn-sm ribbon-logout">Logout</button>
+        </div>
+      </header>
+      {open && <button className="nav-backdrop" onClick={() => setOpen(false)} aria-label="Close navigation" />}
+      <aside className={`sidebar ${open ? 'mobile-open' : ''}`}>
+        <nav className="sidebar-nav">
+          <button className="mobile-close" onClick={() => setOpen(false)} aria-label="Close navigation">×</button><NavLink onClick={() => setOpen(false)} to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            Dashboard
+          </NavLink>
+          <NavLink onClick={() => setOpen(false)} to="/enquiries" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            Enquiries
+          </NavLink>
+          <NavLink onClick={() => setOpen(false)} to="/properties" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            Properties
+          </NavLink>
+             <NavLink onClick={() => setOpen(false)} to="/settings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            Settings
+          </NavLink>
         </nav>
-
-        {/* Sidebar bottom */}
-        <div className="admin-sidebar-status shrink-0 border-t border-white/8 p-3">
-          {!sidebarCollapsed ? (
-            <div className="admin-sidebar-status-card rounded-lg border border-white/8 bg-white/[0.035] px-3 py-3">
-              <div className="mb-1.5 flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(52,211,153,0.12)]" />
-                <span className="text-[11px] font-medium text-slate-300">
-                  System operational
-                </span>
-              </div>
-
-              <p className="text-[10px] leading-relaxed text-slate-500">
-                LANDLOGY admin workspace
-              </p>
-            </div>
-          ) : (
-            <div
-              title="System operational"
-              className="mx-auto h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.1)]"
-            />
-          )}
+        <div className="sidebar-footer">
+          <div className="user-info">
+            <span className="user-name">{user?.name}</span>
+            <span className="user-role">{user?.role}</span>
+          </div>
+          <a className="sidebar-site" href="/" target="_blank" rel="noreferrer">View seller site ↗</a>
+          <span className="sidebar-version">LANDLOGY · Phase 1</span>
         </div>
       </aside>
 
