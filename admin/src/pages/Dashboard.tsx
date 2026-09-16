@@ -1,295 +1,46 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowUpRight, Building2, CalendarDays, ChevronRight, ClipboardList, Users } from 'lucide-react';
 import { getEnquiries } from '../api/enquiries';
 import type { Enquiry } from '../api/enquiries';
 import { getProperties } from '../api/properties';
 import type { Property } from '../api/properties';
-import { useAuth } from '../context/AuthContext';
 
-interface DashboardData {
-  totalEnquiries: number;
-  newEnquiries: number;
-  totalProperties: number;
-  underReview: number;
-  approved: number;
-  recentEnquiries: Enquiry[];
-  recentProperties: Property[];
-}
-
-const EMPTY_DATA: DashboardData = {
-  totalEnquiries: 0,
-  newEnquiries: 0,
-  totalProperties: 0,
-  underReview: 0,
-  approved: 0,
-  recentEnquiries: [],
-  recentProperties: [],
-};
-
-const formatDate = (value: string | null) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  return isNaN(date.getTime()) ? '—' : date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-};
-
-const formatPrice = (value: string | null) => {
-  if (!value) return '—';
-  const amount = Number(value);
-  return isNaN(amount) ? '—' : `₹${amount.toLocaleString('en-IN')}`;
-};
-
+interface DashboardData { totalEnquiries: number; totalProperties: number; active: number; pending: number; sold: number; draft: number; recentEnquiries: Enquiry[]; recentProperties: Property[]; chartEnquiries: Enquiry[]; }
+const EMPTY_DATA: DashboardData = { totalEnquiries: 0, totalProperties: 0, active: 0, pending: 0, sold: 0, draft: 0, recentEnquiries: [], recentProperties: [], chartEnquiries: [] };
 const formatStatus = (value: string) => value.replace(/_/g, ' ');
-
-const buildDonutGradient = (segments: Array<{ value: number; color: string }>) => {
-  const total = segments.reduce((sum, segment) => sum + segment.value, 0);
-  if (total <= 0) return '#e9edf3';
-  let angle = 0;
-  const stops = segments
-    .filter((segment) => segment.value > 0)
-    .map((segment) => {
-      const start = angle;
-      angle += (segment.value / total) * 360;
-      return `${segment.color} ${start}deg ${angle}deg`;
-    });
-  return `conic-gradient(${stops.join(', ')})`;
-};
+const formatDate = (value: string | null) => { if (!value) return '—'; const date = new Date(value); return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); };
+const relativeTime = (value: string) => { const hours = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 3_600_000)); return hours < 1 ? 'Just now' : hours < 24 ? `${hours}h ago` : `${Math.floor(hours / 24)}d ago`; };
 
 export default function Dashboard() {
-  const { user } = useAuth();
   const [data, setData] = useState<DashboardData>(EMPTY_DATA);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    let active = true;
-
-    const fetchDashboard = async () => {
-      try {
-        const [enquiryPage, newEnquiryCount, propertyPage, reviewCount, approvedCount] = await Promise.all([
-          getEnquiries({ limit: 5 }),
-          getEnquiries({ status: 'new', limit: 1 }),
-          getProperties({ limit: 5 }),
-          getProperties({ status: 'under_review', limit: 1 }),
-          getProperties({ status: 'active', limit: 1 }),
-        ]);
-        if (!active) return;
-        setData({
-          totalEnquiries: enquiryPage.pagination.total,
-          newEnquiries: newEnquiryCount.pagination.total,
-          totalProperties: propertyPage.pagination.total,
-          underReview: reviewCount.pagination.total,
-          approved: approvedCount.pagination.total,
-          recentEnquiries: enquiryPage.enquiries.slice(0, 5),
-          recentProperties: propertyPage.properties.slice(0, 5),
-        });
-      } catch (err) {
-        if (active) setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    fetchDashboard();
-    return () => { active = false; };
+  const [period, setPeriod] = useState<7 | 30>(7);
+  const loadDashboard = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const [enquiryPage, chartPage, propertyPage, activePage, pendingPage, soldPage, draftPage] = await Promise.all([getEnquiries({ limit: 5 }), getEnquiries({ limit: 100 }), getProperties({ limit: 5 }), getProperties({ status: 'active', limit: 1 }), getProperties({ status: 'under_review', limit: 1 }), getProperties({ status: 'sold', limit: 1 }), getProperties({ status: 'draft', limit: 1 })]);
+      setData({ totalEnquiries: enquiryPage.pagination.total, totalProperties: propertyPage.pagination.total, active: activePage.pagination.total, pending: pendingPage.pagination.total, sold: soldPage.pagination.total, draft: draftPage.pagination.total, recentEnquiries: enquiryPage.enquiries.slice(0, 5), recentProperties: propertyPage.properties.slice(0, 5), chartEnquiries: chartPage.enquiries });
+    } catch (err) { setError(err instanceof Error ? err.message : 'Unable to load dashboard data.'); } finally { setLoading(false); }
   }, []);
-
-  const others = Math.max(0, data.totalProperties - data.underReview - data.approved);
-  const segments = [
-    { label: 'Approved', value: data.approved, color: '#10b981' },
-    { label: 'Under Review', value: data.underReview, color: '#c8922a' },
-    { label: 'Other statuses', value: others, color: '#243247' },
-  ];
-  const kpis = [
-    { label: 'Total Enquiries', value: data.totalEnquiries, foot: 'All time', tone: '' },
-    { label: 'New Enquiries', value: data.newEnquiries, foot: 'Awaiting review', tone: 'is-gold' },
-    { label: 'Total Properties', value: data.totalProperties, foot: 'All statuses', tone: '' },
-    { label: 'Under Review', value: data.underReview, foot: 'Pending decision', tone: 'is-warning' },
-    { label: 'Approved', value: data.approved, foot: 'Live listings', tone: 'is-success' },
-  ];
-  const nothingPending = data.newEnquiries === 0 && data.underReview === 0;
-
-  if (loading) return <div className="page-loading">Loading dashboard…</div>;
-  if (error) return <div className="page-error">{error}</div>;
-
-  return (
-    <div className="page dash">
-      <header className="dash-header dash-reveal">
-        <div>
-          <span className="dash-eyebrow">LANDLOGY · Advisory Control</span>
-          <h1 className="dash-title">Dashboard</h1>
-          <p className="dash-sub">
-            Welcome back{user?.name ? `, ${user.name}` : ''}. You have {data.newEnquiries} new
-            {data.newEnquiries === 1 ? ' enquiry' : ' enquiries'} and {data.underReview} propert
-            {data.underReview === 1 ? 'y' : 'ies'} awaiting review.
-          </p>
-        </div>
-        <span className="dash-date">
-          {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        </span>
-      </header>
-
-      <section className="dash-kpis">
-        {kpis.map((kpi, index) => (
-          <article key={kpi.label} className={`dash-kpi ${kpi.tone}`.trim()} style={{ animationDelay: `${index * 60}ms` }}>
-            <span className="dash-kpi-label">{kpi.label}</span>
-            <span className="dash-kpi-value">{kpi.value}</span>
-            <span className="dash-kpi-foot">{kpi.foot}</span>
-          </article>
-        ))}
-      </section>
-
-      <section className="dash-split">
-        <article className="dash-panel" style={{ animationDelay: '120ms' }}>
-          <header className="dash-panel-head">
-            <h2>Requires Attention</h2>
-            <span className="dash-panel-note">Live</span>
-          </header>
-          <ul className="dash-attention">
-            <li>
-              <Link className="dash-attention-item" to="/enquiries">
-                <span className="dash-attention-icon" aria-hidden="true">✉</span>
-                <span className="dash-attention-body">
-                  <strong>{data.newEnquiries} new {data.newEnquiries === 1 ? 'enquiry' : 'enquiries'}</strong>
-                  <span>Review incoming seller and client enquiries</span>
-                </span>
-                <span className="dash-attention-cta">Review →</span>
-              </Link>
-            </li>
-            <li>
-              <Link className="dash-attention-item" to="/properties">
-                <span className="dash-attention-icon" aria-hidden="true">◆</span>
-                <span className="dash-attention-body">
-                  <strong>{data.underReview} {data.underReview === 1 ? 'property' : 'properties'} under review</strong>
-                  <span>Approve, hold or reject submitted listings</span>
-                </span>
-                <span className="dash-attention-cta">Review →</span>
-              </Link>
-            </li>
-          </ul>
-          {nothingPending && <p className="dash-clear">All caught up — nothing requires review right now.</p>}
-        </article>
-
-        <article className="dash-panel" style={{ animationDelay: '180ms' }}>
-          <header className="dash-panel-head">
-            <h2>Property Status</h2>
-            <span className="dash-panel-note">{data.totalProperties} total</span>
-          </header>
-          <div className="dash-donut-wrap">
-            <div
-              className="dash-donut"
-              style={{ background: buildDonutGradient(segments) }}
-              role="img"
-              aria-label={`Property status breakdown: ${segments.map((segment) => `${segment.label} ${segment.value}`).join(', ')}`}
-            >
-              <div className="dash-donut-hole">
-                <strong>{data.totalProperties}</strong>
-                <span>Properties</span>
-              </div>
-            </div>
-            <ul className="dash-legend">
-              {segments.map((segment) => (
-                <li key={segment.label}>
-                  <span className="dash-dot" style={{ background: segment.color }} />
-                  <span className="dash-legend-label">{segment.label}</span>
-                  <span className="dash-legend-value">{segment.value}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </article>
-      </section>
-
-      <section className="dash-panel" style={{ animationDelay: '240ms' }}>
-        <header className="dash-panel-head">
-          <h2>Recent Enquiries</h2>
-          <Link className="dash-panel-link" to="/enquiries">View all →</Link>
-        </header>
-        {data.recentEnquiries.length === 0 ? (
-          <p className="dash-empty">No enquiries have been received yet.</p>
-        ) : (
-          <div className="dash-table-wrap">
-            <table className="dash-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Contact</th>
-                  <th>City</th>
-                  <th>Intent</th>
-                  <th>Status</th>
-                  <th>Received</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.recentEnquiries.map((enquiry) => (
-                  <tr key={enquiry.id}>
-                    <td data-label="Name">
-                      <Link className="dash-cell-link" to={`/enquiries/${enquiry.id}`}>{enquiry.name}</Link>
-                    </td>
-                    <td data-label="Contact">
-                      <span className="dash-mono">{enquiry.phone}</span>
-                      {enquiry.email && <span className="dash-muted">{enquiry.email}</span>}
-                    </td>
-                    <td data-label="City">{enquiry.city || '—'}</td>
-                    <td data-label="Intent">{enquiry.intent ? formatStatus(enquiry.intent) : '—'}</td>
-                    <td data-label="Status">
-                      <span className={`dash-status is-${enquiry.status}`}>{formatStatus(enquiry.status)}</span>
-                    </td>
-                    <td data-label="Received" className="dash-muted">{formatDate(enquiry.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      <section className="dash-lower">
-        <article className="dash-panel" style={{ animationDelay: '300ms' }}>
-          <header className="dash-panel-head">
-            <h2>Recent Properties</h2>
-            <Link className="dash-panel-link" to="/properties">View all →</Link>
-          </header>
-          {data.recentProperties.length === 0 ? (
-            <p className="dash-empty">No properties have been submitted yet.</p>
-          ) : (
-            <ul className="dash-props">
-              {data.recentProperties.map((property) => (
-                <li key={property.id}>
-                  <Link className="dash-prop" to={`/properties/${property.id}`}>
-                    <span className="dash-prop-main">
-                      <strong>{property.title}</strong>
-                      <span className="dash-muted">
-                        {[property.city, property.state].filter(Boolean).join(', ') || 'Location not set'} · {formatPrice(property.asking_price)}
-                      </span>
-                    </span>
-                    <span className={`dash-status is-${property.status}`}>{formatStatus(property.status)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </article>
-
-        <article className="dash-panel" style={{ animationDelay: '360ms' }}>
-          <header className="dash-panel-head">
-            <h2>Quick Actions</h2>
-          </header>
-          <div className="dash-quick">
-            <Link className="dash-quick-btn" to="/enquiries">
-              <span className="dash-quick-title">Review Enquiries</span>
-              <span className="dash-quick-note">{data.newEnquiries} new · {data.totalEnquiries} total</span>
-            </Link>
-            <Link className="dash-quick-btn" to="/properties">
-              <span className="dash-quick-title">Review Properties</span>
-              <span className="dash-quick-note">{data.underReview} under review · {data.totalProperties} total</span>
-            </Link>
-            <Link className="dash-quick-btn is-primary" to="/properties/new">
-              <span className="dash-quick-title">Create Property</span>
-              <span className="dash-quick-note">Add a new listing with images</span>
-            </Link>
-          </div>
-        </article>
-      </section>
-    </div>
-  );
+  useEffect(() => { void loadDashboard(); }, [loadDashboard]);
+  const chart = useMemo(() => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const dates = Array.from({ length: period }, (_, index) => { const date = new Date(today); date.setDate(today.getDate() - (period - 1 - index)); return date; });
+    const values = dates.map((date) => data.chartEnquiries.filter((enquiry) => { const created = new Date(enquiry.created_at); return created.getFullYear() === date.getFullYear() && created.getMonth() === date.getMonth() && created.getDate() === date.getDate(); }).length);
+    const max = Math.max(...values, 1); const points = values.map((value, index) => `${(index / Math.max(period - 1, 1)) * 100},${84 - (value / max) * 64}`);
+    return { total: values.reduce((sum, value) => sum + value, 0), max, points: points.join(' ') };
+  }, [data.chartEnquiries, period]);
+  const statusRows = [{ label: 'Active', value: data.active, className: 'is-active' }, { label: 'Pending', value: data.pending, className: 'is-pending' }, { label: 'Sold', value: data.sold, className: 'is-sold' }, { label: 'Draft', value: data.draft, className: 'is-draft' }];
+  const maxStatus = Math.max(...statusRows.map((row) => row.value), 1);
+  if (loading) return <div className="dash dash-loading" aria-label="Loading dashboard"><div className="dash-skeleton-title" /><div className="dash-skeleton-grid">{Array.from({ length: 4 }, (_, i) => <div className="dash-skeleton-card" key={i} />)}</div><div className="dash-skeleton-content" /></div>;
+  if (error) return <section className="dash-state"><h1>Dashboard unavailable</h1><p>{error}</p><button type="button" className="dash-retry" onClick={() => void loadDashboard()}>Try again</button></section>;
+  return <div className="dash">
+    <header className="dash-header"><div><p className="dash-eyebrow">LANDLOGY · ADMIN CONSOLE</p><h1 className="dash-title">Dashboard</h1><p className="dash-sub">Overview of your property business</p></div><div className="dash-date"><CalendarDays size={16} /><span>{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span></div></header>
+    <section className="dash-kpis" aria-label="Business metrics">{[['Total Properties', data.totalProperties, 'Live portfolio', Building2], ['Enquiries', data.totalEnquiries, 'All received', ClipboardList], ['Active Leads', '—', 'Data unavailable', ChevronRight], ['Brokers', '—', 'Data unavailable', Users]].map(([label, value, note, Icon]) => { const MetricIcon = Icon as typeof Building2; return <article className="dash-kpi" key={label as string}><span className="dash-kpi-icon"><MetricIcon size={18} /></span><p>{label as string}</p><strong>{value as number | string}</strong><small>{note as string}</small></article>; })}</section>
+    <section className="dash-main-row"><article className="dash-panel dash-chart-panel"><header className="dash-panel-head"><div><h2>Enquiries Overview</h2><p>{chart.total} received in the selected period</p></div><div className="dash-period"><button type="button" className={period === 7 ? 'is-selected' : ''} onClick={() => setPeriod(7)}>7 days</button><button type="button" className={period === 30 ? 'is-selected' : ''} onClick={() => setPeriod(30)}>30 days</button></div></header><div className="dash-chart" role="img" aria-label={`${chart.total} enquiries over the last ${period} days`}><div className="dash-chart-scale"><span>{chart.max}</span><span>{Math.ceil(chart.max / 2)}</span><span>0</span></div><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="20" x2="100" y2="20" /><line x1="0" y1="52" x2="100" y2="52" /><line x1="0" y1="84" x2="100" y2="84" /><polyline points={chart.points} /></svg><div className="dash-chart-labels"><span>{period === 7 ? '7 days ago' : '30 days ago'}</span><span>Today</span></div></div></article><aside className="dash-pulse"><p className="dash-pulse-label">BUSINESS PULSE</p><h2>Portfolio snapshot</h2><p className="dash-pulse-copy">{data.active > 0 ? 'Your property portfolio is active and ready for review.' : 'Add or activate properties to build your portfolio.'}</p><dl>{statusRows.map((row) => <div key={row.label}><dt>{row.label} properties</dt><dd>{row.value}</dd></div>)}<div><dt>Enquiries</dt><dd>{data.totalEnquiries}</dd></div><div><dt>Active leads</dt><dd>—</dd></div><div><dt>Brokers</dt><dd>—</dd></div></dl><Link to="/properties" className="dash-pulse-link">View properties <ArrowUpRight size={15} /></Link></aside></section>
+    <section className="dash-panel dash-status-panel"><header className="dash-panel-head"><div><h2>Property Status</h2><p>{data.totalProperties} properties across all statuses</p></div></header><div className="dash-status-bars">{statusRows.map((row) => <div className="dash-status-row" key={row.label}><div className="dash-status-meta"><span>{row.label}</span><strong>{row.value}</strong></div><span className="dash-status-track"><i className={row.className} style={{ width: `${(row.value / maxStatus) * 100}%` }} /></span></div>)}</div></section>
+    <section className="dash-bottom-row"><article className="dash-panel"><header className="dash-panel-head"><div><h2>Recent Enquiries</h2><p>Latest contact activity</p></div><Link to="/enquiries">View all <ArrowUpRight size={14} /></Link></header>{data.recentEnquiries.length === 0 ? <p className="dash-empty">No enquiries have been received yet.</p> : <div className="dash-table-wrap"><table className="dash-table"><thead><tr><th>Name</th><th>Property / category</th><th>Time</th><th>Status</th></tr></thead><tbody>{data.recentEnquiries.map((enquiry) => <tr key={enquiry.id}><td data-label="Name"><Link to={`/enquiries/${enquiry.id}`} className="dash-cell-link">{enquiry.name}</Link><span>{enquiry.phone}</span></td><td data-label="Property / category">{enquiry.property_type || enquiry.intent || 'General enquiry'}</td><td data-label="Time">{relativeTime(enquiry.created_at)}</td><td data-label="Status"><span className={`dash-status is-${enquiry.status}`}>{formatStatus(enquiry.status)}</span></td></tr>)}</tbody></table></div>}</article><article className="dash-panel"><header className="dash-panel-head"><div><h2>Recent Activity</h2><p>Latest property and enquiry updates</p></div><Link to="/properties">View all <ArrowUpRight size={14} /></Link></header><ul className="dash-activity">{[...data.recentProperties.map((property) => ({ type: 'Property', title: property.title, meta: `${formatStatus(property.status)} · ${relativeTime(property.updated_at)}`, to: `/properties/${property.id}` })), ...data.recentEnquiries.map((enquiry) => ({ type: 'Enquiry', title: `${enquiry.name} submitted an enquiry`, meta: `${formatStatus(enquiry.status)} · ${formatDate(enquiry.created_at)}`, to: `/enquiries/${enquiry.id}` }))].slice(0, 5).map((activity) => <li key={`${activity.type}-${activity.to}`}><span className={`dash-activity-mark is-${activity.type.toLowerCase()}`} /><Link to={activity.to}><small>{activity.type}</small><strong>{activity.title}</strong><span>{activity.meta}</span></Link></li>)}</ul>{data.recentProperties.length === 0 && data.recentEnquiries.length === 0 && <p className="dash-empty">Activity will appear here as your portfolio grows.</p>}</article></section>
+  </div>;
 }

@@ -9,8 +9,13 @@ import clientRoutes from './routes/client/index.js';
 import { createProperty } from './controllers/admin/adminPropertyController.js';
 
 // Production safety: never boot with the development JWT secret fallback.
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-  throw new Error('[BOOT] JWT_SECRET must be set when NODE_ENV=production; dev fallback is not allowed.');
+// Two checks:
+//   1. JWT_SECRET must be set (non-empty) when NODE_ENV=production.
+//   2. The well-known dev-fallback value is rejected even if somehow "set",
+//      because it is a predictable, low-entropy secret unsuitable for production.
+const KNOWN_WEAK_JWT_FALLBACK = 'dev-secret-change-in-production';
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === KNOWN_WEAK_JWT_FALLBACK)) {
+  throw new Error('[BOOT] JWT_SECRET must be set to a strong secret when NODE_ENV=production; the development fallback is not allowed.');
 }
 
 const app = express();

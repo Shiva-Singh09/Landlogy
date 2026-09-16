@@ -12,6 +12,7 @@ export interface Enquiry {
   status: 'new' | 'reviewed' | 'converted' | 'rejected';
   reviewed_by: string | null;
   notes: string | null;
+  rejection_remark: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -55,7 +56,8 @@ export async function getEnquiry(id: string): Promise<EnquiryDetailResponse> {
 export async function updateEnquiryStatus(
   id: string,
   status: string,
-  notes?: string
+  notes?: string,
+  rejectionRemark?: string
 ): Promise<{ ok: boolean; enquiry: Enquiry }> {
-  return api.patch(`/api/admin/enquiries/${id}/status`, { status, notes });
+  return api.patch(`/api/admin/enquiries/${id}/status`, { status, notes, rejection_remark: rejectionRemark });
 }

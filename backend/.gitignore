@@ -1,0 +1,19 @@
+# Environment / secrets — never commit real credentials
+.env
+.env.local
+.env.*.local
+
+# Local upload storage (do not version image files)
+property_images/
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+
+# OS / editor artifacts
+.DS_Store
+Thumbs.db

@@ -1,6 +1,28 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Eye, Filter, Search } from 'lucide-react';
 import { getEnquiries, Enquiry } from '../api/enquiries';
+
+const statusLabel: Record<string, string> = {
+  new: 'New',
+  reviewed: 'Reviewed',
+  converted: 'Converted',
+  rejected: 'Rejected',
+};
+
+const statusClass: Record<string, string> = {
+  new: 'status-new',
+  reviewed: 'status-reviewed',
+  converted: 'status-converted',
+  rejected: 'status-rejected',
+};
+
+const formatDate = (value: string): string =>
+  new Date(value).toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
 
 export default function Enquiries() {
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
@@ -32,104 +54,151 @@ export default function Enquiries() {
 
   useEffect(() => {
     fetchEnquiries();
-  }, [page, statusFilter]);
+  }, [page, statusFilter, search]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = (event: React.FormEvent) => {
+    event.preventDefault();
     setPage(1);
     fetchEnquiries();
   };
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h2>Seller / Client Enquiries</h2>
-        <p>Review and manage enquiries submitted through the Seller Website</p>
-      </div>
+    <div className="enquiries-page">
+      <header className="enquiries-header">
+        <div className="header-content">
+          <div className="header-text">
+            <h1>Enquiries</h1>
+            <p>Manage and track customer enquiries</p>
+          </div>
+        </div>
+      </header>
 
-      <div className="filters-bar">
-        <form onSubmit={handleSearch} className="search-form">
-          <input
-            type="text"
-            placeholder="Search by name, email, or phone..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <button type="submit" className="btn-secondary">Search</button>
+      <div className="enquiries-toolbar">
+        <form onSubmit={handleSearch} className="enquiries-search">
+          <div className="search-input-wrapper">
+            <Search size={18} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search by name, email, or phone..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="search-input"
+            />
+          </div>
+          <button type="submit" className="search-button">
+            Search
+          </button>
         </form>
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="filter-select"
-        >
-          <option value="">All Statuses</option>
-          <option value="new">New</option>
-          <option value="reviewed">Reviewed</option>
-          <option value="converted">Converted</option>
-          <option value="rejected">Rejected</option>
-        </select>
+
+        <div className="filter-wrapper">
+          <Filter size={16} className="filter-icon" />
+          <select
+            value={statusFilter}
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
+              setPage(1);
+            }}
+            className="status-filter"
+          >
+            <option value="">All Statuses</option>
+            <option value="new">New</option>
+            <option value="reviewed">Reviewed</option>
+            <option value="converted">Converted</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
       </div>
 
       {error && <div className="error-message">{error}</div>}
 
       {loading ? (
-        <div className="page-loading">Loading enquiries...</div>
+        <div className="page-loading">
+          <div className="loading-spinner"></div>
+          <span>Loading enquiries...</span>
+        </div>
       ) : enquiries.length === 0 ? (
-        <div className="empty-state">No enquiries found</div>
+        <div className="empty-state">
+          <div className="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3>No enquiries found</h3>
+          <p>Try adjusting your search or filter criteria</p>
+        </div>
       ) : (
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Contact</th>
-                <th>City</th>
-                <th>Intent</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {enquiries.map((enquiry) => (
-                <tr key={enquiry.id}>
-                  <td><strong>{enquiry.name}</strong></td>
-                  <td>
-                    <div>{enquiry.phone}</div>
-                    {enquiry.email && <div className="text-muted">{enquiry.email}</div>}
-                  </td>
-                  <td>{enquiry.city || '-'}</td>
-                  <td>{enquiry.intent || '-'}</td>
-                  <td><span className={`badge badge-${enquiry.status}`}>{enquiry.status}</span></td>
-                  <td>{new Date(enquiry.created_at).toLocaleDateString()}</td>
-                  <td>
-                    <Link to={`/enquiries/${enquiry.id}`} className="btn-secondary btn-sm">View</Link>
-                  </td>
+        <>
+          <div className="enquiries-table-shell">
+            <table className="enquiries-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Property</th>
+                  <th>Contact</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th className="action-col">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {enquiries.map((enquiry) => (
+                  <tr key={enquiry.id}>
+                    <td className="customer-cell">
+                      <div className="customer-info">
+                        <div className="customer-name">{enquiry.name}</div>
+                        {enquiry.city && <div className="customer-city">{enquiry.city}</div>}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="property-type">
+                        {enquiry.property_type || enquiry.intent || '-'}
+                      </span>
+                    </td>
+                    <td className="contact-cell">
+                      <div className="contact-phone">{enquiry.phone}</div>
+                      {enquiry.email && <div className="contact-email">{enquiry.email}</div>}
+                    </td>
+                    <td className="date-cell">{formatDate(enquiry.created_at)}</td>
+                    <td>
+                      <span className={`status-badge ${statusClass[enquiry.status] ?? 'status-new'}`}>
+                        <span className="status-dot"></span>
+                        {statusLabel[enquiry.status] ?? enquiry.status}
+                      </span>
+                    </td>
+                    <td className="action-cell">
+                      <Link to={`/enquiries/${enquiry.id}`} className="view-button">
+                        <Eye size={16} />
+                        <span>View</span>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button
-            className="btn-secondary btn-sm"
-            disabled={page <= 1}
-            onClick={() => setPage(p => p - 1)}
-          >
-            Previous
-          </button>
-          <span className="pagination-info">Page {page} of {totalPages}</span>
-          <button
-            className="btn-secondary btn-sm"
-            disabled={page >= totalPages}
-            onClick={() => setPage(p => p + 1)}
-          >
-            Next
-          </button>
-        </div>
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button
+                className="btn-secondary btn-sm"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                Previous
+              </button>
+              <span className="pagination-info">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                className="btn-secondary btn-sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

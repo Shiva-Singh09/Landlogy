@@ -26,6 +26,19 @@ const withNodeEnv = async (value, run) => {
   }
 };
 
+const withClientOrigin = async (value, run) => {
+  const hadValue = Object.prototype.hasOwnProperty.call(process.env, 'CLIENT_ORIGIN');
+  const previous = process.env.CLIENT_ORIGIN;
+  if (value === undefined) delete process.env.CLIENT_ORIGIN;
+  else process.env.CLIENT_ORIGIN = value;
+  try {
+    return await run();
+  } finally {
+    if (hadValue && previous !== undefined) process.env.CLIENT_ORIGIN = previous;
+    else delete process.env.CLIENT_ORIGIN;
+  }
+};
+
 // Each app built here gets its own in-memory limiter store, so tests never
 // share (or exhaust) the counter used by the other cases.
 const startApp = async (configure) => {
@@ -49,8 +62,9 @@ const apiApp = () =>
 describe('rate limiter — JSON 429 contract', () => {
   it('rejects with valid JSON, application/json and HTTP 429 in production (limit not weakened)', async () => {
     await withNodeEnv('production', async () => {
-      const { server, base } = await apiApp();
-      try {
+      await withClientOrigin('https://admin.example.test', async () => {
+        const { server, base } = await apiApp();
+        try {
         const statuses = [];
         let limited = null;
         // max is 40 → request 41 must be rejected. Limit itself is asserted below.
@@ -81,9 +95,10 @@ describe('rate limiter — JSON 429 contract', () => {
 
         // Anti-regression: rate-limit headers still advertised.
         assert.ok(limited.headers.get('ratelimit') || limited.headers.get('ratelimit-limit'), 'standard rate-limit headers expected');
-      } finally {
-        server.close();
-      }
+        } finally {
+          server.close();
+        }
+      });
     });
   });
 

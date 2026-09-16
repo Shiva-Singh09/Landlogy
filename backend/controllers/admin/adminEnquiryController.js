@@ -47,7 +47,7 @@ export const listEnquiries = async (req, res) => {
     // connection. Heavy message column excluded from the list rows.
     const { count, rows } = await db.Enquiry.findAndCountAll({
       where,
-      attributes: ['id', 'name', 'phone', 'email', 'city', 'intent', 'property_type', 'status', 'reviewed_by', 'notes', 'created_at', 'updated_at'],
+      attributes: ['id', 'name', 'phone', 'email', 'city', 'intent', 'property_type', 'status', 'reviewed_by', 'notes', 'rejection_remark', 'created_at', 'updated_at'],
       order: [['created_at', 'DESC']],
       limit: limitNum,
       offset,
@@ -66,6 +66,7 @@ export const listEnquiries = async (req, res) => {
       status: e.status,
       reviewed_by: e.reviewed_by,
       notes: e.notes,
+      rejection_remark: e.rejection_remark,
       created_at: e.created_at,
       updated_at: e.updated_at,
     }));
@@ -117,6 +118,7 @@ export const getEnquiry = async (req, res) => {
         status: enquiry.status,
         reviewed_by: enquiry.reviewed_by,
         notes: enquiry.notes,
+        rejection_remark: enquiry.rejection_remark,
         created_at: enquiry.created_at,
         updated_at: enquiry.updated_at,
       },
@@ -132,7 +134,7 @@ export const getEnquiry = async (req, res) => {
 export const updateEnquiryStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, notes } = req.body || {};
+    const { status, notes, rejection_remark } = req.body || {};
 
     // Validate UUID format
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
@@ -149,6 +151,10 @@ export const updateEnquiryStatus = async (req, res) => {
         error: `Invalid status. Allowed values: ${ENQUIRY_STATUSES.join(', ')}.`,
       });
     }
+    const trimmedRejectionRemark = typeof rejection_remark === 'string' ? rejection_remark.trim() : '';
+    if (status === 'rejected' && !trimmedRejectionRemark) {
+      return res.status(400).json({ ok: false, error: 'A rejection remark is required when rejecting an enquiry.' });
+    }
 
     const enquiry = await db.Enquiry.findByPk(id);
 
@@ -160,6 +166,9 @@ export const updateEnquiryStatus = async (req, res) => {
     if (status !== 'converted') {
       enquiry.status = status;
       enquiry.reviewed_by = req.user.id;
+      if (status === 'rejected') {
+        enquiry.rejection_remark = trimmedRejectionRemark;
+      }
       if (notes !== undefined) {
         enquiry.notes = String(notes).slice(0, 5000);
       }
@@ -172,6 +181,7 @@ export const updateEnquiryStatus = async (req, res) => {
           status: enquiry.status,
           reviewed_by: enquiry.reviewed_by,
           notes: enquiry.notes,
+          rejection_remark: enquiry.rejection_remark,
           updated_at: enquiry.updated_at,
         },
       });

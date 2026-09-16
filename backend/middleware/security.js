@@ -31,10 +31,58 @@ const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 export const isLocalDevRequest = (req) =>
   process.env.NODE_ENV === 'development' && LOOPBACK_IPS.has(String(req.ip || ''));
 
+const DEVELOPMENT_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:5173',
+];
+
+const isExactHttpOrigin = (value) => {
+  try {
+    const url = new URL(value);
+    return (url.protocol === 'http:' || url.protocol === 'https:') && url.origin === value;
+  } catch {
+    return false;
+  }
+};
+
+export const getCorsOrigins = (environment = process.env.NODE_ENV) => {
+  const configured = String(process.env.CLIENT_ORIGIN || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  if (configured.some((origin) => !isExactHttpOrigin(origin))) {
+    throw new Error('[CORS] CLIENT_ORIGIN must contain comma-separated exact http(s) origins.');
+  }
+
+  if (environment === 'production' && configured.length === 0) {
+    throw new Error('[CORS] CLIENT_ORIGIN must be configured in production.');
+  }
+
+  return environment === 'production'
+    ? configured
+    : [...new Set([...DEVELOPMENT_ORIGINS, ...configured])];
+};
+
 // Cross-cutting app middleware — single source of truth for CORS, body limits,
 // static uploads serving and global rate limiting.
 export const applySecurityMiddleware = (app) => {
-  app.use(cors({origin:process.env.CLIENT_ORIGIN?.split(',').map(x=>x.trim()).filter(Boolean)||true,methods:['GET','POST','PATCH','DELETE']}));
+  const allowedOrigins = new Set(getCorsOrigins());
+  app.use(cors({
+    origin(origin, callback) {
+      // Non-browser requests (health checks, server-to-server calls) have no
+      // Origin header and do not need CORS headers. Browser origins are always
+      // checked against the explicit allow-list.
+      if (!origin) return callback(null, true);
+      return callback(null, allowedOrigins.has(origin));
+    },
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
   app.use(express.json({limit:'32kb'}));
   app.use('/uploads', express.static(UPLOAD_DIR));
   // Limits are unchanged (40 requests / 15 min window). Only the rejection body
