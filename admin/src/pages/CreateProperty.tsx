@@ -132,12 +132,12 @@ export default function CreateProperty() {
   };
 
   return (
-    <div className="page">
-      <div className="page-header">
+    <section className="property-create-page">
+      <header className="property-create-header">
         <button type="button" className="btn-secondary btn-sm" onClick={() => navigate('/properties')}>← Back</button>
-        <h2>Create property</h2>
-        <p>Only fields supported by the current property API are shown.</p>
-      </div>
+        <h2>Add Property</h2>
+        <p>Add a new property to your portfolio</p>
+      </header>
 
       {error && <div className="error-message" role="alert">{error}</div>}
       {imageUploadError && (
@@ -151,12 +151,12 @@ export default function CreateProperty() {
         </div>
       )}
 
-      <form className="detail-card property-form" onSubmit={submit}>
-        <div className="detail-section">
+      <form className="property-create-form" onSubmit={submit}>
+        <section className="property-create-section">
           <h3>Property Details</h3>
-          <div className="detail-grid">
+          <div className="property-form-fields">
             {Object.entries(form).map(([key, value]) => (
-              <label className="form-group" key={key}>
+              <label className={`form-group${key === 'description' ? ' property-description-field' : ''}`} key={key}>
                 {key.replace(/_/g, ' ')}
                 {key === 'description' ? (
                   <textarea value={value} onChange={e => setForm({ ...form, [key]: e.target.value })} maxLength={5000} />
@@ -171,9 +171,9 @@ export default function CreateProperty() {
               </label>
             ))}
           </div>
-        </div>
+        </section>
 
-        <div className="detail-section">
+        <section className="property-create-section">
           <h3>Property Images</h3>
           <p className="upload-hint">Add photos for this property. JPEG, PNG, or WebP. Max 5 MB each.</p>
 
@@ -217,14 +217,14 @@ export default function CreateProperty() {
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="detail-section">
+        <footer className="property-create-actions">
           <button type="submit" className="btn-primary" disabled={busy || uploading}>
             {busy ? 'Creating…' : uploading ? 'Uploading images…' : 'Create property'}
           </button>
-        </div>
+        </footer>
       </form>
-    </div>
+    </section>
   );
 }

@@ -1,4 +1,12 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+const configuredApiBase = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '');
+
+// Keep the Vite proxy working locally, but require an explicit backend URL in
+// production where a same-origin reverse proxy cannot be assumed.
+const API_BASE = configuredApiBase || (import.meta.env.DEV
+  ? ''
+  : (() => {
+      throw new Error('VITE_API_BASE_URL is required for production builds.');
+    })());
 
 export interface ApiResponse<T = unknown> {
   ok: boolean;
