@@ -22,6 +22,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Cross-cutting middleware (CORS, JSON body limit, static uploads, global rate limiting).
+app.set('trust proxy', 1);
 applySecurityMiddleware(app);
 
 // Route composition — one mount point per application surface.
@@ -36,7 +37,7 @@ app.post('/api/properties', authenticate, authorize('admin'), createProperty);
 // unexpected errors all return JSON instead of an unparseable HTML/text page.
 applyApiErrorHandlers(app);
 
-app.listen(PORT, async () => {
+app.listen(PORT,'0.0.0.0', async () => {
   console.log(`LANDLOGY API running on http://localhost:${PORT}`);
   try {
     await db.sequelize.authenticate();
