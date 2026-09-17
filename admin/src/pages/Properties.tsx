@@ -50,25 +50,47 @@ export default function Properties() {
 
   return (
     <div className="page">
+      {/* Header */}
       <div className="page-header">
-        <h2>Properties</h2>
-        <p>Manage and review property listings</p>
-        <Link to="/properties/new" className="btn-primary btn-sm">Create property</Link>
+        <div className="page-header-text">
+          <h2>Properties <span>Inventory</span></h2>
+          <p>Manage, review, and curate real estate listings across the Landlogy network.</p>
+        </div>
+        <div className="header-actions">
+          <Link to="/properties/new" className="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Create Property</span>
+          </Link>
+        </div>
       </div>
 
+      {/* Filter and Search Bar */}
       <div className="filters-bar">
         <form onSubmit={handleSearch} className="search-form">
+          <svg className="search-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
           <input
             type="text"
-            placeholder="Search by title or address..."
+            placeholder="Search by title, location, city..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button type="submit" className="btn-secondary">Search</button>
+          <button type="submit" className="btn btn-secondary btn-sm">
+            Search
+          </button>
         </form>
+
         <select
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
           className="filter-select"
         >
           <option value="">All Statuses</option>
@@ -82,39 +104,99 @@ export default function Properties() {
         </select>
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>{error}</span>
+        </div>
+      )}
 
       {loading ? (
-        <div className="page-loading">Loading properties...</div>
+        <div className="page-loading">
+          <div style={{ marginBottom: '1rem' }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--indigo)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+              <circle cx="12" cy="12" r="10" strokeOpacity="0.25"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10"></path>
+            </svg>
+          </div>
+          Loading properties catalog...
+        </div>
       ) : properties.length === 0 ? (
-        <div className="empty-state">No properties found</div>
+        <div className="empty-state">
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🏡</div>
+          <h3 style={{ fontFamily: 'var(--serif)', fontSize: '1.4rem', color: 'var(--ink)' }}>No properties found</h3>
+          <p className="text-muted" style={{ marginTop: '0.25rem' }}>Try clearing filters or search query.</p>
+        </div>
       ) : (
         <div className="table-container">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Title</th>
+                <th>Listing Title</th>
                 <th>Location</th>
-                <th>Price</th>
+                <th>Asking Price</th>
                 <th>Status</th>
-                <th>Date</th>
-                <th>Actions</th>
+                <th>Added Date</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {properties.map((property) => (
                 <tr key={property.id}>
-                  <td><strong>{property.title}</strong></td>
                   <td>
-                    {property.city && <div>{property.city}</div>}
-                    {property.state && <div className="text-muted">{property.state}</div>}
-                    {!property.city && !property.state && '-'}
+                    <div style={{ fontWeight: 700, color: 'var(--ink)' }}>
+                      {property.title}
+                    </div>
+                    {property.address && (
+                      <div className="text-muted" style={{ maxWidth: '280px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {property.address}
+                      </div>
+                    )}
                   </td>
-                  <td>{formatPrice(property.asking_price)}</td>
-                  <td><span className={`badge badge-${property.status}`}>{property.status.replace('_', ' ')}</span></td>
-                  <td>{new Date(property.created_at).toLocaleDateString()}</td>
                   <td>
-                    <Link to={`/properties/${property.id}`} className="btn-secondary btn-sm">View</Link>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                      </svg>
+                      <span>{property.city || property.state || '-'}</span>
+                    </div>
+                    {property.city && property.state && (
+                      <div className="text-muted" style={{ paddingLeft: 18 }}>{property.state}</div>
+                    )}
+                  </td>
+                  <td>
+                    <span className="price-tag">{formatPrice(property.asking_price)}</span>
+                  </td>
+                  <td>
+                    <span className={`badge badge-${property.status}`}>
+                      {property.status.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="text-muted">
+                      {new Date(property.created_at).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <Link
+                      to={`/properties/${property.id}`}
+                      className="btn btn-secondary btn-sm"
+                    >
+                      <span>View</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                      </svg>
+                    </Link>
                   </td>
                 </tr>
               ))}
@@ -123,11 +205,26 @@ export default function Properties() {
         </div>
       )}
 
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="pagination">
-          <button className="btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
-          <span className="pagination-info">Page {page} of {totalPages}</span>
-          <button className="btn-secondary btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
+          <button
+            className="btn btn-secondary btn-sm"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            &larr; Previous
+          </button>
+          <span className="pagination-info">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            className="btn btn-secondary btn-sm"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next &rarr;
+          </button>
         </div>
       )}
     </div>
