@@ -3650,3 +3650,72 @@ body.is-scrolled .nav-inner {
 @media(prefers-reduced-motion:reduce) {
     .step-row { opacity: 1 !important; transform: none !important }
 }
+
+/* ═══ Editorial premium-motion pass ═══ */
+.editorial-nav {
+    transition: box-shadow .3s, background .3s
+}
+
+body.is-scrolled .editorial-nav {
+    box-shadow: 0 10px 34px rgba(25, 23, 36, .07)
+}
+
+body.is-scrolled .editorial-nav .nav-inner {
+    min-height: 64px
+}
+
+.editorial-cluster,
+.editorial-stakeholder,
+.editorial-review,
+.editorial-team-card {
+    position: relative;
+    overflow: hidden
+}
+
+.editorial-cluster:before,
+.editorial-stakeholder:before,
+.editorial-review:before,
+.editorial-team-card:before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    transition: opacity .3s;
+    background: radial-gradient(280px circle at var(--cx, 50%) var(--cy, 50%), rgba(200, 146, 42, .10), transparent 70%)
+}
+
+.editorial-cluster:hover:before,
+.editorial-stakeholder:hover:before,
+.editorial-review:hover:before,
+.editorial-team-card:hover:before {
+    opacity: 1
+}
+
+.editorial-cluster>*,
+.editorial-stakeholder>*,
+.editorial-review>*,
+.editorial-team-card>* {
+    position: relative;
+    z-index: 1
+}
+
+.editorial-hero-image img {
+    transform: translate3d(calc(var(--mx) * -12px), calc(var(--my) * -8px), 0) scale(1.06);
+    transition: transform .4s cubic-bezier(.2, .8, .2, 1);
+    will-change: transform
+}
+
+.editorial-intake {
+    transform: translateY(calc(var(--sy) * -0.02px))
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .editorial-hero-image img,
+    .editorial-intake {
+        transform: none !important;
+        transition: none !important
+    }
+}

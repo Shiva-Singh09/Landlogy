@@ -5,6 +5,9 @@ import { ClientLoginPage } from './pages/auth/ClientLoginPage';
 import { ClientPortalPage } from './pages/client/ClientPortalPage';
 import { SellerLandingPage } from './pages/public/SellerLandingPage';
 import './styles.css';
+import './styles/tokens.css';
+import './styles/shared.css';
+import './styles/portal.css';
 
 export default function App() {
   const [bootReady, setBootReady] = useState(false);

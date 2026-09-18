@@ -82,12 +82,12 @@
   --muted: var(--ll-text-400);
   --line: var(--ll-line);
   --serif: 'DM Serif Display', Georgia, serif;
-  --sans: Inter, system-ui, sans-serif;
+  --sans: 'Manrope', 'Segoe UI', sans-serif;
   --max: 1160px;
 
   /* ---------- TYPOGRAPHY ---------- */
-  --ll-font-serif: 'DM Serif Display', Georgia, serif;
-  --ll-font-sans: Inter, system-ui, sans-serif;
+  --ll-font-serif: var(--serif);
+  --ll-font-sans: var(--sans);
   --ll-display-lg: clamp(42px, 5.5vw, 68px);
   --ll-display-md: clamp(30px, 3.5vw, 44px);
   --ll-display-sm: clamp(30px, 3.3vw, 44px);
@@ -108,35 +108,36 @@
   --ll-leading-relaxed: 1.8;
   --ll-leading-tight: 1.12;
 
-  /* ---------- SPACING (existing rhythm) ---------- */
-  --ll-space-1: 4px;
-  --ll-space-2: 8px;
-  --ll-space-3: 12px;
-  --ll-space-4: 16px;
-  --ll-space-5: 18px;
-  --ll-space-6: 24px;
-  --ll-space-7: 32px;
+  /* ---------- SPACING (8px base) ---------- */
+  --ll-space-1: 8px;
+  --ll-space-2: 12px;
+  --ll-space-3: 16px;
+  --ll-space-4: 20px;
+  --ll-space-5: 24px;
+  --ll-space-6: 32px;
+  --ll-space-7: 40px;
   --ll-space-8: 48px;
   --ll-space-9: 64px;
-  --ll-space-10: 96px;
+  --ll-space-10: 80px;
+   --ll-section-space: clamp(80px, 9vw, 120px);
 
-  /* ---------- RADIUS (compact scale) ---------- */
+  /* ---------- RADIUS (same brand language, quieter scale) ---------- */
   --ll-radius-sm: 8px;
-  --ll-radius-md: 10px;
-  --ll-radius-lg: 12px;
-  --ll-radius-xl: 14px;
+  --ll-radius-md: 12px;
+  --ll-radius-lg: 16px;
+  --ll-radius-xl: 20px;
   --ll-radius-2xl: 16px;
   --ll-radius-3xl: 20px;
   --ll-radius-full: 999px;
 
-  /* ---------- SHADOW (from landing) ---------- */
-  --ll-shadow-sm: 0 12px 28px rgba(21, 31, 46, 0.045);
-  --ll-shadow-md: 0 18px 50px rgba(21, 31, 46, 0.1);
-  --ll-shadow-lg: 0 22px 55px rgba(21, 31, 46, 0.13);
+  /* ---------- SHADOW (restrained elevation) ---------- */
+  --ll-shadow-sm: 0 10px 24px rgba(21, 31, 46, 0.045);
+  --ll-shadow-md: 0 18px 36px rgba(21, 31, 46, 0.08);
+  --ll-shadow-lg: 0 24px 48px rgba(21, 31, 46, 0.12);
   --ll-shadow-xl: 0 35px 90px rgba(0, 0, 0, 0.28);
-  --ll-shadow-gold: 0 10px 30px rgba(200, 146, 42, 0.18);
-  --ll-shadow-gold-lg: 0 16px 40px rgba(200, 146, 42, 0.28);
-  --ll-shadow-card: 0 8px 30px rgba(21, 31, 46, 0.08);
+  --ll-shadow-gold: 0 12px 28px rgba(183, 137, 66, 0.12);
+  --ll-shadow-gold-lg: 0 16px 40px rgba(183, 137, 66, 0.18);
+  --ll-shadow-card: 0 12px 28px rgba(21, 31, 46, 0.06);
 
   /* ---------- MOTION ---------- */
   --ll-duration-fast: 0.15s;

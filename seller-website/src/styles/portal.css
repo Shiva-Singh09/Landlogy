@@ -14,7 +14,7 @@
   min-height: 220px;
   overflow: hidden;
   border: 1px solid var(--line, #e2e8f0);
-  border-radius: 14px;
+  border-radius: var(--ll-radius-lg, 16px);
   background: #fff;
   transition: box-shadow .25s ease;
 }
@@ -56,6 +56,25 @@
 .portal-page .portal-section,
 .portal-page .portal-section-wrapper {
   animation: sectionFade .25s ease both;
+}
+.portal-page {
+  font-family: var(--ll-font-sans, var(--sans));
+  color: var(--ll-text-700, var(--text));
+}
+.portal-page h1,
+.portal-page h2,
+.portal-page h3,
+.portal-page h4 {
+  font-family: var(--ll-font-serif, var(--serif));
+  letter-spacing: 0;
+}
+.portal-page .portal-section,
+.portal-page .portal-section-wrapper {
+  border-color: var(--ll-line, var(--line));
+}
+.portal-page .card-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--ll-shadow-md, 0 18px 36px rgba(21, 31, 46, .08));
 }
 .portal-page .portal-welcome { animation-delay: .04s; }
 /* Calm, one-step hover for interactive portal cards only. */
