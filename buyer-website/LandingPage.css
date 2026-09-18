@@ -99,25 +99,8 @@ a {
   justify-content: space-between;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 800;
-  font-size: 21px;
-  letter-spacing: -0.7px;
-}
 
-.logo-mark {
-  width: 35px;
-  height: 35px;
-  display: grid;
-  place-items: center;
-  color: white;
-  border-radius: 10px;
-  background: var(--g-royal);
-  box-shadow: 0 7px 20px rgba(69, 32, 107, 0.22);
-}
+  .logo-mark img { width: 50%; height: 50%; object-fit: contain; }
 
 .nav-links {
   display: flex;

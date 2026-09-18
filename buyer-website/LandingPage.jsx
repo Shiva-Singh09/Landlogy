@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Search,
   User,
@@ -91,6 +91,58 @@ const PROPERTIES = [
 
 const NAV_LINKS = ["Buy", "Rent", "Commercial", "Plots & Land", "Luxury"];
 
+// ---- Animated counter used in the trust section ----
+function Counter({ value, duration = 1500 }) {
+  const [display, setDisplay] = useState("0");
+  const ref = useRef(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const match = String(value).match(/^([\d,]+)(.*)$/);
+    const numeric = match ? parseInt(match[1].replace(/,/g, ""), 10) : 0;
+    const suffix = match ? match[2] : "";
+
+    const el = ref.current;
+    if (!el) return;
+
+    const animate = () => {
+      const start = performance.now();
+
+      const step = (now) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(numeric * eased);
+
+        setDisplay(`${current.toLocaleString()}${suffix}`);
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
+      };
+
+      requestAnimationFrame(step);
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !started.current) {
+            started.current = true;
+            animate();
+          }
+        });
+      },
+      { threshold: 0.4 }
+    );
+
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, [value, duration]);
+
+  return <strong ref={ref}>{display}</strong>;
+}
+
 function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -161,9 +213,8 @@ function LandingPage() {
         <div className="nav-inner">
           <a href="#" className="logo">
             <span className="logo-mark">
-              <Home size={17} strokeWidth={2.4} />
+              <img src="/Logo.png" alt="Landlogy" />
             </span>
-            <span>Landlogy</span>
           </a>
 
           <nav className={`nav-links ${menuOpen ? "open" : ""}`}>
@@ -235,11 +286,6 @@ function LandingPage() {
                   onClick={scrollToProperties}
                 >
                   Explore properties
-                  <ArrowRight size={18} />
-                </button>
-
-                <button className="btn btn-secondary">
-                  List your property
                   <ArrowRight size={18} />
                 </button>
               </div>
@@ -461,17 +507,17 @@ function LandingPage() {
 
               <div className="trust-stats">
                 <div>
-                  <strong>10K+</strong>
+                  <Counter value="10000+" />
                   <span>Properties</span>
                 </div>
 
                 <div>
-                  <strong>50+</strong>
+                  <Counter value="50+" />
                   <span>Locations</span>
                 </div>
 
                 <div>
-                  <strong>100%</strong>
+                  <Counter value="100%" />
                   <span>Curated</span>
                 </div>
               </div>
@@ -586,7 +632,7 @@ function LandingPage() {
             <div className="footer-brand">
               <a href="#" className="logo footer-logo">
                 <span className="logo-mark">
-                  <Home size={17} />
+                  <img src="/logo.png" alt="Landlogy" />
                 </span>
                 <span>Landlogy</span>
               </a>
