@@ -1,43 +1,75 @@
 import React from 'react';
-import { MapPin, PencilLine, ImageIcon } from 'lucide-react';
-import { formatDate, formatPriceINR, statusLabel } from '../../config/constants';
+import { ArrowRight, Building2, Clock, Images, MapPin } from 'lucide-react';
+import { formatDate, formatPriceINR, resolveImageURL, statusLabel } from '../../config/constants';
+
+export const refOf = (id) => {
+  if (!id) return null;
+  const c = String(id).replace(/-/g, '').toUpperCase();
+  return `LL-${c.slice(0, 4)}-${c.slice(4, 6)}`;
+};
+
+export const imageOf = (p) => {
+  if (!p) return '';
+  const raw = p.primary_image
+    || (Array.isArray(p.images) && p.images[0] && (p.images[0].url || p.images[0]))
+    || p.image_url;
+  return raw ? resolveImageURL(raw) : '';
+};
+
+const STEPS = ['draft', 'under_review', 'active', 'sold'];
+const OFF_TRACK = ['rejected', 'inactive', 'archived'];
 
 export function PropertyCard({ property, onViewDetails }) {
-  const image = property && (property.primary_image || (Array.isArray(property.images) && property.images[0] && (property.images[0].url || property.images[0])) || property.image_url);
-  const location = property && [property.address, property.city, property.state].filter(Boolean).join(', ');
+  const p = property || {};
+  const img = imageOf(p);
+  const location = [p.city, p.state].filter(Boolean).join(', ');
+  const type = p.property_type || p.property_category || p.type;
+  const shots = Array.isArray(p.images) ? p.images.length : 0;
+  const idx = Math.max(0, STEPS.indexOf(p.status));
+  const off = OFF_TRACK.includes(p.status);
 
   return (
-    <article className="owner-property-card">
-      {image ? (
-        <img src={image} alt={property?.title || 'Property'} />
-      ) : (
-        <div className="property-image-placeholder">
-          <ImageIcon size={32} />
+    <article className="lp-pc">
+      <button type="button" className="lp-pc-hit" onClick={() => onViewDetails(p.id)}
+        aria-label={`View ${p.title || 'property'}`} />
+
+      <div className="lp-pc-shot">
+        {img
+          ? <img src={img} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+          : <span className="lp-ph"><Building2 size={32} /></span>}
+        <span className={`lp-pill s-${p.status || 'draft'}`}><i />{statusLabel(p.status)}</span>
+        <span className="lp-pc-bottom">
+          {refOf(p.id) && <span className="lp-pc-ref">{refOf(p.id)}</span>}
+          {shots > 0 && <span className="lp-pc-shots"><Images size={12} /> {shots}</span>}
+        </span>
+      </div>
+
+      <div className="lp-pc-body">
+        <span className="lp-pc-loc"><MapPin size={12} /> {location || 'Location to be confirmed'}</span>
+        <h3>{p.title || 'Property'}</h3>
+
+        <div className="lp-pc-price">
+          <small>Asking price</small>
+          <b>{formatPriceINR(p.asking_price ?? p.price)}</b>
+          {type && <span className="lp-pc-type">{type}</span>}
         </div>
-      )}
-      <div className="owner-property-info">
-        <div className="property-title-row">
-          <div>
-            <span className="property-owner-tag">Owned property</span>
-            <h3>{property?.title || 'Property'}</h3>
-            <p><MapPin size={14} /> {location || 'Location not available'}</p>
+
+        {off ? (
+          <p className="lp-pc-off">Speak with us about the next steps</p>
+        ) : (
+          <div className="lp-pc-bar" style={{ '--fill': (idx / (STEPS.length - 1)).toFixed(3) }}>
+            <span />
+            <em>{statusLabel(p.status)} · step {idx + 1} of 4</em>
           </div>
-          <span className="status-pill">{statusLabel(property?.status)}</span>
-        </div>
+        )}
 
-        <div className="property-facts">
-          <span><small>Type</small>{property?.property_type || property?.property_category || property?.type || '—'}</span>
-          <span><small>Price</small>{formatPriceINR(property?.asking_price ?? property?.price)}</span>
-          <span><small>Updated</small>{formatDate(property?.updated_at || property?.updatedAt)}</span>
-          <span><small>Reference</small>{property?.reference || property?.reference_id || '—'}</span>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-          <button type="button" className="btn btn-primary" onClick={() => onViewDetails(property?.id)}>
-            <PencilLine size={14} /> View Details
-          </button>
+        <div className="lp-pc-foot">
+          <time><Clock size={12} /> {formatDate(p.updated_at || p.updatedAt)}</time>
+          <span className="lp-pc-go">View <ArrowRight size={14} /></span>
         </div>
       </div>
     </article>
   );
 }
+
+export default PropertyCard;

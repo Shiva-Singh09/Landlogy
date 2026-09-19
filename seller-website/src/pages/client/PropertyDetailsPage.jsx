@@ -1,212 +1,366 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ImageIcon, MapPin, Plus, Upload } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  AlertCircle, ArrowLeft, Building2, Check, ChevronLeft, ChevronRight,
+  ClipboardCheck, Clock, FileText, Handshake, Images, MapPin, MessageCircle,
+  Phone, Plus, RefreshCw, ShieldCheck, X
+} from 'lucide-react';
 import { fetchClientProperty } from '../../api/clientApi';
 import { PropertyImageUpload } from '../../components/client/PropertyImageUpload';
 import { PropertyDetailsSkeleton } from '../../components/loading/PortalSkeletons';
-import { formatDate, formatPriceINR, statusLabel, resolveImageURL } from '../../config/constants';
+import { refOf } from '../../components/client/PropertyCard';
+import {
+  formatDate, formatPriceINR, resolveImageURL, statusCopy, statusLabel,
+  STATUS_ORDER, SUPPORT_CONTACT
+} from '../../config/constants';
 import { SpaLink } from '../../utils/bus';
+
+const STAGES = [
+  { key: 'draft', label: 'Submitted', icon: ClipboardCheck, note: 'We have your property details on file.' },
+  { key: 'under_review', label: 'Under review', icon: RefreshCw, note: 'Our team checks the details, documents and pricing.' },
+  { key: 'active', label: 'Approved', icon: Check, note: 'Live with LANDLOGY and shown to relevant buyers.' },
+  { key: 'sold', label: 'Sold', icon: Handshake, note: 'Sale complete and handed over.' }
+];
+const OFF_TRACK = ['rejected', 'inactive', 'archived'];
+
+const DOCS = ['Title deed', 'Latest tax receipt', 'Identity proof', 'Encumbrance certificate'];
 
 export function PropertyDetailsPage({ propertyId, token, onLogout, fallbackProperties = [] }) {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showImageUpload, setShowImageUpload] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [showUpload, setShowUpload] = useState(false);
+  const [active, setActive] = useState(0);
+  const [added, setAdded] = useState(0);
 
-    // Request-loop guard: load only once per propertyId+token change.
+  const fallbackRef = useRef(fallbackProperties);
+  fallbackRef.current = fallbackProperties;
+  const logoutRef = useRef(onLogout);
+  logoutRef.current = onLogout;
+
   useEffect(() => {
-    if (!propertyId) {
-      setLoading(false);
-      setProperty(null);
-      return;
-    }
-
+    if (!propertyId) { setLoading(false); setProperty(null); return; }
+    let alive = true;
     setLoading(true);
     setError('');
-    let active = true;
 
-    const load = async () => {
+    (async () => {
       try {
-        const response = await fetchClientProperty(propertyId, token);
-        const nextProperty = response?.property || response?.data || null;
-        if (active) {
-          setProperty(nextProperty || fallbackProperties.find((item) => String(item.id) === String(propertyId)) || null);
-        }
+        const res = await fetchClientProperty(propertyId, token);
+        const next = res?.property || res?.data || null;
+        if (!alive) return;
+        setProperty(next || fallbackRef.current.find((x) => String(x.id) === String(propertyId)) || null);
+        setActive(0);
       } catch (err) {
-        if (!active) return;
-        if (err && (err.status === 401 || err.status === 403)) {
-          onLogout();
-          return;
-        }
-        setError('Unable to load this property right now. Please try again later.');
+        if (!alive) return;
+        if (err && (err.status === 401 || err.status === 403)) { logoutRef.current?.(); return; }
+        setError('We could not load this property right now. Please try again in a moment.');
       } finally {
-        if (active) setLoading(false);
+        if (alive) setLoading(false);
       }
-    };
+    })();
 
-    load();
-    return () => { active = false; };
-  }, [propertyId, token, onLogout, fallbackProperties]);
+    return () => { alive = false; };
+  }, [propertyId, token]);
 
-  // Refresh property after image upload to pick up new gallery.
-  const handleImagesUploaded = (images) => {
-    setUploadedImages((prev) => [...prev, ...images]);
-    if (propertyId && token) {
-      fetchClientProperty(propertyId, token)
-        .then((response) => {
-          const nextProperty = response?.property || response?.data || null;
-          if (nextProperty) setProperty(nextProperty);
-        })
-        .catch(() => {});
-    }
-  };
-
-    const gallery = useMemo(() => {
+  const gallery = useMemo(() => {
     if (!property) return [];
-    const imagesRaw = Array.isArray(property.images) ? property.images : [];
-    const urls = imagesRaw
-      .map((image) => (image && typeof image === 'object' ? image.url || image : image))
+    const raw = Array.isArray(property.images) ? property.images : [];
+    const urls = raw
+      .map((i) => (i && typeof i === 'object' ? i.url || i : i))
       .filter(Boolean)
-      .map((url) => (typeof url === 'string' ? resolveImageURL(url) : url));
-    // Fallback single image (real backend URL only) for properties created
-    // before the gallery endpoint existed.
+      .map((u) => (typeof u === 'string' ? resolveImageURL(u) : u));
     if (urls.length === 0 && (property.image_url || property.primary_image)) {
       return [resolveImageURL(property.image_url || property.primary_image)];
     }
     return urls;
   }, [property]);
 
-  if (loading) {
-    return <PropertyDetailsSkeleton />;
-  }
+  /* arrow-key navigation through the gallery */
+  useEffect(() => {
+    if (gallery.length < 2) return;
+    const key = (e) => {
+      if (e.key === 'ArrowLeft') setActive((i) => (i - 1 + gallery.length) % gallery.length);
+      if (e.key === 'ArrowRight') setActive((i) => (i + 1) % gallery.length);
+    };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, [gallery.length]);
+
+  const onUploaded = (images) => {
+    setAdded((n) => n + (images?.length || 0));
+    if (!propertyId || !token) return;
+    fetchClientProperty(propertyId, token)
+      .then((res) => {
+        const next = res?.property || res?.data || null;
+        if (next) setProperty(next);
+      })
+      .catch(() => {});
+  };
+
+  if (loading) return <PropertyDetailsSkeleton />;
 
   if (error) {
-    return <div className="portal-section-wrapper"><div className="portal-mini-card" style={{ color: '#7f1d1d', background: '#fff1f2' }}>{error}</div></div>;
+    return (
+      <div className="lp-err" role="alert">
+        <AlertCircle size={20} />
+        <div><strong>Could not load this property</strong><p>{error}</p></div>
+      </div>
+    );
   }
 
   if (!property) {
     return (
-      <div className="portal-section-wrapper">
-        <div className="portal-mini-card" style={{ textAlign: 'center' }}>
-          <h3 style={{ marginBottom: '10px' }}>Property not found</h3>
-          <p style={{ margin: 0, color: '#5e6c7b' }}>The selected property is not available for this authenticated account.</p>
+      <div className="lp-card">
+        <div className="lp-empty">
+          <span className="lp-empty-i"><Building2 size={28} /></span>
+          <h3>Property not found</h3>
+          <p>This property is not on your account. It may have been removed, or the link may be out of date.</p>
+          <div className="lp-empty-a">
+            <SpaLink to="/client-portal/properties" className="lp-btn lp-btn-a">Back to my properties</SpaLink>
+          </div>
         </div>
       </div>
     );
   }
 
-  const location = [property.address, property.city, property.state, property.pincode].filter(Boolean).join(', ');
+  const ref = refOf(property.id);
+  const address = [property.address, property.city, property.state, property.pincode].filter(Boolean).join(', ');
+  const idx = Math.max(0, STATUS_ORDER.indexOf(property.status));
+  const off = OFF_TRACK.includes(property.status);
+  const type = property.property_type || property.property_category || property.type;
+  const wa = `https://wa.me/${SUPPORT_CONTACT.phoneRaw.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi LANDLOGY, I have a question about my property ${ref ? `(REF ${ref})` : ''}.`)}`;
 
   return (
     <>
-      <div className="portal-welcome">
-        <div>
-          <span className="eyebrow">Property Details</span>
-          <h1>{property.title || 'Property Record'}</h1>
-        </div>
-        <SpaLink to="/client-portal/properties" className="btn btn-secondary"><ArrowLeft size={14} /> Back to properties</SpaLink>
+      <div className="lp-backrow">
+        <SpaLink to="/client-portal/properties" className="lp-link">
+          <ArrowLeft size={14} /> My properties
+        </SpaLink>
+        {ref && <span className="lp-ref">REF {ref}</span>}
       </div>
 
-      <section className="portal-section" style={{ display: 'grid', gap: '18px' }}>
-        <div className="portal-mini-card" style={{ overflow: 'hidden' }}>
-          <div className="property-gallery">
-            {gallery.length > 0 ? (
-              <div className="property-gallery-grid">
-                <div className="property-gallery-main">
-                  <img src={gallery[0]} alt={property.title || 'Property'} />
+      {/* hero */}
+      <section className="lp-dhero">
+        <div className="lp-dhero-gal">
+          {gallery.length > 0 ? (
+            <>
+              <img src={gallery[active]} alt={property.title || 'Property'} />
+              {gallery.length > 1 && (
+                <>
+                  <button type="button" className="lp-gnav prev" aria-label="Previous photo"
+                    onClick={() => setActive((i) => (i - 1 + gallery.length) % gallery.length)}>
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button type="button" className="lp-gnav next" aria-label="Next photo"
+                    onClick={() => setActive((i) => (i + 1) % gallery.length)}>
+                    <ChevronRight size={18} />
+                  </button>
+                  <span className="lp-gcount"><Images size={12} /> {active + 1} / {gallery.length}</span>
+                </>
+              )}
+            </>
+          ) : (
+            <span className="lp-ph lp-dhero-ph">
+              <Images size={34} />
+              <b>No photos yet</b>
+              <small>Buyers take listings with photos far more seriously</small>
+              <button type="button" className="lp-btn lp-btn-a" onClick={() => setShowUpload(true)}>
+                <Plus size={15} /> Add photos
+              </button>
+            </span>
+          )}
+        </div>
+
+        <div className="lp-dhero-info">
+          <span className={`lp-pill s-${property.status || 'draft'}`}><i />{statusLabel(property.status)}</span>
+          <h1>{property.title || 'Your property'}</h1>
+          <p className="lp-dhero-loc"><MapPin size={14} /> {address || 'Address to be confirmed'}</p>
+
+          <div className="lp-dhero-price">
+            <small>Asking price</small>
+            <b>{formatPriceINR(property.asking_price ?? property.price)}</b>
+          </div>
+
+          <dl className="lp-dhero-meta">
+            <div><dt>Type</dt><dd>{type || '—'}</dd></div>
+            <div><dt>Added</dt><dd>{formatDate(property.created_at || property.createdAt)}</dd></div>
+            <div><dt>Updated</dt><dd>{formatDate(property.updated_at || property.updatedAt)}</dd></div>
+          </dl>
+
+          <div className="lp-dhero-act">
+            <button type="button" className="lp-btn lp-btn-b" onClick={() => setShowUpload((v) => !v)}>
+              {showUpload ? <><X size={15} /> Close</> : <><Plus size={15} /> Add photos</>}
+            </button>
+            <a href={wa} target="_blank" rel="noreferrer" className="lp-btn lp-btn-b">
+              <MessageCircle size={15} /> Ask about this
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* thumbnails */}
+      {gallery.length > 1 && (
+        <div className="lp-gstrip">
+          {gallery.map((src, i) => (
+            <button type="button" key={`${src}-${i}`} onClick={() => setActive(i)}
+              className={`lp-gthumb ${i === active ? 'on' : ''}`} aria-label={`Photo ${i + 1}`}>
+              <img src={src} alt="" loading="lazy" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* upload */}
+      {showUpload && (
+        <section className="lp-card" style={{ marginTop: 'var(--s4)' }}>
+          <div className="lp-card-head">
+            <div>
+              <span className="lp-k">Photos</span>
+              <h2>Add photos to this property</h2>
+              <p>Clear daylight photos of the front, main rooms and surroundings work best.</p>
+            </div>
+            <button type="button" className="lp-icon" aria-label="Close" onClick={() => setShowUpload(false)}>
+              <X size={16} />
+            </button>
+          </div>
+          <PropertyImageUpload propertyId={propertyId} token={token} onImagesUploaded={onUploaded} />
+          {added > 0 && <p className="lp-ok"><Check size={15} /> {added} photo{added === 1 ? '' : 's'} added.</p>}
+        </section>
+      )}
+
+      <div className="lp-grid" style={{ marginTop: 'var(--s4)' }}>
+        <div>
+          {/* description */}
+          {(property.description || property.details) && (
+            <section className="lp-card">
+              <div className="lp-card-head">
+                <div>
+                  <span className="lp-k">About</span>
+                  <h2>Property description</h2>
                 </div>
-                {gallery.length > 1 && (
-                  <div className="property-gallery-thumbs">
-                    {gallery.slice(1).map((image, index) => (
-                      <div className="property-gallery-thumb" key={`${image}-${index}`}>
-                        <img src={image} alt={`${property.title || 'Property'} image ${index + 2}`} />
-                      </div>
-                    ))}
-                  </div>
-                )}
+              </div>
+              <p className="lp-prose">{property.description || property.details}</p>
+            </section>
+          )}
+
+          {/* full details */}
+          <section className="lp-card">
+            <div className="lp-card-head">
+              <div>
+                <span className="lp-k">On record</span>
+                <h2>Full details</h2>
+                <p>What we hold for this property. Call us if anything needs correcting.</p>
+              </div>
+            </div>
+
+            <div className="lp-dl">
+              {[
+                ['Property name', property.title],
+                ['Type', type],
+                ['Address', property.address],
+                ['City', property.city],
+                ['State', property.state],
+                ['Pincode', property.pincode],
+                ['Asking price', formatPriceINR(property.asking_price ?? property.price)],
+                ['Reference', ref]
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <small>{label}</small>
+                  <b>{value || '—'}</b>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* documents */}
+          <section className="lp-card">
+            <div className="lp-card-head">
+              <div>
+                <span className="lp-k">Paperwork</span>
+                <h2>Documents for this property</h2>
+                <p>Our team files these as they are verified.</p>
+              </div>
+            </div>
+
+            <div className="lp-doclist">
+              {DOCS.map((d) => (
+                <div key={d}>
+                  <span className="lp-doc-i"><FileText size={15} /></span>
+                  <b>{d}</b>
+                  <span className="lp-doc-s">Awaiting</span>
+                </div>
+              ))}
+            </div>
+
+            <p className="lp-quiet">
+              <ShieldCheck size={14} /> Exactly which documents apply depends on the property. We will confirm the list with you during review.
+            </p>
+          </section>
+        </div>
+
+        {/* right rail */}
+        <div>
+          <section className="lp-card">
+            <div className="lp-card-head">
+              <div>
+                <span className="lp-k">Progress</span>
+                <h2>Where it stands</h2>
+              </div>
+            </div>
+
+            {off ? (
+              <div className="lp-track-note" style={{ marginTop: 0, paddingTop: 0, border: 0 }}>
+                <AlertCircle size={16} />
+                <p>{statusCopy(property.status)}</p>
               </div>
             ) : (
-              <div className="property-gallery-main">
-                <div className="property-image-placeholder">
-                  <ImageIcon size={48} />
-                  <span>No images uploaded yet</span>
-                </div>
-              </div>
+              <ol className="lp-vtrack">
+                {STAGES.map((s, i) => {
+                  const state = i < idx ? 'done' : i === idx ? 'now' : '';
+                  const Icon = i < idx ? Check : s.icon;
+                  return (
+                    <li className={`lp-vnode ${state}`} key={s.key}>
+                      <span className="lp-vdot"><Icon size={15} /></span>
+                      <div className="lp-vbody">
+                        <b>{s.label}</b>
+                        {i === idx ? (
+                          <>
+                            <time>{formatDate(property.updated_at || property.updatedAt)}</time>
+                            <p>{statusCopy(property.status)}</p>
+                          </>
+                        ) : <span>{s.note}</span>}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
             )}
-          </div>
+          </section>
 
-          <button
-            type="button"
-            className="btn btn-secondary property-add-images-btn"
-            onClick={() => setShowImageUpload((prev) => !prev)}
-          >
-            <Plus size={14} /> {showImageUpload ? 'Hide image upload' : 'Add Images'}
-          </button>
-        </div>
-
-        {showImageUpload && (
-          <div className="portal-mini-card" style={{ padding: '28px' }}>
-            <div className="section-heading" style={{ marginBottom: '14px' }}>
-              <h2 style={{ margin: 0, color: '#192536' }}>Add images to this property</h2>
-              <p style={{ margin: '4px 0 0', color: '#5e6c7b', fontSize: '13px' }}>
-                Images appear in your gallery only after LANDLOGY confirms the upload.
-              </p>
-            </div>
-            <PropertyImageUpload
-              propertyId={propertyId}
-              token={token}
-              onImagesUploaded={handleImagesUploaded}
-            />
-            {uploadedImages.length > 0 && (
-              <div style={{ marginTop: '16px', padding: '12px 16px', borderRadius: '10px', background: '#ecfdf3', color: '#037a3c', fontSize: '13px', fontWeight: 500 }}>
-                {uploadedImages.length} image{uploadedImages.length === 1 ? '' : 's'} added to this property.
+          <section className="lp-card">
+            <div className="lp-card-head">
+              <div>
+                <span className="lp-k">Questions</span>
+                <h2>Talk to us</h2>
+                <p>Quote REF {ref} and we will open your file straight away.</p>
               </div>
-            )}
-          </div>
-        )}
-
-        <div className="portal-mini-card">
-          <div className="property-title-row" style={{ alignItems: 'center' }}>
-            <div>
-              <span className="property-owner-tag">Property overview</span>
-              <h3>{property.title || 'Property'}</h3>
-              <p><MapPin size={14} /> {location || 'Location not available'}</p>
             </div>
-            <span className="status-pill">{statusLabel(property.status)}</span>
-          </div>
 
-          <div className="property-facts" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
-            <span><small>Type</small>{property.property_type || property.property_category || property.type || '—'}</span>
-            <span><small>Price</small>{formatPriceINR(property.asking_price ?? property.price)}</span>
-            <span><small>Reference</small>{property.reference || property.reference_id || '—'}</span>
-            <span><small>Updated</small>{formatDate(property.updated_at || property.updatedAt)}</span>
-          </div>
+            <div className="lp-contact">
+              <a href={`tel:${SUPPORT_CONTACT.phoneRaw}`}>
+                <span className="lp-contact-i"><Phone size={16} /></span>
+                <span><small>Call us</small><strong>{SUPPORT_CONTACT.phone}</strong></span>
+              </a>
+            </div>
+
+            <a href={wa} target="_blank" rel="noreferrer" className="lp-wa">
+              <MessageCircle size={16} /> WhatsApp about this property
+            </a>
+          </section>
         </div>
-
-        <div className="portal-mini-card">
-          <div className="section-heading" style={{ marginBottom: '12px' }}>
-            <h2>Property information</h2>
-          </div>
-
-          <div className="profile-list" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 24px' }}>
-            <div><dt>Address</dt><dd>{property.address || '—'}</dd></div>
-            <div><dt>City</dt><dd>{property.city || '—'}</dd></div>
-            <div><dt>State</dt><dd>{property.state || '—'}</dd></div>
-            <div><dt>Pincode</dt><dd>{property.pincode || '—'}</dd></div>
-            <div><dt>Property type</dt><dd>{property.property_type || property.property_category || property.type || '—'}</dd></div>
-            <div><dt>Created</dt><dd>{formatDate(property.created_at || property.createdAt)}</dd></div>
-            <div><dt>Last updated</dt><dd>{formatDate(property.updated_at || property.updatedAt)}</dd></div>
-            <div><dt>Current status</dt><dd>{statusLabel(property.status)}</dd></div>
-          </div>
-        </div>
-
-        {property.description || property.details ? (
-          <div className="portal-mini-card">
-            <h3 style={{ marginBottom: '12px', color: '#192536' }}>Description</h3>
-            <p style={{ margin: 0, color: '#48596b', lineHeight: 1.8 }}>{property.description || property.details}</p>
-          </div>
-        ) : null}
-      </section>
+      </div>
     </>
   );
 }
+
+export default PropertyDetailsPage;

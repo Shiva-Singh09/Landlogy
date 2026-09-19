@@ -1,87 +1,140 @@
 import React, { useMemo, useState } from 'react';
-import { CalendarRange } from 'lucide-react';
-import { StatusTimeline } from '../../components/client/StatusTimeline';
+import {
+  AlertCircle, Building2, Calendar, Check, ClipboardCheck,
+  Handshake, MapPin, RefreshCw, ShieldCheck
+} from 'lucide-react';
 import { EmptyState } from '../../components/client/EmptyState';
 import { StatusTimelineSkeleton } from '../../components/loading/PortalSkeletons';
-import { formatDate, statusLabel } from '../../config/constants';
+import { refOf } from '../../components/client/PropertyCard';
+import { formatDate, formatPriceINR, statusCopy, statusLabel, STATUS_ORDER } from '../../config/constants';
 import { SpaLink } from '../../utils/bus';
 
+const STAGES = [
+  { key: 'draft', label: 'Submitted', icon: ClipboardCheck, note: 'We have your property details.' },
+  { key: 'under_review', label: 'Under review', icon: RefreshCw, note: 'Our team is checking details and documents.' },
+  { key: 'active', label: 'Approved', icon: Check, note: 'Live with LANDLOGY and open to buyers.' },
+  { key: 'sold', label: 'Sold', icon: Handshake, note: 'Sale complete and handed over.' }
+];
+const OFF_TRACK = ['rejected', 'inactive', 'archived'];
+
 export function PropertyStatusPage({ properties, loading, error }) {
-  const [selectedId, setSelectedId] = useState(properties[0]?.id || '');
+  const list = Array.isArray(properties) ? properties : [];
+  const [selectedId, setSelectedId] = useState('');
 
-  const selectedProperty = useMemo(() => {
-    if (!Array.isArray(properties) || properties.length === 0) return null;
-    return properties.find((item) => String(item.id) === String(selectedId)) || properties[0];
-  }, [properties, selectedId]);
+  const selected = useMemo(() => {
+    if (list.length === 0) return null;
+    return list.find((p) => String(p.id) === String(selectedId)) || list[0];
+  }, [list, selectedId]);
 
-  if (loading) {
-    return <StatusTimelineSkeleton />;
-  }
+  if (loading) return <StatusTimelineSkeleton />;
 
   if (error) {
-    return <div className="portal-section-wrapper"><div className="portal-mini-card" style={{ color: '#7f1d1d', background: '#fff1f2' }}>{error}</div></div>;
-  }
-
-  if (!Array.isArray(properties) || properties.length === 0) {
     return (
-      <EmptyState
-        title="No property status available"
-        description="This client account currently has no properties to inspect."
-        icon="properties"
-        action={<SpaLink to="/client-portal" className="btn btn-primary">Back to dashboard</SpaLink>}
-      />
+      <div className="lp-err" role="alert">
+        <AlertCircle size={20} />
+        <div><strong>Could not load your properties</strong><p>{error}</p></div>
+      </div>
     );
   }
 
-  const history = Array.isArray(selectedProperty?.status_history) ? selectedProperty.status_history : [];
-  const currentStatus = selectedProperty?.status || 'draft';
+  const header = (
+    <header className="lp-head">
+      <span className="lp-k">Progress</span>
+      <h1>Property <em>status</em></h1>
+      <p>Follow each property through submission, review, approval and sale.</p>
+    </header>
+  );
+
+  if (list.length === 0) {
+    return (
+      <>
+        {header}
+        <EmptyState
+          icon="properties"
+          title="Nothing to track yet"
+          description="Once you add a property, this is where you will see exactly which stage it has reached."
+          action={<SpaLink to="/client-portal/add-property" className="lp-btn lp-btn-a">Add a property</SpaLink>}
+        />
+      </>
+    );
+  }
+
+  const idx = Math.max(0, STATUS_ORDER.indexOf(selected.status));
+  const offTrack = OFF_TRACK.includes(selected.status);
+  const location = [selected.city, selected.state].filter(Boolean).join(', ');
 
   return (
     <>
-      <div className="portal-welcome">
-        <div>
-          <span className="eyebrow">Property Status</span>
-          <h1>Portfolio progress</h1>
-          <p>Review the current status and real status history for your property records.</p>
+      {header}
+
+      {list.length > 1 && (
+        <div className="lp-chips">
+          {list.map((p) => (
+            <button type="button" key={p.id} onClick={() => setSelectedId(p.id)}
+              className={`lp-chip ${String(selected.id) === String(p.id) ? 'on' : ''}`}>
+              {p.title || 'Property'}
+            </button>
+          ))}
         </div>
-      </div>
+      )}
 
-      <section className="portal-section">
-        <div className="portal-mini-card" style={{ marginBottom: '18px' }}>
-          <div className="section-heading" style={{ marginBottom: '12px' }}>
-            <h2>Selected property</h2>
-          </div>
-
-          {properties.length > 1 ? (
-            <label htmlFor="property-status-select" style={{ display: 'grid', gap: '8px', color: '#48596b', fontWeight: 600 }}>
-              Choose a property
-              <select id="property-status-select" value={selectedProperty?.id || ''} onChange={(event) => setSelectedId(event.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #dfe5eb', background: '#fff' }}>
-                {properties.map((property) => (
-                  <option key={property.id} value={property.id}>{property.title}</option>
-                ))}
-              </select>
-            </label>
-          ) : (
-            <p style={{ margin: 0, color: '#48596b' }}>{selectedProperty?.title}</p>
-          )}
-        </div>
-
-        <div className="portal-mini-card" style={{ marginBottom: '18px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+      <section className="lp-card">
+        <div className="lp-card-head">
+          <div className="lp-track-id">
+            <span className="lp-track-ico"><Building2 size={19} /></span>
             <div>
-              <div className="eyebrow" style={{ marginBottom: '8px' }}>Current status</div>
-              <h3 style={{ margin: 0, color: '#192536' }}>{statusLabel(currentStatus)}</h3>
+              <strong>{selected.title || 'Your property'}</strong>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <MapPin size={12} /> {location || 'Location to be confirmed'}
+              </span>
             </div>
-            <span className="status-pill">{statusLabel(currentStatus)}</span>
           </div>
-          <div style={{ marginTop: '18px', display: 'grid', gap: '6px' }}>
-            <div style={{ color: '#5e6c7b' }}><CalendarRange size={14} style={{ verticalAlign: 'middle', marginRight: '8px' }} /> Latest update: {formatDate(selectedProperty?.updated_at || selectedProperty?.updatedAt)}</div>
-            <div style={{ color: '#5e6c7b' }}>Reference: {selectedProperty?.reference || selectedProperty?.reference_id || '—'}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s2)', flexWrap: 'wrap' }}>
+            {refOf(selected.id) && <span className="lp-ref">REF {refOf(selected.id)}</span>}
+            <span className={`lp-pill s-${selected.status || 'draft'}`}><i />{statusLabel(selected.status)}</span>
           </div>
         </div>
 
-        <StatusTimeline history={history} currentStatus={currentStatus} />
+        <div className="lp-facts" style={{ marginBottom: 'var(--s5)' }}>
+          <div><small>Asking price</small><b>{formatPriceINR(selected.asking_price ?? selected.price)}</b></div>
+          <div><small>Added</small><b>{formatDate(selected.created_at || selected.createdAt)}</b></div>
+          <div><small>Last updated</small><b>{formatDate(selected.updated_at || selected.updatedAt)}</b></div>
+        </div>
+
+        {offTrack ? (
+          <div className="lp-track-note" style={{ marginTop: 0, paddingTop: 0, border: 0 }}>
+            <AlertCircle size={16} />
+            <p>{statusCopy(selected.status)}</p>
+          </div>
+        ) : (
+          <ol className="lp-vtrack">
+            {STAGES.map((s, i) => {
+              const state = i < idx ? 'done' : i === idx ? 'now' : '';
+              const Icon = i < idx ? Check : s.icon;
+              return (
+                <li className={`lp-vnode ${state}`} key={s.key}>
+                  <span className="lp-vdot"><Icon size={15} /></span>
+                  <div className="lp-vbody">
+                    <b>{s.label}</b>
+                    {i === idx ? (
+                      <>
+                        <time>{formatDate(selected.updated_at || selected.updatedAt)}</time>
+                        <p>{statusCopy(selected.status)}</p>
+                      </>
+                    ) : <span>{s.note}</span>}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+
+        <p className="lp-quiet">
+          <ShieldCheck size={14} /> Status is set by the LANDLOGY team as your property moves forward.
+        </p>
       </section>
     </>
   );
 }
+
+export default PropertyStatusPage;
