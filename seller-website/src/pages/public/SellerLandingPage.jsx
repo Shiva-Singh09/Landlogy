@@ -1,17 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ArrowUpRight, Building2, Check, ChevronRight, Clock, Mail, MapPin,
-  MessageCircle, Menu, Phone, Scale, Search, ShieldCheck, Users, X
+  ArrowUpRight, Check, Clock, Mail, MapPin,
+  Menu, MousePointer2, Phone, Scale, Search, ShieldCheck, Users, X
 } from 'lucide-react';
 import logo from '../../assets/Logo.png';
 import heroVisual from '../../assets/Hero1.png';
-import heroVisualAlt from '../../assets/Hero.png';
 import { API_BASE } from '../../config/constants';
 import { SpaLink } from '../../utils/bus';
 
 /* ───────── hooks ───────── */
 
-function useReveal(enabled = true, rescan = '') {
+function useReveal(enabled = true) {
   useEffect(() => {
     if (!enabled) return;
     const nodes = [...document.querySelectorAll('[data-reveal]')].filter((el) => !el.classList.contains('is-visible'));
@@ -20,7 +19,7 @@ function useReveal(enabled = true, rescan = '') {
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     nodes.forEach((n) => io.observe(n));
     return () => io.disconnect();
-  }, [enabled, rescan]);
+  }, [enabled]);
 }
 
 function useMotionVars() {
@@ -40,10 +39,9 @@ function useMotionVars() {
       if (!frame) frame = requestAnimationFrame(apply);
     };
     const onScroll = () => {
-      const y = scrollY;
       const max = document.documentElement.scrollHeight - innerHeight;
-      root.style.setProperty('--progress', max > 0 ? (y / max).toFixed(4) : '0');
-      document.body.classList.toggle('is-scrolled', y > 24);
+      root.style.setProperty('--progress', max > 0 ? (scrollY / max).toFixed(4) : '0');
+      document.body.classList.toggle('is-scrolled', scrollY > 24);
     };
     if (fine && !still) addEventListener('mousemove', onMove, { passive: true });
     addEventListener('scroll', onScroll, { passive: true });
@@ -56,6 +54,23 @@ function useMotionVars() {
   }, []);
 }
 
+/* plays the visual once on touch devices when scrolled into view */
+function useTouchPlay(enabled) {
+  useEffect(() => {
+    if (!enabled) return;
+    if (matchMedia('(pointer:fine)').matches) return;
+    if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+    const nodes = document.querySelectorAll('.agg, .h3d');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add('is-play'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.45 });
+    nodes.forEach((n) => io.observe(n));
+    return () => io.disconnect();
+  }, [enabled]);
+}
+
 function useSiteData() {
   const [site, setSite] = useState(null);
   const [error, setError] = useState(null);
@@ -63,14 +78,13 @@ function useSiteData() {
     setError(null);
     fetch('/site-data.json')
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(setSite)
-      .catch(setError);
+      .then(setSite).catch(setError);
   }, []);
   useEffect(() => { load(); }, [load]);
   return { site, error, load };
 }
 
-/* ───────── forms ───────── */
+/* ───────── form ───────── */
 
 function Field({ label, name, select, options, textarea, type = 'text', placeholder, error, clearError, ...rest }) {
   const eid = `${name}-err`;
@@ -84,7 +98,7 @@ function Field({ label, name, select, options, textarea, type = 'text', placehol
       <label htmlFor={name}>{label}</label>
       {select ? (
         <select defaultValue="" {...common}>
-          <option value="">{placeholder || 'Select an option'}</option>
+          <option value="">{placeholder || 'Choose one'}</option>
           {options?.map((o) => <option key={o} value={o}>{o}</option>)}
         </select>
       ) : textarea ? <textarea {...common} /> : <input type={type} {...common} />}
@@ -95,29 +109,67 @@ function Field({ label, name, select, options, textarea, type = 'text', placehol
 
 const PHONE_RE = /^(?:\+91\s?)?[6-9]\d{9}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PROPERTY_TYPES = ['Residential apartment', 'Independent house / villa', 'Plot / land', 'Commercial space', 'Office space', 'Warehouse / industrial'];
 
-function EnquiryForm({ intent }) {
+/* each mode decides which fields render and how the message is built */
+const MODES = {
+  sell: {
+    intent: 'Sell my property',
+    blurb: 'Tell us what you own and where it is. We come back with a realistic view of price and the next step.',
+    cta: 'Send enquiry',
+    fields: ['type', 'city', 'notes']
+  },
+  value: {
+    intent: 'Property valuation',
+    blurb: 'A research-backed price range before you decide whether to list. No obligation to sell.',
+    cta: 'Request valuation',
+    fields: ['type', 'city', 'size', 'age']
+  },
+  advice: {
+    intent: 'Advice',
+    blurb: 'Not ready to sell yet? Ask about timing, paperwork or what the market is doing in your area.',
+    cta: 'Ask the team',
+    fields: ['topic', 'city', 'question']
+  },
+  feedback: {
+    intent: 'Website feedback',
+    blurb: '',
+    cta: 'Send feedback',
+    fields: ['rating', 'improve']
+  }
+};
+
+function LandlogyForm({ mode }) {
+  const cfg = MODES[mode];
   const [status, setStatus] = useState('');
   const [msg, setMsg] = useState('');
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
+  const [rating, setRating] = useState('Very helpful');
   const ref = useRef(null);
+
+  useEffect(() => { setStatus(''); setErrors({}); }, [mode]);
+
   const clearError = (n) => setErrors((p) => { if (!(n in p)) return p; const q = { ...p }; delete q[n]; return q; });
+  const has = (f) => cfg.fields.includes(f);
 
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true); setStatus(''); setMsg(''); setErrors({});
     const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form));
+    const d = Object.fromEntries(new FormData(form));
     const err = {};
-    const name = String(data.name || '').trim();
+
+    const name = String(d.name || '').trim();
     if (!name) err.name = 'Please enter your name.';
     else if (name.length < 2 || name.length > 80) err.name = 'Name must be 2–80 characters.';
-    if (!PHONE_RE.test(String(data.phone || '').replace(/\s+/g, ''))) err.phone = 'Enter a valid 10-digit mobile number.';
-    if (data.email && !EMAIL_RE.test(String(data.email).trim())) err.email = 'Enter a valid email address.';
-    if (!String(data.city || '').trim()) err.city = 'Please enter the city.';
-    if (!String(data.property_type || '').trim()) err.property_type = 'Please select a property type.';
-    if (String(data.message || '').length > 2000) err.message = 'Message is too long.';
+    if (!PHONE_RE.test(String(d.phone || '').replace(/\s+/g, ''))) err.phone = 'Enter a valid 10-digit mobile number.';
+    if (d.email && !EMAIL_RE.test(String(d.email).trim())) err.email = 'Enter a valid email address.';
+    if (has('city') && !String(d.city || '').trim()) err.city = 'Please enter the city.';
+    if (has('type') && !String(d.property_type || '').trim()) err.property_type = 'Please choose a property type.';
+    if (has('topic') && !String(d.topic || '').trim()) err.topic = 'Please choose a topic.';
+    if (has('question') && String(d.question || '').trim().length < 10) err.question = 'Please write at least 10 characters.';
+    if (has('improve') && String(d.improve || '').trim().length < 10) err.improve = 'Please write at least 10 characters.';
 
     if (Object.keys(err).length) {
       setErrors(err); setBusy(false);
@@ -125,93 +177,151 @@ function EnquiryForm({ intent }) {
       return;
     }
 
-    data.intent = intent;
-    data.formType = 'property-enquiry';
+    /* every mode posts the same shape the backend already accepts */
+    const parts = [];
+    if (d.size) parts.push(`Approx size: ${d.size}`);
+    if (d.age) parts.push(`Property age: ${d.age}`);
+    if (d.notes) parts.push(String(d.notes));
+    if (d.question) parts.push(String(d.question));
+    if (d.improve) parts.push(`[${rating}] ${d.improve}`);
+
+    const payload = {
+      name, phone: d.phone, email: d.email || '',
+      city: d.city || '',
+      property_type: d.property_type || d.topic || '',
+      intent: cfg.intent,
+      formType: mode === 'feedback' ? 'feedback' : 'property-enquiry',
+      message: parts.join(' · ')
+    };
 
     try {
       const res = await fetch(`${API_BASE}/api/enquiries`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
       });
-      const out = await res.json();
+      const out = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(out.error || 'Submission failed');
-      setStatus('success'); form.reset();
-    } catch (error) { setStatus('error'); setMsg(error.message); }
+      setStatus('success'); form.reset(); setRating('Very helpful');
+    } catch (error) { setStatus('error'); setMsg(error.message || 'Something went wrong.'); }
     finally { setBusy(false); }
   };
 
   return (
     <form ref={ref} onSubmit={submit} noValidate>
+      {has('rating') && (
+          <div className="ll-rate">
+          {[['😄', 'Very helpful'], ['🙂', 'Somewhat helpful'], ['😕', 'Needs work']].map(([face, r]) => (
+            <label key={r} className={rating === r ? 'on' : ''}>
+              <input type="radio" name="ratingChoice" checked={rating === r} onChange={() => setRating(r)} />
+              <em role="img" aria-hidden="true">{face}</em>
+              {r}
+            </label>
+          ))}
+        </div>
+      )}
+
       <div className="field-row">
-        <Field label="Your name" name="name" placeholder="Full name" autoComplete="name" error={errors.name} clearError={clearError} />
-        <Field label="Mobile" name="phone" placeholder="98765 43210" inputMode="tel" autoComplete="tel-national" error={errors.phone} clearError={clearError} />
+        <Field label="Your name" name="name" placeholder="e.g. Rohit Verma" autoComplete="name" error={errors.name} clearError={clearError} />
+        <Field label="Mobile" name="phone" placeholder="e.g. 98765 43210" inputMode="tel" autoComplete="tel-national" error={errors.phone} clearError={clearError} />
       </div>
-      <Field label="Email" name="email" type="email" placeholder="you@example.com" autoComplete="email" error={errors.email} clearError={clearError} />
-      <Field label="Property type" name="property_type" select
-        options={['Residential apartment', 'Independent house / villa', 'Plot / land', 'Commercial space', 'Office space', 'Warehouse / industrial']}
-        placeholder="Select property type" error={errors.property_type} clearError={clearError} />
-      <Field label="City or location" name="city" placeholder="Where is the property?" autoComplete="address-level2" error={errors.city} clearError={clearError} />
-      <Field label="Anything else (optional)" name="message" textarea placeholder="Tell us about the property or what you need." error={errors.message} clearError={clearError} />
-      {status === 'success' && <div className="form-status success" role="status"><Check size={15} /> Enquiry received. We will be in touch within a working day.</div>}
+
+      <Field label="Email (optional)" name="email" type="email" placeholder="e.g. rohit@gmail.com" autoComplete="email" error={errors.email} clearError={clearError} />
+
+      {has('type') && (
+        <Field label="Property type" name="property_type" select options={PROPERTY_TYPES}
+          placeholder="Choose one" error={errors.property_type} clearError={clearError} />
+      )}
+
+      {has('topic') && (
+        <Field label="What is this about?" name="topic" select
+          options={['When should I sell?', 'Documents and paperwork', 'What is my area worth?', 'Something else']}
+          placeholder="Choose one" error={errors.topic} clearError={clearError} />
+      )}
+
+      {has('city') && (
+        <Field label="City or locality" name="city" placeholder="e.g. Gomti Nagar, Lucknow"
+          autoComplete="address-level2" error={errors.city} clearError={clearError} />
+      )}
+
+      {has('size') && (
+        <div className="field-row">
+          <Field label="Approx size" name="size" placeholder="e.g. 1450 sq ft" />
+          <Field label="Age" name="age" select options={['Under construction', 'Under 5 years', '5–10 years', 'Over 10 years']} placeholder="Choose one" />
+        </div>
+      )}
+
+      {has('notes') && (
+        <Field label="Anything else (optional)" name="notes" textarea placeholder="e.g. Ground floor, corner plot, ready to move" />
+      )}
+
+      {has('question') && (
+        <Field label="Your question" name="question" textarea placeholder="Ask us anything about selling"
+          error={errors.question} clearError={clearError} />
+      )}
+
+      {has('improve') && (
+        <Field label="What could be better?" name="improve" textarea placeholder="Tell us what worked and what didn't"
+          error={errors.improve} clearError={clearError} />
+      )}
+
+      {status === 'success' && <div className="form-status success" role="status"><Check size={15} /> Received. We reply within one working day.</div>}
       {status === 'error' && <div className="form-status error" role="alert"><X size={15} /> {msg}</div>}
-      <button type="submit" className="ll-btn ll-btn-a ll-btn-wide" disabled={busy}>{busy ? 'Sending…' : 'Send enquiry'}</button>
+
+      <button type="submit" className={`ll-btn ${mode === 'feedback' ? 'll-btn-b' : 'll-btn-a'} ll-btn-wide`} disabled={busy}>
+        {busy ? 'Sending…' : cfg.cta}
+      </button>
     </form>
   );
 }
 
-const RATINGS = ['Very helpful', 'Somewhat helpful', 'Needs work'];
+/* ───────── visuals ───────── */
 
-function FeedbackForm() {
-  const [rating, setRating] = useState(RATINGS[0]);
-  const [status, setStatus] = useState('');
-  const [errors, setErrors] = useState({});
-  const [busy, setBusy] = useState(false);
-  const clearError = (n) => setErrors((p) => { if (!(n in p)) return p; const q = { ...p }; delete q[n]; return q; });
-
-  const submit = async (e) => {
-    e.preventDefault();
-    setBusy(true); setStatus(''); setErrors({});
-    const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form));
-    const err = {};
-    if (!String(data.name || '').trim()) err.name = 'Please enter your name.';
-    if (!PHONE_RE.test(String(data.phone || '').replace(/\s+/g, ''))) err.phone = 'Enter a valid 10-digit mobile number.';
-    if (data.email && !EMAIL_RE.test(String(data.email).trim())) err.email = 'Enter a valid email address.';
-    if (String(data.message || '').trim().length < 10) err.message = 'Please write at least 10 characters.';
-    if (Object.keys(err).length) { setErrors(err); setBusy(false); return; }
-
-    data.rating = rating;
-    data.intent = 'Website feedback';
-    data.formType = 'feedback';
-
-    try {
-      const res = await fetch(`${API_BASE}/api/enquiries`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
-      });
-      if (!res.ok) throw new Error();
-      setStatus('success'); form.reset(); setRating(RATINGS[0]);
-    } catch { setStatus('error'); } finally { setBusy(false); }
-  };
-
+function LandAggregation() {
   return (
-    <form onSubmit={submit} noValidate>
-      <div className="ll-rate">
-        {RATINGS.map((r) => (
-          <label key={r} className={rating === r ? 'on' : ''}>
-            <input type="radio" name="ratingChoice" checked={rating === r} onChange={() => setRating(r)} />
-            {r}
-          </label>
-        ))}
+    <div className="agg" data-reveal>
+      <div className="agg-grid" />
+      <div className="agg-stage">
+        <span className="agg-p agg-a">A</span>
+        <span className="agg-p agg-b">B</span>
+        <span className="agg-p agg-c">C</span>
+        <span className="agg-p agg-d">D</span>
+        <span className="agg-link agg-l1" />
+        <span className="agg-link agg-l2" />
       </div>
-      <div className="field-row">
-        <Field label="Your name" name="name" placeholder="Full name" autoComplete="name" error={errors.name} clearError={clearError} />
-        <Field label="Mobile" name="phone" placeholder="98765 43210" inputMode="tel" autoComplete="tel-national" error={errors.phone} clearError={clearError} />
+      <span className="agg-tag agg-t1">Location intelligence</span>
+      <span className="agg-tag agg-t2">Verification layer</span>
+      <div className="agg-state">
+        <div className="agg-before"><b>4 parcels</b><span>Fragmented</span></div>
+        <div className="agg-after"><b>1 holding</b><span>Aggregated</span></div>
       </div>
-      <Field label="Email (optional)" name="email" type="email" placeholder="you@example.com" autoComplete="email" error={errors.email} clearError={clearError} />
-      <Field label="What could be better?" name="message" textarea placeholder="Tell us what worked and what didn't." error={errors.message} clearError={clearError} />
-      {status === 'success' && <div className="form-status success" role="status"><Check size={15} /> Thank you — noted.</div>}
-      {status === 'error' && <div className="form-status error" role="alert"><X size={15} /> Something went wrong. Please try again.</div>}
-      <button type="submit" className="ll-btn ll-btn-b ll-btn-wide" disabled={busy}>{busy ? 'Sending…' : 'Send feedback'}</button>
-    </form>
+    </div>
+  );
+}
+
+function House3D() {
+  return (
+    <div className="h3d" data-reveal>
+      <div className="h3d-floorgrid" />
+      <div className="h3d-scene">
+        <div className="h3d-stage">
+          <div className="h3d-slab" />
+          <div className="h3d-w h3d-wn"><i /></div>
+          <div className="h3d-w h3d-ws"><i /></div>
+          <div className="h3d-w h3d-we"><i /></div>
+          <div className="h3d-w h3d-ww"><i /></div>
+          <div className="h3d-roof">
+            <div className="h3d-r h3d-ra" />
+            <div className="h3d-r h3d-rb" />
+          </div>
+          <span className="h3d-pin h3d-p1">01</span>
+          <span className="h3d-pin h3d-p2">02</span>
+        </div>
+      </div>
+      <span className="h3d-tag h3d-t1">Spatial view</span>
+      <div className="h3d-state">
+        <div className="h3d-before"><b>Floor plan</b><span>Flat drawing</span></div>
+        <div className="h3d-after"><b>Built view</b><span>In context</span></div>
+      </div>
+    </div>
   );
 }
 
@@ -219,43 +329,31 @@ function FeedbackForm() {
 
 const NAV = [
   ['#services', 'What we do'],
-  ['#land', 'Land & visualisation'],
-  ['#network', 'Who we serve'],
+  ['#capabilities', 'Capabilities'],
   ['#process', 'How it works'],
   ['#team', 'Our team'],
   ['#contact', 'Contact']
 ];
 
-const TABS = [
-  ['sell', 'Sell', 'Tell us what you own and where it is. We come back with a realistic view of price and next steps.'],
-  ['value', 'Valuation', 'Get a research-backed price range before you decide whether to list.'],
-  ['advice', 'Advice', 'Not ready to sell yet? Ask us about timing, documents or market conditions.']
-];
+const TABS = [['sell', 'Sell'], ['value', 'Valuation'], ['advice', 'Advice']];
 
 const CLUSTERS = [
-  {
-    n: '01', code: 'Pricing',
-    title: 'Getting it priced right',
+  { n: '01', code: 'Pricing', title: 'Getting it priced right',
     text: 'Before anything is promoted, we work out what the property is genuinely worth and how it should be positioned.',
     names: ['Property Assessment', 'Pricing & Positioning', 'Professional Presentation'],
-    foot: 'Research before recommendation'
-  },
-  {
-    n: '02', code: 'Verification',
-    title: 'Getting it verified',
+    foot: 'Research before recommendation' },
+  { n: '02', code: 'Verification', title: 'Getting it verified',
     text: 'Ownership, documents and location context are organised early, so nothing surfaces late in a negotiation.',
     names: ['Verification Support', 'Land Aggregation', 'Property Intelligence & Presentation'],
-    foot: 'Checked before promotion'
-  },
-  {
-    n: '03', code: 'Closing',
-    title: 'Getting it sold',
+    foot: 'Checked before promotion' },
+  { n: '03', code: 'Closing', title: 'Getting it sold',
     text: 'The property reaches buyers whose requirements actually match it, and you have support through to handover.',
     names: ['Relevant Buyer Reach', 'Negotiation & Closing Support', '3D Property Visualization'],
-    foot: 'Guidance through the sale'
-  }
+    foot: 'Guidance through the sale' }
 ];
 
+const STAKE_TAGS = ['Sell-side', 'Capital', 'Development', 'Channel', 'Demand', 'Partners'];
+const STAGE_OUTCOME = ['Enquiry received', 'Under review', 'Documents organised', 'Strategy agreed', 'Live and supported'];
 const CORRIDORS = ['Lucknow', 'Delhi NCR', 'Mumbai', 'Bangalore'];
 
 export function SellerLandingPage() {
@@ -265,6 +363,7 @@ export function SellerLandingPage() {
 
   useReveal(!!site);
   useMotionVars();
+  useTouchPlay(!!site);
 
   useEffect(() => {
     document.body.classList.toggle('menu-open', menu);
@@ -284,7 +383,6 @@ export function SellerLandingPage() {
     );
   }
 
-  const active = TABS.find((t) => t[0] === tab);
   const svc = (name) => site.sellerServices.find((s) => s[1] === name);
   const closeMenu = () => setMenu(false);
 
@@ -293,15 +391,11 @@ export function SellerLandingPage() {
       {/* nav */}
       <nav className="ll-nav">
         <div className="ll-wrap ll-nav-in">
-          <a className="ll-logo" href="#top" aria-label="LANDLOGY home">
-            <img src={logo} alt="" />
-            <span><strong>LANDLOGY</strong><small>Property selling support</small></span>
-          </a>
+          <a className="ll-logo" href="#top" aria-label="LANDLOGY home"><img src={logo} alt="LANDLOGY" /></a>
           <div className="ll-links">
             {NAV.map(([href, label]) => <a key={href} href={href}>{label}</a>)}
           </div>
           <div className="ll-nav-cta">
-            <a className="ll-quiet" href={`tel:${site.contact.phoneRaw}`}><Phone size={13} /> Call us</a>
             <SpaLink className="ll-quiet" to="/client-login">Client login</SpaLink>
             <a href="#enquire" className="ll-btn ll-btn-a">List your property</a>
           </div>
@@ -322,7 +416,7 @@ export function SellerLandingPage() {
         </div>
       )}
 
-      {/* corridor strip */}
+      {/* corridor */}
       <div className="ll-strip">
         <div className="ll-wrap ll-strip-in">
           <span className="ll-strip-l">
@@ -339,8 +433,7 @@ export function SellerLandingPage() {
           <section className="ll-panel ll-story" data-reveal>
             <span className="ll-kicker">For property owners across India</span>
             <h1>Sell your property at the <em>right price.</em></h1>
-            <p className="ll-lead">Research first. Paperwork second. Buyers third.</p>
-            <p>{site.brand.description}</p>
+            <p className="ll-lead">{site.brand.description}</p>
 
             <div className="ll-shot">
               <img src={heroVisual} alt="A property listed through LANDLOGY" />
@@ -356,15 +449,6 @@ export function SellerLandingPage() {
               <div><ShieldCheck size={16} /><b>Verify</b><small>Title and documents</small></div>
               <div><Users size={16} /><b>Connect</b><small>Relevant buyers</small></div>
               <div><Scale size={16} /><b>Close</b><small>Through to handover</small></div>
-            </div>
-
-            <div className="ll-trust">
-              {site.numbersBand.items.slice(0, 3).map((item) => (
-                <div key={item.label}>
-                  <Check size={15} />
-                  <span><b>{item.label}</b><small>{item.value}</small></span>
-                </div>
-              ))}
             </div>
           </section>
 
@@ -382,8 +466,8 @@ export function SellerLandingPage() {
                   className={tab === key ? 'on' : ''} onClick={() => setTab(key)}>{label}</button>
               ))}
             </div>
-            <p>{active[2]}</p>
-            <EnquiryForm intent={active[1]} />
+            <p>{MODES[tab].blurb}</p>
+            <LandlogyForm mode={tab} key={tab} />
             <div className="ll-intake-foot">
               <span><ShieldCheck size={13} /> Reviewed privately</span>
               <span>Reply within one working day</span>
@@ -395,8 +479,8 @@ export function SellerLandingPage() {
           <div className="ll-band" data-reveal>
             {site.numbersBand.items.map((item) => (
               <div key={item.label}>
-                <strong>{item.value}</strong>
                 <span>{item.label}</span>
+                <strong>{item.value}</strong>
               </div>
             ))}
           </div>
@@ -411,9 +495,10 @@ export function SellerLandingPage() {
               <span className="ll-kicker">What we do</span>
               <h2>Everything a property sale needs, in one place.</h2>
             </div>
-            <p>Three groups of work, running in order, so nothing gets promoted before it is understood.</p>
+            <p>Three groups of work, running in order, so nothing is promoted before it is understood.</p>
           </div>
-          <div className="ll-clusters" data-stagger>
+             <div className="ll-clusters" data-stagger>
+            <span className="ll-thread" data-reveal aria-hidden="true" />
             {CLUSTERS.map((c) => (
               <article className="ll-panel ll-cluster" data-reveal key={c.n}>
                 <div className="ll-cluster-top"><b>{c.n}</b><small>{c.code}</small></div>
@@ -424,8 +509,7 @@ export function SellerLandingPage() {
                     const s = svc(name);
                     return s ? (
                       <a className="ll-row" href="#enquire" key={name}>
-                        <span><i>{s[0]}</i>{s[1]}</span>
-                        <ArrowUpRight size={14} />
+                        <span><i>{s[0]}</i>{s[1]}</span><ArrowUpRight size={14} />
                       </a>
                     ) : null;
                   })}
@@ -438,63 +522,45 @@ export function SellerLandingPage() {
       </section>
 
       {/* land aggregation */}
-      <section id="land" className="ll-sec">
+      <section id="capabilities" className="ll-sec">
         <div className="ll-wrap ll-split">
           <div className="ll-copy" data-reveal>
             <span className="ll-kicker">Signature capability</span>
             <h2>Land aggregation</h2>
-            <p>Neighbouring parcels are often worth more together than apart. We identify which pieces connect, organise the information behind each one, and shape a single coherent opportunity.</p>
+            <p>Neighbouring parcels are often worth more together than apart. We work out which pieces connect, organise the information behind each one, and shape a single coherent opportunity.</p>
             <div className="ll-checks">
               <span><Check size={16} /> Identify connected land opportunities</span>
               <span><Check size={16} /> Organise property and location information</span>
               <span><Check size={16} /> Shape a coordinated next step</span>
             </div>
             <a href="#enquire" className="ll-btn ll-btn-c">Discuss land strategy <ArrowUpRight size={15} /></a>
+            <span className="ll-hint"><MousePointer2 size={13} /> Hover the map to watch four parcels become one</span>
           </div>
-          <div className="ll-visual" data-reveal>
-            <div className="land-visual">
-              <div className="land-map-grid" />
-              <div className="land-parcel parcel-a">A</div>
-              <div className="land-parcel parcel-b">B</div>
-              <div className="land-parcel parcel-c">C</div>
-              <div className="land-parcel parcel-d">D</div>
-              <div className="land-connect connect-one" />
-              <div className="land-connect connect-two" />
-              <span className="land-label label-location">LOCATION</span>
-              <span className="land-label label-verified">VERIFIED</span>
-            </div>
-          </div>
+          <LandAggregation />
         </div>
       </section>
 
-      {/* 3d visualisation */}
+      {/* 3d */}
       <section className="ll-sec ll-stone">
         <div className="ll-wrap ll-split flip">
           <div className="ll-copy" data-reveal>
             <span className="ll-kicker">Visual clarity</span>
             <h2>3D visualisation with context</h2>
-            <p>A serious buyer needs to understand the space, not just see photographs of it. We present a property with its surroundings, its use case and its potential made legible.</p>
+            <p>A buyer needs to understand the space, not just look at photographs of it. We take the flat plan and build it out, so the shape, scale and potential of a property are obvious at a glance.</p>
             <div className="ll-checks">
               <span><Check size={16} /> Clarify space and positioning</span>
               <span><Check size={16} /> Show what the property could become</span>
               <span><Check size={16} /> Reduce the guesswork for buyers</span>
             </div>
             <a href="#enquire" className="ll-btn ll-btn-c">Request a presentation <ArrowUpRight size={15} /></a>
+            <span className="ll-hint"><MousePointer2 size={13} /> Hover the plan to raise the building</span>
           </div>
-          <div className="ll-visual" data-reveal>
-            <div className="viz-frame">
-              <div className="viz-building viz-building-one"><i /><i /><i /><i /></div>
-              <div className="viz-building viz-building-two"><i /><i /><i /></div>
-              <span className="viz-hotspot hotspot-one">01</span>
-              <span className="viz-hotspot hotspot-two">02</span>
-              <span className="viz-axis">SPATIAL VIEW</span>
-            </div>
-          </div>
+          <House3D />
         </div>
       </section>
 
       {/* network */}
-      <section id="network" className="ll-sec ll-ink">
+      <section className="ll-sec ll-ink">
         <div className="ll-wrap">
           <div className="ll-head" data-reveal>
             <div>
@@ -505,8 +571,12 @@ export function SellerLandingPage() {
           </div>
           <div className="ll-stake" data-stagger>
             {site.networks.map((n, i) => (
-              <article className="ll-tile" data-reveal key={n.title}>
-                <div className="ll-stake-top"><b>0{i + 1}</b><small>{n.title}</small></div>
+                 <article className="ll-tile" data-reveal key={n.title}>
+                <ArrowUpRight className="ll-stake-arrow" size={16} />
+                <div className="ll-stake-top">
+                  <b>0{i + 1}</b>
+                  <small>{STAKE_TAGS[i] || 'Network'}</small>
+                </div>
                 <h3>{n.title}</h3>
                 <p>{n.desc}</p>
               </article>
@@ -526,13 +596,13 @@ export function SellerLandingPage() {
             <p>From your first message through preparation, marketing and closing support.</p>
           </div>
           <div className="ll-journey" data-stagger>
-            {site.sellerSteps.map(([n, title, text]) => (
+            <span className="ll-thread" data-reveal aria-hidden="true" />
+            {site.sellerSteps.map(([n, title, text], i) => (
               <article className="ll-tile" data-reveal key={n}>
-                <b>{n}</b>
-                <small>Stage</small>
+                <b><span>{n}</span></b>
                 <h3>{title}</h3>
                 <p>{text}</p>
-                <div className="ll-journey-foot">Seller journey</div>
+                <div className="ll-journey-foot"><Check size={12} /> {STAGE_OUTCOME[i]}</div>
               </article>
             ))}
           </div>
@@ -633,7 +703,7 @@ export function SellerLandingPage() {
                 <h2>Tell us how we are doing</h2>
                 <p>Anything confusing, missing or wrong on this site — we want to hear it.</p>
               </div>
-              <FeedbackForm />
+              <LandlogyForm mode="feedback" />
             </div>
           </div>
         </div>
@@ -644,22 +714,21 @@ export function SellerLandingPage() {
         <div className="ll-wrap">
           <div className="ll-foot-grid">
             <div className="ll-foot-b">
-              <strong>LANDLOGY</strong>
-              <small>Property selling support</small>
+              <img src={logo} alt="LANDLOGY" />
               <p>{site.brand.tagline}</p>
             </div>
             <div>
               <h4>For owners</h4>
               <a href="#enquire">List your property</a>
               <a href="#services">What we do</a>
-              <a href="#land">Land &amp; visualisation</a>
+              <a href="#capabilities">Capabilities</a>
               <a href="#process">How it works</a>
             </div>
             <div>
               <h4>Access</h4>
               <SpaLink to="/client-login">Client login</SpaLink>
-              <a href="#contact">Contact us</a>
               <a href="#team">Our team</a>
+              <a href="#contact">Contact us</a>
             </div>
             <div>
               <h4>Reach us</h4>
@@ -676,7 +745,10 @@ export function SellerLandingPage() {
 
       <a className="ll-wa" target="_blank" rel="noreferrer" aria-label="Chat on WhatsApp"
         href={`https://wa.me/${site.contact.phoneRaw.replace(/\D/g, '')}?text=${encodeURIComponent(site.contact.whatsappMessage)}`}>
-        <MessageCircle size={22} />
+         <svg viewBox="0 0 24 24" width="25" height="25" fill="currentColor" aria-hidden="true">
+          <path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.79-1.47-1.75-1.65-2.05-.17-.3-.02-.46.13-.6.14-.14.3-.35.45-.53.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.22 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.69.25-1.28.17-1.4-.07-.13-.27-.2-.57-.35z"/>
+          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.87 9.87 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.17 8.17 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.83 2.42a8.19 8.19 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.25 8.23z"/>
+        </svg>
       </a>
     </main>
   );
