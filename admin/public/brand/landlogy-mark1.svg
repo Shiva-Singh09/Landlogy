@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>LANDLOGY</title>
+  <rect width="64" height="64" fill="#0000"/>
+
+  <path d="M32 10 L56 57 H47.5 L32 20.4 L16.5 57 H8 Z" fill="#74B743"/>
+
+  <g fill="#0F1B75">
+    <rect x="27.2" y="47.4" width="4.1" height="4.1" rx="0.6"/>
+    <rect x="32.7" y="47.4" width="4.1" height="4.1" rx="0.6"/>
+    <rect x="27.2" y="42.9" width="4.1" height="4.1" rx="0.6"/>
+    <rect x="32.7" y="42.9" width="4.1" height="4.1" rx="0.6"/>
+  </g>
+</svg>
