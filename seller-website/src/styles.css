@@ -1,44 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&display=swap');
 
-:root {
-    /* Modern Premium */
-    --ink: #191724;
-    --indigo: #45206B;
-    --amber: #FFB400;
-    --amber-lt: #FFF3D6;
-    --emerald: #00A884;
-    --blue: #3867FF;
-    --coral: #FF5A5F;
-    --stone: #F7F7F9;
-    --white: #fff;
-
-    /* legacy aliases so every existing rule keeps working */
-    --navy: var(--ink);
-    --navy2: var(--indigo);
-    --gold: var(--amber);
-    --gold-lt: var(--amber-lt);
-    --slate: var(--stone);
-
-    --text: #4a4458;
-    --muted: #7b7489;
-    --line: #e7e5ec;
-
-    --serif: 'DM Serif Display', Georgia, serif;
-    --sans: Manrope, system-ui, sans-serif;
-
-    --g-sunset: linear-gradient(90deg, #FFB400, #FF5A5F);
-    --g-ocean: linear-gradient(90deg, #00A884, #3867FF);
-    --g-royal: linear-gradient(90deg, #45206B, #3867FF);
-
-    /* motion */
-    --mx: 0;
-    --my: 0;
-    --mxpx: 50vw;
-    --mypx: 50vh;
-    --sy: 0px;
-    --progress: 0;
-    --max: 1160px
-}
 
 * {
     box-sizing: border-box;
