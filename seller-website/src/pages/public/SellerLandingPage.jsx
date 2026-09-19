@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ArrowUpRight, Check, Clock, Mail, MapPin,
+  ArrowUpRight, Check, Clock, Mail, MapPin,MessageCircle,
   Menu, MousePointer2, Phone, Scale, Search, ShieldCheck, Users, X
 } from 'lucide-react';
 import logo from '../../assets/Logo.png';
@@ -70,6 +70,24 @@ function useTouchPlay(enabled) {
     return () => io.disconnect();
   }, [enabled]);
 }
+function useScrollSpy(enabled, ids) {
+  const [active, setActive] = useState('');
+  useEffect(() => {
+    if (!enabled) return;
+    const sections = ids.map((id) => document.getElementById(id)).filter(Boolean);
+    if (sections.length === 0) return;
+    const io = new IntersectionObserver((entries) => {
+      const visible = entries.filter((e) => e.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) setActive(visible.target.id);
+    }, { rootMargin: '-45% 0px -45% 0px', threshold: [0, 0.25, 0.5] });
+    sections.forEach((s) => io.observe(s));
+    return () => io.disconnect();
+  }, [enabled, ids]);
+  return active;
+}
+
+const SPY_IDS = ['top', 'services', 'capabilities', 'process', 'team', 'contact'];
 
 function useSiteData() {
   const [site, setSite] = useState(null);
@@ -360,10 +378,10 @@ export function SellerLandingPage() {
   const [menu, setMenu] = useState(false);
   const [tab, setTab] = useState('sell');
   const { site, error, load } = useSiteData();
-
   useReveal(!!site);
   useMotionVars();
   useTouchPlay(!!site);
+  const spy = useScrollSpy(!!site, SPY_IDS);
 
   useEffect(() => {
     document.body.classList.toggle('menu-open', menu);
@@ -393,7 +411,9 @@ export function SellerLandingPage() {
         <div className="ll-wrap ll-nav-in">
           <a className="ll-logo" href="#top" aria-label="LANDLOGY home"><img src={logo} alt="LANDLOGY" /></a>
           <div className="ll-links">
-            {NAV.map(([href, label]) => <a key={href} href={href}>{label}</a>)}
+            {NAV.map(([href, label]) => (
+              <a key={href} href={href} className={spy === href.slice(1) ? 'on' : ''}>{label}</a>
+            ))}
           </div>
           <div className="ll-nav-cta">
             <SpaLink className="ll-quiet" to="/client-login">Client login</SpaLink>
@@ -742,7 +762,18 @@ export function SellerLandingPage() {
           </div>
         </div>
       </footer>
-
+      <div className="ll-mbar">
+        <a href={`tel:${site.contact.phoneRaw}`}>
+          <Phone size={17} /><span>Call</span>
+        </a>
+        <a href={`https://wa.me/${site.contact.phoneRaw.replace(/\D/g, '')}?text=${encodeURIComponent(site.contact.whatsappMessage)}`}
+          target="_blank" rel="noreferrer" className="wa">
+          <MessageCircle size={17} /><span>WhatsApp</span>
+        </a>
+        <a href="#enquire" className="pri">
+          <ArrowUpRight size={17} /><span>List property</span>
+        </a>
+      </div>
       <a className="ll-wa" target="_blank" rel="noreferrer" aria-label="Chat on WhatsApp"
         href={`https://wa.me/${site.contact.phoneRaw.replace(/\D/g, '')}?text=${encodeURIComponent(site.contact.whatsappMessage)}`}>
          <svg viewBox="0 0 24 24" width="25" height="25" fill="currentColor" aria-hidden="true">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  AtSign, BadgeCheck, Building2, Check, Clock, IdCard, Mail, MapPin,
+  AtSign, BadgeCheck, Building2, Check, Clock, IdCard,KeyRound ,Mail, MapPin,
   MessageCircle, Phone, Shield, ShieldCheck, Smartphone, UserRound
 } from 'lucide-react';
 import { ProfileSkeleton } from '../../components/loading/PortalSkeletons';
@@ -217,11 +217,16 @@ export function ProfilePage({ user, properties = [] }) {
               </div>
             </div>
 
-            <div className="lp-secure-rows">
+                <div className="lp-secure-rows">
               <div><span>Password</span><b>Set by you</b></div>
+              <div><span>Last changed</span><b>—</b></div>
               <div><span>Account status</span><b className="ok">{user.status || 'Active'}</b></div>
               <div><span>Reference</span><b>{accountRef || '—'}</b></div>
             </div>
+            <a href={WA('Hi LANDLOGY, I need to reset my portal password.')} target="_blank"
+              rel="noreferrer" className="lp-btn lp-btn-b" style={{ width: '100%', marginTop: 'var(--s4)' }}>
+              <KeyRound size={15} /> Reset my password
+            </a>
 
             <p className="lp-quiet">
               <ShieldCheck size={14} /> LANDLOGY will never ask for your password over a call or message. If someone does, hang up and tell us.
