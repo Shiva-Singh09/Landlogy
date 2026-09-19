@@ -4,6 +4,7 @@ import {
   safeClientProperty, UUID_RE, getCachedPropertyType, getCachedPropertyCategory,
 } from '../../services/client/sellerProvisioning.js';
 import { clean } from '../../utils/validation.js';
+import { notifyAdmins, NOTIFICATION_TYPES } from '../../services/common/notificationService.js';
 
 // ── GET /api/client/me (Seller only) ─────────────────────────────
 export const getMe = async (req, res) => {
@@ -99,7 +100,8 @@ export const createProperty = async (req, res) => {
     const ownerId = req.user.id;
     const initialHistory = [{ status: 'under_review', at: new Date().toISOString(), by: ownerId }];
 
-    const property = await db.Property.create({
+    const property = await db.sequelize.transaction(async (transaction) => {
+    const created = await db.Property.create({
       owner_id: ownerId,
       property_type_id: propertyTypeId,
       property_category_id: propertyCategoryId,
@@ -114,6 +116,13 @@ export const createProperty = async (req, res) => {
       asking_price: askingPrice,
       status: 'under_review',
       status_history: initialHistory,
+    }, { transaction });
+    await notifyAdmins({
+      type: NOTIFICATION_TYPES.PROPERTY_REVIEW,
+      title: 'Property awaiting review', message: created.title,
+      related_entity_type: 'property', related_entity_id: created.id,
+    }, { transaction });
+    return created;
     });
 
     console.log(`[CLIENT] Property created: ${property.id} by seller ${ownerId}`);

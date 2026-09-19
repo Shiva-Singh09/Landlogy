@@ -2,11 +2,11 @@
 import express from 'express';
 import db from './models/index.js';
 import { applySecurityMiddleware, applyApiErrorHandlers } from './middleware/security.js';
+import { poolConfig } from './config/database.js';
 import { authenticate, authorize } from './middleware/auth.js';
 import commonRoutes from './routes/common/index.js';
 import adminRoutes from './routes/admin/index.js';
 import clientRoutes from './routes/client/index.js';
-import { createProperty } from './controllers/admin/adminPropertyController.js';
 
 // Production safety: never boot with the development JWT secret fallback.
 // Two checks:
@@ -30,8 +30,9 @@ app.use('/api', commonRoutes);        // shared: health, auth, public enquiries
 app.use('/api/admin', adminRoutes);   // Admin-only (authorize('admin') per route)
 app.use('/api/client', clientRoutes); // Seller/Client-only (authorize('seller') per route)
 
-// Legacy admin-only create path kept verbatim (original contract: POST /api/properties).
-app.post('/api/properties', authenticate, authorize('admin'), createProperty);
+// Legacy admin-only create path (original contract: POST /api/properties) delegates
+// to the admin router so ownership/validation rules stay in one place.
+app.post('/api/properties', authenticate, authorize('admin'), (req, _res, next) => { req.url = '/properties'; next(); }, adminRoutes);
 
 // Registered after every route: unmatched /api paths, malformed JSON bodies and
 // unexpected errors all return JSON instead of an unparseable HTML/text page.
@@ -42,12 +43,14 @@ app.listen(PORT,'0.0.0.0', async () => {
   try {
     await db.sequelize.authenticate();
     console.log('[DB] PostgreSQL connection established successfully.');
-    // Warm the pool (min:1 keeps one live connection) so the first request
-    // after a cold start/idle period does not pay the ~9s TLS handshake cost
-    // measured on the remote database.
+    // Warm the pool to DB_POOL_MIN live connections (default 2). Every LIST
+    // endpoint runs COUNT + SELECT concurrently (Sequelize findAndCountAll), so
+    // the first such request would otherwise pay one extra remote round trip
+    // (~0.4s measured against the Supabase pooler) just to open the 2nd socket.
     try {
-      await db.sequelize.query('SELECT 1');
-      console.log('[DB] Connection pool warmed.');
+      const warmCount = Math.max(1, poolConfig.min);
+      await Promise.all(Array.from({ length: warmCount }, () => db.sequelize.query('SELECT 1')));
+      console.log(`[DB] Connection pool warmed (${warmCount} connection(s)).`);
     } catch (warmErr) {
       console.error('[DB] Pool warmup query failed:', warmErr?.message || warmErr);
     }

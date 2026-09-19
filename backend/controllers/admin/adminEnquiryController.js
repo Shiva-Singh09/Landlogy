@@ -1,6 +1,7 @@
 import db from '../../models/index.js';
 import { ENQUIRY_STATUSES } from '../../utils/constants.js';
 import { isValidEmail, enquiryHasLinkage, provisionConversionTx, sendSellerOnboardingEmail } from '../../services/client/sellerProvisioning.js';
+import { recordActivity, describeActivity, ACTIVITY_ACTIONS } from '../../services/common/activityLog.js';
 
 // ── Admin Enquiry Management ─────────────────────────────────────
 
@@ -174,6 +175,12 @@ export const updateEnquiryStatus = async (req, res) => {
       }
       await enquiry.save();
       console.log(`[ADMIN] Enquiry ${id} status updated to '${status}' by admin ${req.user.id}`);
+      recordActivity(ACTIVITY_ACTIONS.ENQUIRY_STATUS_CHANGED, {
+        actorUserId: req.user.id,
+        entityType: 'enquiry',
+        entityId: enquiry.id,
+        description: describeActivity(ACTIVITY_ACTIONS.ENQUIRY_STATUS_CHANGED, { label: enquiry.name, to: status }),
+      });
       return res.json({
         ok: true,
         enquiry: {
@@ -241,6 +248,14 @@ export const updateEnquiryStatus = async (req, res) => {
       console.log(`[ADMIN] Enquiry ${id} converted (reuse): seller ${conv.seller.id}.`);
     }
     const propertyFresh = await db.Property.findByPk(conv.property.id);
+    // Only recorded for a real (non-idempotent) conversion, so repeating the
+    // call on an already-converted enquiry never creates duplicate activity.
+    recordActivity(ACTIVITY_ACTIONS.ENQUIRY_CONVERTED, {
+      actorUserId: req.user.id,
+      entityType: 'enquiry',
+      entityId: enquiry.id,
+      description: describeActivity(ACTIVITY_ACTIONS.ENQUIRY_CONVERTED, { label: enquiry.name }),
+    });
     return res.json({
       ok: true,
       enquiry: { id: enquiry.id, status: enquiry.status },

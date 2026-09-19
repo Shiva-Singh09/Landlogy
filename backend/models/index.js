@@ -9,6 +9,15 @@ import PropertyImage from './propertyImage.js';
 import PropertyCommission from './propertyCommission.js';
 import OtpToken from './otpToken.js';
 import RefreshToken from './refreshToken.js';
+import ActivityLog from './activityLog.js';
+import Notification from './notification.js';
+import PushSubscription from './pushSubscription.js';
+
+User.hasMany(PushSubscription, { foreignKey: 'user_id', as: 'push_subscriptions', onDelete: 'CASCADE' });
+PushSubscription.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+User.hasMany(Notification, { foreignKey: 'recipient_user_id', as: 'notifications', onDelete: 'CASCADE' });
+Notification.belongsTo(User, { foreignKey: 'recipient_user_id', as: 'recipient' });
 
 // ── Associations ────────────────────────────────────────────────
 
@@ -57,6 +66,10 @@ RefreshToken.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasMany(Property, { foreignKey: 'reviewed_by', as: 'reviewed_properties' });
 Property.belongsTo(User, { foreignKey: 'reviewed_by', as: 'reviewer' });
 
+// User → ActivityLogs (actor). SET NULL on user delete keeps history intact.
+User.hasMany(ActivityLog, { foreignKey: 'actor_user_id', as: 'activity_logs', onDelete: 'SET NULL' });
+ActivityLog.belongsTo(User, { foreignKey: 'actor_user_id', as: 'actor' });
+
 const db = {
   sequelize,
   Sequelize: sequelize.Sequelize,
@@ -69,6 +82,9 @@ const db = {
   PropertyCommission,
   OtpToken,
   RefreshToken,
+  ActivityLog,
+  Notification,
+  PushSubscription,
 };
 
 export default db;

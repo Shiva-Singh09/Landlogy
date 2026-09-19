@@ -1,6 +1,7 @@
 import db from '../../models/index.js';
 import { clean, isValidEmail, isValidPhone } from '../../utils/validation.js';
 import { dispatchEnquiryNotifications } from './enquiryMailer.js';
+import { notifyAdmins, NOTIFICATION_TYPES } from './notificationService.js';
 
 // ── Enquiry submission orchestration ─────────────────────────────────
 // Validate → persist to PostgreSQL (the primary record) → fire the outbound
@@ -13,7 +14,16 @@ const err = (status, error) => ({ type: 'error', status, error });
 // Returns { type: 'honeypot' | 'success' | 'error', ... }. The controller maps
 // that into an HTTP response. `store` / `notify` are injectable for tests.
 export const processEnquirySubmission = async (b, deps = {}) => {
-  const store = deps.store || ((values) => db.Enquiry.create(values));
+  const store = deps.store || ((values) => db.sequelize.transaction(async (transaction) => {
+    const enquiry = await db.Enquiry.create(values, { transaction });
+    await notifyAdmins({
+      type: NOTIFICATION_TYPES.NEW_ENQUIRY,
+      title: 'New enquiry received',
+      message: `${values.name} submitted an enquiry from ${values.city}.`,
+      related_entity_type: 'enquiry', related_entity_id: enquiry.id,
+    }, { transaction });
+    return enquiry;
+  }));
   const notify = deps.notify || dispatchEnquiryNotifications;
 
   if (clean(b.website, 100)) return { type: 'honeypot' }; // honeypot
