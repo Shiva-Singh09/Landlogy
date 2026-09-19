@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowUpRight, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, ArrowUpRight, ChevronRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import logo from '../../assets/Logo.png';
+import heroVisual from '../../assets/Hero1.png';
 import { useClientAuth } from '../../hooks/useClientAuth';
 import { navigate, SpaLink } from '../../utils/bus';
 
@@ -14,9 +15,7 @@ export function ClientLoginPage() {
   const { isAuthenticated, login } = useClientAuth();
 
   useEffect(() => {
-        if (isAuthenticated) {
-      navigate('/client-portal');
-    }
+    if (isAuthenticated) navigate('/client-portal');
   }, [isAuthenticated]);
 
   const submit = async (event) => {
@@ -28,7 +27,6 @@ export function ClientLoginPage() {
       setError('Please enter your registered email and password.');
       return;
     }
-
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(id)) {
       setError('Please enter a valid email address.');
       return;
@@ -36,7 +34,7 @@ export function ClientLoginPage() {
 
     setLoading(true);
     try {
-            await login(id, password, remember);
+      await login(id, password, remember);
       navigate('/client-portal');
     } catch (err) {
       if (err && err.code === 'NETWORK') {
@@ -54,58 +52,75 @@ export function ClientLoginPage() {
   };
 
   return (
-    <main className="client-login-page">
-      <div className="client-login-art">
-        <SpaLink to="/" className="portal-brand"><img src={logo} alt="LANDLOGY" /><span>Private client workspace</span></SpaLink>
-        <div className="client-login-message">
-          <span className="eyebrow">LANDLOGY Client Portal</span>
-          <h1>Your property journey, with clarity.</h1>
-          <p>A private space for LANDLOGY clients and property owners to follow progress, review documents and stay connected with our team.</p>
-          <div className="login-art-rule" />
+    <main className="lla">
+      <div className="lla-art">
+        <div className="lla-art-bg" style={{ backgroundImage: `url(${heroVisual})` }} />
+        <SpaLink to="/" aria-label="Back to LANDLOGY">
+          <img className="lla-logo" src={logo} alt="LANDLOGY" />
+        </SpaLink>
+
+        <div className="lla-msg">
+          <span className="lla-kicker" style={{ color: 'var(--amber)' }}>Client portal</span>
+          <h1>Your property journey, <em>with clarity.</em></h1>
+          <p>A private space to follow progress, review documents and stay in touch with the team handling your property.</p>
+          <div className="lla-pts">
+            <span><ShieldCheck size={15} /> Track every stage of your sale</span>
+            <span><ShieldCheck size={15} /> Documents organised in one place</span>
+            <span><ShieldCheck size={15} /> Direct line to your point of contact</span>
+          </div>
         </div>
+
         <small>Research · Verify · Transact · Grow</small>
       </div>
 
-      <section className="client-login-panel" aria-labelledby="client-login-title">
-        <SpaLink className="login-back" to="/"><ChevronRight size={15} /> Back to LANDLOGY</SpaLink>
-        <div className="login-card">
-          <div className="login-card-heading">
-            <div className="portal-mark">L</div>
-            <span className="eyebrow">Secure access</span>
-            <h2 id="client-login-title">Client Login</h2>
-            <p>For LANDLOGY clients and property owners.</p>
-          </div>
+      <section className="lla-panel" aria-labelledby="lla-title">
+        <SpaLink className="lla-back" to="/"><ChevronRight size={15} /> Back to LANDLOGY</SpaLink>
 
-          <form onSubmit={submit} className="client-form">
-            <label htmlFor="client-email">User ID / Email</label>
-            <input id="client-email" name="email" type="email" placeholder="Enter your registered email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required disabled={loading} />
+        <div className="lla-card">
+          <div className="lla-mark">L</div>
+          <span className="lla-kicker">Secure access</span>
+          <h2 id="lla-title">Client login</h2>
+          <p>For LANDLOGY clients and property owners.</p>
 
-            <label htmlFor="client-password">Password</label>
-            <div className="password-field">
-              <input id="client-password" name="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required disabled={loading} />
-              <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
-                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
+          <form onSubmit={submit} noValidate>
+            <div className="lla-f">
+              <label htmlFor="client-email">Email address</label>
+              <input id="client-email" name="email" type="email" placeholder="you@example.com"
+                autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                required disabled={loading} />
             </div>
 
-            <div className="login-options">
-              <label className="remember-option">
-                <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} />
-                <span>Remember me</span>
+            <div className="lla-f">
+              <label htmlFor="client-password">Password</label>
+              <div className="lla-pw">
+                <input id="client-password" name="password" type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password" autoComplete="current-password" value={password}
+                  onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
+                <button type="button" onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="lla-opts">
+              <label className="lla-remember">
+                <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+                <span>Keep me signed in</span>
               </label>
-              <a href="mailto:nextgendevcoders@gmail.com?subject=Client%20portal%20support">Forgot password?</a>
+              <a href="mailto:nextgendevcoders@gmail.com?subject=Client%20portal%20password%20help">Forgot password?</a>
             </div>
 
-            {error && <p className="client-error" role="alert">{error}</p>}
+            {error && <p className="lla-err" role="alert"><AlertCircle size={15} /> {error}</p>}
 
-            <button className="btn btn-primary login-submit" type="submit" disabled={loading}>
-              {loading ? 'Signing in…' : (
-                <span>Sign in to portal <ArrowUpRight size={16} /></span>
-              )}
+            <button className="lla-btn lla-btn-a" type="submit" disabled={loading}>
+              {loading ? 'Signing in…' : <>Sign in <ArrowUpRight size={16} /></>}
             </button>
           </form>
 
-          <p className="login-support">Need help accessing your account? <a href="mailto:nextgendevcoders@gmail.com?subject=Client%20portal%20support">Contact LANDLOGY support</a></p>
+          <p className="lla-support">
+            Need help? <a href="mailto:nextgendevcoders@gmail.com?subject=Client%20portal%20support">Contact LANDLOGY support</a>
+          </p>
         </div>
       </section>
     </main>

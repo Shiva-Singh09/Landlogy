@@ -1,190 +1,195 @@
-import React from 'react'
-import { Home } from 'lucide-react';
+import React from 'react';
+import {
+  AlertCircle, ArrowRight, Building2, CalendarDays, Check, ClipboardCheck,
+  Handshake, MapPin, MessageCircle, Plus, RefreshCw
+} from 'lucide-react';
 import { DashboardSkeleton } from '../../components/loading/PortalSkeletons';
-import { formatDate, formatPriceINR, statusLabel, STATUS_ORDER } from '../../config/constants';
+import {
+  formatDate, formatPriceINR, resolveImageURL, statusCopy, statusLabel,
+  STATUS_ORDER, SUPPORT_CONTACT
+} from '../../config/constants';
 import { SpaLink } from '../../utils/bus';
 
-const TIMELINE_STEPS = [
-  { key: 'draft', label: 'Submitted' },
-  { key: 'under_review', label: 'Under Review' },
-  { key: 'active', label: 'Approved' },
-  { key: 'sold', label: 'Sold' },
+const STEPS = [
+  { key: 'draft', label: 'Submitted', icon: ClipboardCheck },
+  { key: 'under_review', label: 'Under review', icon: RefreshCw },
+  { key: 'active', label: 'Approved', icon: Check },
+  { key: 'sold', label: 'Sold', icon: Handshake }
 ];
+const OFF_TRACK = ['rejected', 'inactive', 'archived'];
 
-const SUPPORT_WHATSAPP = 'https://wa.me/919044936565?text=' + encodeURIComponent('Hi LANDLOGY, I need help with my property.');
+const WA = `https://wa.me/${SUPPORT_CONTACT.phoneRaw.replace(/\D/g, '')}?text=${encodeURIComponent('Hi LANDLOGY, I need help with my property.')}`;
 
-function statusIndex(status) {
-  const i = STATUS_ORDER.indexOf(status);
-  return i === -1 ? 0 : i;
-}
-function stepState(status, stepIndex) {
-  const cur = statusIndex(status);
-  if (stepIndex < cur) return 'complete';
-  if (stepIndex === cur) return 'current';
-  return 'pending';
-}
-function getPrimaryImage(property) {
-  return property && (
-    property.primary_image
-    || (Array.isArray(property.images) && property.images[0] && (property.images[0].url || property.images[0]))
-    || property.image_url
+export const refOf = (id) => {
+  if (!id) return null;
+  const c = String(id).replace(/-/g, '').toUpperCase();
+  return `LL-${c.slice(0, 4)}-${c.slice(4, 6)}`;
+};
+
+const imageOf = (p) => {
+  if (!p) return '';
+  const raw = p.primary_image
+    || (Array.isArray(p.images) && p.images[0] && (p.images[0].url || p.images[0]))
+    || p.image_url;
+  return raw ? resolveImageURL(raw) : '';
+};
+
+const greeting = () => {
+  const h = new Date().getHours();
+  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+};
+
+const stepOf = (s) => Math.max(0, STATUS_ORDER.indexOf(s));
+
+/* one property's progress row */
+function TrackRow({ p }) {
+  const off = OFF_TRACK.includes(p.status);
+  const idx = stepOf(p.status);
+  const loc = [p.city, p.state].filter(Boolean).join(', ');
+  const img = imageOf(p);
+
+  return (
+    <SpaLink className="lp-prog" to={`/client-portal/properties/${encodeURIComponent(p.id)}`}>
+      <div className="lp-prog-top">
+        <span className="lp-prog-thumb">
+          {img ? <img src={img} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            : <span className="lp-ph"><Building2 size={19} /></span>}
+        </span>
+        <div className="lp-prog-id">
+          <strong>{p.title || 'Property'}</strong>
+          <span><MapPin size={12} /> {loc || 'Location to be confirmed'}</span>
+        </div>
+        <div className="lp-prog-r">
+          <span className={`lp-pill s-${p.status || 'draft'}`}><i />{statusLabel(p.status)}</span>
+          <b>{formatPriceINR(p.asking_price ?? p.price)}</b>
+        </div>
+      </div>
+
+      {off ? (
+        <p className="lp-prog-off"><AlertCircle size={14} /> {statusCopy(p.status)}</p>
+      ) : (
+        <div className="lp-mini" style={{ '--fill': (idx / (STEPS.length - 1)).toFixed(3) }}>
+          <span className="lp-mini-fill" aria-hidden="true" />
+          {STEPS.map((s, i) => (
+            <span className={`lp-mini-n ${i < idx ? 'done' : i === idx ? 'now' : ''}`} key={s.key}>
+              <i>{i < idx ? <Check size={11} /> : <s.icon size={11} />}</i>
+              <em>{s.label}</em>
+            </span>
+          ))}
+        </div>
+      )}
+    </SpaLink>
   );
-}
-function countByStatus(properties, status) {
-  return (properties || []).filter((p) => (p && p.status) === status).length;
 }
 
 export function DashboardPage({ user, properties, loading, error }) {
-  const ownerName = user?.name || 'LANDLOGY Client';
-  const greetingName = ownerName.split(' ')[0] || 'there';
-  const propertyCount = properties.length;
-  const featured = propertyCount > 0 ? properties[0] : null;
+  const list = Array.isArray(properties) ? properties : [];
+  const firstName = String(user?.name || 'there').trim().split(' ')[0] || 'there';
 
-  const counts = {
-    total: propertyCount,
-    draft: countByStatus(properties, 'draft'),
-    under_review: countByStatus(properties, 'under_review'),
-    active: countByStatus(properties, 'active'),
-    sold: countByStatus(properties, 'sold'),
-  };
+  const n = (s) => list.filter((p) => p?.status === s).length;
+  const review = n('under_review');
+  const active = n('active');
+
+  const recent = [...list]
+    .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+    .slice(0, 5);
 
   if (loading) return <DashboardSkeleton />;
 
   if (error) {
     return (
-      <div className="dash-root">
-        <div className="dash-error-box">
-          <span className="dash-error-title">Unable to load dashboard</span>
-          <p>{error}</p>
-        </div>
+      <div className="lp-err" role="alert">
+        <AlertCircle size={20} />
+        <div><strong>We could not load your portal</strong><p>{error}</p></div>
       </div>
     );
   }
 
+  const summary = list.length === 0
+    ? 'Add your first property and our team will take it from there.'
+    : review > 0
+      ? `${review} propert${review === 1 ? 'y is' : 'ies are'} with our team for review right now.`
+      : active > 0
+        ? `${active} of your propert${active === 1 ? 'y is' : 'ies are'} live and open to buyers.`
+        : 'Everything is up to date. We will call you when there is news.';
+
   return (
-    <div className="dash-root">
-      <section className="dash-hero">
-        <span className="eyebrow">Private Property Portal</span>
-        <h1 className="dash-hero-title">Good morning, {greetingName}</h1>
-        <p className="dash-hero-sub">
-          Your property portfolio, status updates and account information in one secure space.
-          Your latest property is <strong>{propertyCount === 0 ? 'not yet recorded' : 'updated in real time'}</strong> below.
-        </p>
-        <span className="dash-last-sync">Portfolio as of {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-      </section>
-
-      <section className="dash-panel dash-kpi-panel" aria-label="Property summary">
-        <div className="dash-kpi"><span className="dash-kpi-value">{counts.total}</span><span className="dash-kpi-label">Total properties</span></div>
-        <div className="dash-kpi is-warn"><span className="dash-kpi-value">{counts.under_review}</span><span className="dash-kpi-label">Under review</span></div>
-        <div className="dash-kpi is-ok"><span className="dash-kpi-value">{counts.active}</span><span className="dash-kpi-label">Active</span></div>
-                <div className="dash-kpi"><span className="dash-kpi-value">{counts.sold}</span><span className="dash-kpi-label">Sold</span></div>
-      </section>
-
-      <section className="dash-panel dash-properties-panel">
-        <div className="dash-section-head">
+    <>
+      <header className="lp-head">
+        <div className="lp-head-row">
           <div>
-            <span className="eyebrow">Your portfolio</span>
-            <h2 className="dash-section-title">Your Properties</h2>
-            <p className="dash-section-sub">Properties currently managed through LANDLOGY.</p>
+            <span className="lp-k">Owner portal</span>
+            <h1>{greeting()}, <em>{firstName}</em></h1>
+            <p>{summary}</p>
           </div>
-          <SpaLink to="/client-portal/properties" className="text-link"><span>View all</span></SpaLink>
+          <span className="lp-stamp">
+            <CalendarDays size={13} />
+            {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+          </span>
         </div>
+      </header>
 
-        {propertyCount === 0 ? (
-          <div className="dash-empty-state">
-            <span className="dash-empty-ico">LANDLOGY</span>
-            <h3>No property records yet</h3>
-            <p>This account is active, but no seller-owned properties have been returned from the backend.</p>
-            <SpaLink to="/client-portal/add-property" className="btn btn-primary"><span>+ </span>Add your first property</SpaLink>
+      {list.length === 0 ? (
+        <section className="lp-card">
+          <div className="lp-empty">
+            <span className="lp-empty-i"><Building2 size={28} /></span>
+            <h3>Let us get started</h3>
+            <p>Add your property and our team will review the details, work out a realistic price and come back to you within two to three working days.</p>
+            <div className="lp-empty-a">
+              <SpaLink to="/client-portal/add-property" className="lp-btn lp-btn-a"><Plus size={15} /> Add a property</SpaLink>
+              <a href={WA} target="_blank" rel="noreferrer" className="lp-btn lp-btn-b"><MessageCircle size={15} /> Ask a question first</a>
+            </div>
           </div>
-        ) : (
-          <>
-            <div className="dash-featured-card">
-              <div className="dash-featured-media">
-                {getPrimaryImage(featured) ? <img src={getPrimaryImage(featured)} alt={featured.title || 'Property'} /> : <div className="property-image-placeholder"><span>🏡</span></div>}
+        </section>
+      ) : (
+        <>
+          {/* one-line stats */}
+          <section className="lp-bandline">
+            <div><b>{list.length}</b><span>Total</span></div>
+            <div className={review ? 'warn' : ''}><b>{review}</b><span>Under review</span></div>
+            <div className={active ? 'ok' : ''}><b>{active}</b><span>Active</span></div>
+            <div><b>{n('sold')}</b><span>Sold</span></div>
+            <SpaLink to="/client-portal/add-property" className="lp-bandline-cta"><Plus size={15} /> Add property</SpaLink>
+          </section>
+
+          {/* every property's progress */}
+          <section className="lp-card" style={{ marginTop: 'var(--s4)' }}>
+            <div className="lp-card-head">
+              <div>
+                <span className="lp-k">Your progress</span>
+                <h2>Where everything stands</h2>
+                <p>Updated by the LANDLOGY team as each property moves forward.</p>
               </div>
-              <div className="dash-featured-body">
-                <span className="status-pill">{statusLabel(featured.status)}</span>
-                <h3 className="dash-featured-title">{featured.title || 'Property'}</h3>
-                <p className="dash-featured-loc">{featured.city || featured.address || featured.state || 'Location pending'}</p>
-                <div className="dash-featured-fact"><span>Asking price</span><span>{formatPriceINR(featured.asking_price ?? featured.price)}</span></div>
-                <div className="dash-featured-fact"><span>Updated</span><span>{formatDate(featured.updated_at || featured.updatedAt)}</span></div>
-                <div className="dash-featured-cta">
-                  <SpaLink to={'/client-portal/properties/' + featured.id} className="btn btn-primary">View property</SpaLink>
-                </div>
-              </div>
+              <SpaLink to="/client-portal/properties" className="lp-link">All properties <ArrowRight size={14} /></SpaLink>
             </div>
 
-            {propertyCount > 1 && (
-              <div className="dash-property-list">
-                {properties.slice(1).map((property) => {
-                  const img = getPrimaryImage(property);
-                  return (
-                    <div key={property.id} className="dash-property-row">
-                      <div className="dash-row-thumb">
-                        {img ? <img src={img} alt={property.title || 'Property'} /> : <div className="property-image-placeholder small"><span>🏡</span></div>}
-                      </div>
-                      <div className="dash-row-main">
-                        <h4>{property.title || 'Property'}</h4>
-                        <p className="dash-row-loc">{property.city || property.address || 'Location pending'}</p>
-                      </div>
-                      <div className="dash-row-meta">
-                        <span className="status-pill">{statusLabel(property.status)}</span>
-                        <span className="dash-row-price">{formatPriceINR(property.asking_price ?? property.price)}</span>
-                      </div>
-                      <SpaLink to={'/client-portal/properties/' + property.id} className="dash-row-view" aria-label={'View ' + (property.title || 'property')}>→</SpaLink>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="lp-proglist">
+              {recent.map((p) => <TrackRow key={p.id} p={p} />)}
+            </div>
+
+            {list.length > 5 && (
+              <p className="lp-quiet" style={{ justifyContent: 'center' }}>
+                Showing 5 of {list.length}. <SpaLink to="/client-portal/properties" className="lp-link">See all</SpaLink>
+              </p>
             )}
-          </>
-        )}
-      </section>
+          </section>
 
-      <section className="dash-panel dash-split">
-        <div className="dash-status-panel">
-          <div className="dash-section-head">
-            <span className="eyebrow">Your progress</span>
-            <h2 className="dash-section-title">Property Status</h2>
-            <p className="dash-section-sub">The LANDLOGY team reviews and approves each stage. Status is read-only.</p>
-          </div>
-          {featured ? (
-            <div className="dash-timeline">
-              {TIMELINE_STEPS.map((s, i) => {
-                const st = stepState(featured.status, i);
-                const isDone = st === 'complete';
-                const isActive = st === 'current';
-                return (
-                  <div key={s.key} className={'dash-step ' + (isDone ? 'done ' : '') + (isActive ? 'current ' : '') + (st === 'pending' ? 'pending' : '')}>
-                    <div className="dash-step-marker" aria-hidden="true">
-                      {isDone ? '✓' : <span className="dash-bullet" />}
-                    </div>
-                    <div className="dash-step-body">
-                      <strong>{s.label}</strong>
-                      {isActive && <span className="dash-step-date">{formatDate(featured.updated_at || featured.updatedAt)}</span>}
-                    </div>
-                  </div>
-                );
-              })}
+          {/* help strip */}
+          <section className="lp-helpstrip">
+            <div>
+              <span className="lp-k">Need something</span>
+              <h2>We are one call away</h2>
+              <p>Quote your property reference and we will pull up the file straight away.</p>
             </div>
-          ) : (
-            <p className="dash-muted">Submit a property to begin tracking its status journey.</p>
-          )}
-        </div>
-
-        <div className="dash-panel dash-actions-panel">
-          <div className="dash-section-head">
-            <span className="eyebrow">Quick actions</span>
-            <h2 className="dash-section-title">Quick Actions</h2>
-          </div>
-          <div className="dash-quick-actions">
-            <SpaLink to="/client-portal/add-property" className="btn btn-primary dash-action"><span>+ </span>Add Property</SpaLink>
-            <SpaLink to="/client-portal/properties" className="btn btn-outline dash-action"><Home size={15} /> View My Properties</SpaLink>
-            <a href={SUPPORT_WHATSAPP} target="_blank" rel="noreferrer" className="btn btn-outline dash-action"><span>💬 </span>Contact LANDLOGY</a>
-          </div>
-        </div>
-      </section>
-    </div>
+            <div className="lp-helpstrip-a">
+              <a href={`tel:${SUPPORT_CONTACT.phoneRaw}`} className="lp-btn lp-btn-b">{SUPPORT_CONTACT.phone}</a>
+              <a href={WA} target="_blank" rel="noreferrer" className="lp-btn lp-btn-a"><MessageCircle size={15} /> WhatsApp</a>
+            </div>
+          </section>
+        </>
+      )}
+    </>
   );
 }
+
+export default DashboardPage;

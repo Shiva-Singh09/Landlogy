@@ -1,103 +1,138 @@
 /* ============================================================
-   LANDLOGY Shared Design Tokens — Phase 1 Foundation
-   Source of truth: Seller Landing Page audit (seller-website/src/styles.css)
-   Goal: tokenization only, NO visual redesign.
-   Existing visuals preserved; hardcoded repeats get named tokens.
+   LANDLOGY — design tokens. The ONLY :root in the codebase.
    ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* ---------- COLOR: navy scale ---------- */
-  --ll-navy-900: #0d1725;
-  --ll-navy-800: #111b29;
-  --ll-navy-700: #151f2e; /* --navy canonical */
-  --ll-navy-600: #192536; /* portal headings (was hardcoded) */
-  --ll-navy-500: #243247; /* --navy2 */
-  --ll-navy-450: #263d4a; /* svc-visual mid */
-  --ll-navy-400: #2c4a56; /* viz-frame start */
+  /* core palette */
+  --ink:      #191724;
+  --ink-2:    #2B2739;
+  --paper:    #FFFFFF;
+  --stone:    #F7F7F9;
+  --stone-2:  #F0EFF3;
+  --line:     #E7E5EC;
+  --line-2:   #F0EEF4;
 
-  /* ---------- COLOR: gold scale ---------- */
-  --ll-gold-600: #aa781f; /* btn-primary hover */
-  --ll-gold-500: #c8922a; /* --gold canonical */
-  --ll-gold-400: #e0b85e; /* hero eyebrow / H1 span */
-  --ll-gold-300: #f5d58f; /* viz labels / parcels */
-  --ll-gold-200: #d6bd8b; /* card hover border */
-  --ll-gold-100: #f5e6cc; /* --gold-lt canonical */
-  --ll-gold-050: #f5efe3; /* EmptyState icon bg (was hardcoded) */
+  --amber:    #FFB400;
+  --amber-hi: #FFC94A;
+  --amber-lt: #FFF3D6;
+  --emerald:  #00A884;
+  --emerald-lt:#E4F7F1;
+  --indigo:   #45206B;
+  --blue:     #3867FF;
+  --coral:    #FF5A5F;
 
-  /* ---------- COLOR: surfaces / backgrounds ---------- */
-  --ll-white: #ffffff;
-  --ll-slate: #f4f6f9; /* --slate canonical */
-  --ll-slate-soft: #f6f7f9; /* portal-page bg + land-capability bg */
-  --ll-slate-card: #f8fafc; /* trust-strip, image btn */
-  --ll-slate-line: #edf2f6; /* skeleton base */
-  --ll-slate-line-2: #eef1f5; /* skeleton light */
-  --ll-slate-line-3: #f7f9fb; /* skeleton highlight */
+  /* text */
+  --tx-900: #191724;
+  --tx-700: #4A4458;
+  --tx-500: #7B7489;
+  --tx-300: #A29BB0;
 
-  /* ---------- COLOR: text ---------- */
-  --ll-text-900: #192536; /* headings on portal */
-  --ll-text-700: #3d4a5c; /* --text body */
-  --ll-text-600: #48596b; /* portal paragraphs (was hardcoded) */
-  --ll-text-500: #5e6c7b; /* portal muted (was hardcoded) */
-  --ll-text-400: #718096; /* --muted canonical */
-  --ll-text-300: #98a2b3; /* faint meta */
-  --ll-text-slate: #334155; /* drop text */
-  --ll-text-slate-2: #475569; /* image actions */
-  --ll-text-navy-1: #1e293b; /* file name */
-
-  /* ---------- COLOR: borders ---------- */
-  --ll-line: #e2e8f0; /* --line canonical */
-  --ll-line-soft: #eef0f3; /* dividers */
-  --ll-line-faint: #dfe5eb; /* scrollbar, selects */
-  --ll-line-form: #e9edf3; /* contact-form border */
-
-  /* ---------- COLOR: status (unified client + admin) ---------- */
-  --ll-success: #197044;
-  --ll-success-bg: #e8f5ee;
-  --ll-success-strong: #ecfdf3;
-  --ll-success-text: #037a3c;
-  --ll-error: #b42318;
-  --ll-error-bg: #fdf1ee;
-  --ll-error-border: #efd5d0;
-  --ll-error-strong: #8d2f24;
-  --ll-error-admin: #991b1b;
-  --ll-error-admin-bg: #fee2e2;
-  --ll-warn-text: #8a631e; /* gold pill text (portal) */
-  --ll-warn-bg: #f5e6cc; /* gold pill bg */
-  --ll-warning: #92400e;
-  --ll-warning-bg: #fef3c7;
-  --ll-info: #1a4d8f;
-  --ll-info-bg: #dbeafe;
-  --ll-info-strong: #1e40af;
-  --ll-muted-pill-text: #374151;
-  --ll-muted-pill-bg: #e5e7eb;
-
-  /* ---------- Back-compat aliases (existing names keep working) ---------- */
-  --white: var(--ll-white);
-  --slate: var(--ll-slate);
-  --navy: var(--ll-navy-700);
-  --navy2: var(--ll-navy-500);
-  --gold: var(--ll-gold-500);
-  --gold-lt: var(--ll-gold-100);
-  --text: var(--ll-text-700);
-  --muted: var(--ll-text-400);
-  --line: var(--ll-line);
+  /* type */
   --serif: 'DM Serif Display', Georgia, serif;
-  --sans: Inter, system-ui, sans-serif;
-  --max: 1160px;
+  --sans:  Manrope, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  /* ---------- TYPOGRAPHY ---------- */
-  --ll-font-serif: 'DM Serif Display', Georgia, serif;
-  --ll-font-sans: Inter, system-ui, sans-serif;
-  --ll-display-lg: clamp(42px, 5.5vw, 68px);
-  --ll-display-md: clamp(30px, 3.5vw, 44px);
-  --ll-display-sm: clamp(30px, 3.3vw, 44px);
-  --ll-h2: 29px;
-  --ll-h3: 24px;
-  --ll-body-lg: 16px;
-  --ll-body: 14px;
-  --ll-body-sm: 13px;
+  --t-hero:  clamp(40px, 5.6vw, 72px);
+  --t-h2:    clamp(30px, 3.6vw, 46px);
+  --t-h3:    clamp(19px, 2.1vw, 24px);
+  --t-lead:  17px;
+  --t-body:  15px;
+  --t-small: 13px;
+  --t-micro: 11px;
+
+  /* space */
+  --s1: 8px;  --s2: 12px; --s3: 16px; --s4: 24px;
+  --s5: 32px; --s6: 48px; --s7: 64px; --s8: 96px;
+  --sec: clamp(72px, 8vw, 120px);
+
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-full: 999px;
+
+  --sh-1: 0 1px 2px rgba(25,23,36,.04);
+  --sh-2: 0 8px 24px rgba(25,23,36,.06);
+  --sh-3: 0 20px 52px rgba(25,23,36,.10);
+  --sh-hero: 0 32px 80px rgba(9,8,16,.28);
+
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --max: 1200px;
+
+  /* motion vars set by JS */
+  --mx: 0; --my: 0; --mxpx: 50vw; --mypx: 50vh;
+  --sy: 0px; --progress: 0; --rail: 0;
+
+  /* ---- back-compat aliases: portal + login still use these ---- */
+  --white: var(--paper);
+  --slate: var(--stone);
+  --navy:  var(--ink);
+  --navy2: var(--ink-2);
+  --gold:  var(--amber);
+  --gold-lt: var(--amber-lt);
+  --text:  var(--tx-700);
+  --muted: var(--tx-500);
+
+  --ll-white: var(--paper);
+  --ll-slate: var(--stone);
+  --ll-slate-soft: var(--stone);
+  --ll-slate-card: var(--stone);
+  --ll-slate-line: #EDEBF2;
+  --ll-slate-line-2: #F2F0F6;
+  --ll-slate-line-3: #FAF9FC;
+  --ll-navy-900: #0F0E16;
+  --ll-navy-800: #14121D;
+  --ll-navy-700: var(--ink);
+  --ll-navy-600: var(--ink);
+  --ll-navy-500: var(--ink-2);
+  --ll-gold-600: #C98F00;
+  --ll-gold-500: var(--amber);
+  --ll-gold-400: var(--amber-hi);
+  --ll-gold-300: var(--amber-hi);
+  --ll-gold-200: #F0DCA8;
+  --ll-gold-100: var(--amber-lt);
+  --ll-gold-050: #FFF9EC;
+  --ll-text-900: var(--tx-900);
+  --ll-text-700: var(--tx-700);
+  --ll-text-600: var(--tx-700);
+  --ll-text-500: var(--tx-500);
+  --ll-text-400: var(--tx-500);
+  --ll-text-300: var(--tx-300);
+  --ll-text-slate: var(--tx-700);
+  --ll-text-slate-2: var(--tx-700);
+  --ll-text-navy-1: var(--tx-900);
+  --ll-line: var(--line);
+  --ll-line-soft: var(--line-2);
+  --ll-line-faint: var(--line);
+  --ll-line-form: var(--line);
+  --ll-success: #067A60;
+  --ll-success-bg: var(--emerald-lt);
+  --ll-success-strong: var(--emerald-lt);
+  --ll-success-text: #067A60;
+  --ll-error: #B3252A;
+  --ll-error-bg: #FFECED;
+  --ll-error-border: #FFD0D2;
+  --ll-error-strong: #B3252A;
+  --ll-error-admin: #B3252A;
+  --ll-error-admin-bg: #FFECED;
+  --ll-warn-text: #8A5F00;
+  --ll-warn-bg: var(--amber-lt);
+  --ll-warning: #8A5F00;
+  --ll-warning-bg: var(--amber-lt);
+  --ll-info: var(--blue);
+  --ll-info-bg: #E8EEFF;
+  --ll-info-strong: #1D3FBF;
+  --ll-muted-pill-text: var(--tx-500);
+  --ll-muted-pill-bg: var(--stone-2);
+  --ll-font-serif: var(--serif);
+  --ll-font-sans: var(--sans);
+  --serif-alias: var(--serif);
+  --ll-display-lg: var(--t-hero);
+  --ll-display-md: var(--t-h2);
+  --ll-display-sm: var(--t-h2);
+  --ll-h2: var(--t-h2);
+  --ll-h3: var(--t-h3);
+  --ll-body-lg: var(--t-lead);
+  --ll-body: var(--t-body);
+  --ll-body-sm: var(--t-small);
   --ll-meta: 12px;
-  --ll-small: 11px;
+  --ll-small: var(--t-micro);
   --ll-tiny: 10px;
   --ll-weight-regular: 400;
   --ll-weight-medium: 500;
@@ -107,66 +142,25 @@
   --ll-leading-body: 1.65;
   --ll-leading-relaxed: 1.8;
   --ll-leading-tight: 1.12;
-
-  /* ---------- SPACING (existing rhythm) ---------- */
-  --ll-space-1: 4px;
-  --ll-space-2: 8px;
-  --ll-space-3: 12px;
-  --ll-space-4: 16px;
-  --ll-space-5: 18px;
-  --ll-space-6: 24px;
-  --ll-space-7: 32px;
-  --ll-space-8: 48px;
-  --ll-space-9: 64px;
-  --ll-space-10: 96px;
-
-  /* ---------- RADIUS (compact scale) ---------- */
-  --ll-radius-sm: 8px;
-  --ll-radius-md: 10px;
-  --ll-radius-lg: 12px;
-  --ll-radius-xl: 14px;
-  --ll-radius-2xl: 16px;
-  --ll-radius-3xl: 20px;
-  --ll-radius-full: 999px;
-
-  /* ---------- SHADOW (from landing) ---------- */
-  --ll-shadow-sm: 0 12px 28px rgba(21, 31, 46, 0.045);
-  --ll-shadow-md: 0 18px 50px rgba(21, 31, 46, 0.1);
-  --ll-shadow-lg: 0 22px 55px rgba(21, 31, 46, 0.13);
-  --ll-shadow-xl: 0 35px 90px rgba(0, 0, 0, 0.28);
-  --ll-shadow-gold: 0 10px 30px rgba(200, 146, 42, 0.18);
-  --ll-shadow-gold-lg: 0 16px 40px rgba(200, 146, 42, 0.28);
-  --ll-shadow-card: 0 8px 30px rgba(21, 31, 46, 0.08);
-
-  /* ---------- MOTION ---------- */
-  --ll-duration-fast: 0.15s;
-  --ll-duration-hover: 0.25s;
-  --ll-duration-fade: 0.25s;
-  --ll-duration-reveal: 0.75s;
+  --ll-space-1: var(--s1); --ll-space-2: var(--s2); --ll-space-3: var(--s3);
+  --ll-space-4: var(--s4); --ll-space-5: var(--s4); --ll-space-6: var(--s5);
+  --ll-space-7: var(--s6); --ll-space-8: var(--s7); --ll-space-9: var(--s7);
+  --ll-space-10: var(--s8);
+  --ll-section-space: var(--sec);
+  --ll-radius-sm: var(--r-sm); --ll-radius-md: var(--r-md);
+  --ll-radius-lg: var(--r-lg); --ll-radius-xl: var(--r-lg);
+  --ll-radius-2xl: var(--r-lg); --ll-radius-3xl: var(--r-lg);
+  --ll-radius-full: var(--r-full);
+  --ll-shadow-sm: var(--sh-1); --ll-shadow-md: var(--sh-2);
+  --ll-shadow-lg: var(--sh-3); --ll-shadow-xl: var(--sh-hero);
+  --ll-shadow-card: var(--sh-2);
+  --ll-shadow-gold: 0 10px 28px rgba(255,180,0,.20);
+  --ll-shadow-gold-lg: 0 18px 44px rgba(255,180,0,.26);
+  --ll-duration-fast: .15s; --ll-duration-hover: .25s;
+  --ll-duration-fade: .25s; --ll-duration-reveal: .7s;
   --ll-duration-skeleton: 1.4s;
-  --ll-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ll-ease-default: ease;
-
-  /* ---------- Z-INDEX (consolidated) ---------- */
-  --ll-z-cursor: 0;
-  --ll-z-topbar: 20;
-  --ll-z-mobile-nav: 30;
-  --ll-z-backdrop: 40;
-  --ll-z-drawer: 45;
-  --ll-z-nav: 100;
-  --ll-z-mobile-menu: 110;
-  --ll-z-ham: 120;
-  --ll-z-preloader: 200;
-
-  /* ---------- BREAKPOINTS (documented; use in media queries) ---------- */
-  --ll-bp-desktop: 1024px;
-  --ll-bp-tablet: 860px;
-  --ll-bp-portal: 680px;
-  --ll-bp-mobile: 540px;
-  --ll-bp-xs: 380px;
+  --ll-ease-out: var(--ease); --ll-ease-default: ease;
+  --ll-z-cursor: 0; --ll-z-topbar: 20; --ll-z-mobile-nav: 30;
+  --ll-z-backdrop: 40; --ll-z-drawer: 45; --ll-z-nav: 100;
+  --ll-z-mobile-menu: 110; --ll-z-ham: 120; --ll-z-preloader: 200;
 }
-
-/* Breakpoint reference (CSS vars cannot drive @media; keep in sync):
-   --ll-bp-desktop: 1024px | --ll-bp-tablet: 860px | --ll-bp-portal: 680px
-   --ll-bp-mobile: 540px | --ll-bp-xs: 380px
-*/
