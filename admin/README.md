@@ -1,55 +1,75 @@
-﻿# LANDLOGY admin
+# React + TypeScript + Vite
 
-This is the internal admin dashboard for LANDLOGY operations.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Live dashboard: [landlogy-admin.vercel.app](https://landlogy-admin.vercel.app/)
+Currently, two official plugins are available:
 
-## Purpose
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-The admin app is used for operational tasks such as:
+## React Compiler
 
-- viewing and managing enquiries
-- reviewing property records
-- updating property states
-- managing admin workflows through the backend API
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Stack
+## Expanding the ESLint configuration
 
-- React
-- Vite
-- TypeScript
-- React Router
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-## Setup
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-```bash
-cd admin
-npm install
-cp .env.example .env.local
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
 ```
 
-## Required environment variable
+You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
 
-```bash
-VITE_API_BASE_URL=https://your-backend-domain
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
 ```
-
-This value is defined in [admin/.env.example](.env.example).
-
-## Run locally
-
-```bash
-npm run dev
-```
-
-Build for production:
-
-```bash
-npm run build
-```
-
-## Authentication model
-
-The admin dashboard requires a valid backend-issued JWT. It does not maintain its own database or auth source.
-
-If a session expires or the token is invalid, the app redirects to the login screen and requests a fresh authentication flow from the backend.
