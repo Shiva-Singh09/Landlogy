@@ -681,3 +681,29 @@ body.is-scrolled .ll-logo img { width: 108px; }
   .lla-msg h1 { font-size: 30px; }
   .lla-card h2 { font-size: 27px; }
 }
+
+/* ── scroll-spy ── */
+.ll-links a.on { color: var(--ink); }
+.ll-links a.on::after { right: 0; }
+
+/* ── sticky mobile CTA bar ── */
+.ll-mbar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 95;
+  grid-template-columns: 1fr 1fr 1.25fr; gap: 1px;
+  background: var(--line); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -8px 30px rgba(25,23,36,.1); }
+.ll-mbar a { display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 11px 6px; background: var(--paper); color: var(--ink);
+  font: 700 10px/1 var(--sans); letter-spacing: .04em; transition: background .2s; }
+.ll-mbar a:active { background: var(--stone); }
+.ll-mbar a svg { color: var(--tx-500); }
+.ll-mbar a.wa svg { color: #25D366; }
+.ll-mbar a.pri { background: var(--amber); }
+.ll-mbar a.pri svg { color: var(--ink); }
+.ll-mbar a.pri:active { background: var(--amber-hi); }
+
+@media (max-width: 860px) {
+  .ll-mbar { display: grid; }
+  .ll-wa { bottom: 84px; }
+  .ll-foot-btm { padding-bottom: calc(var(--s5) + 64px); }
+}
+@media (prefers-reduced-motion: reduce) { .ll-mbar a { transition: none; } }
