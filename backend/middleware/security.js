@@ -12,20 +12,26 @@ export const jsonError = (res, status, error) => res.status(status).json({ ok: f
 export const RATE_LIMIT_MESSAGE = 'Too many requests. Please try again later.';
 
 // The /api limiter is the only limiter in the backend (there is no separate
-// login limiter). Its counter lives in the library's default in-memory store,
-// keyed by the client IP (req.ip) — so it is IP-based, not account-based, and it
-// is wiped whenever the process restarts.
-export const API_RATE_LIMIT_MAX = 40;
-export const API_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+// login limiter and no expensive-endpoint limiter). Its counter lives in the
+// library's default in-memory store, keyed by the client IP (req.ip) — so it
+// is IP-based, not account-based, and it is wiped whenever the process restarts.
+// Configured via RATE_LIMIT_WINDOW_MS / RATE_LIMIT_MAX so the limit can be
+// changed through .env without touching source code.
+const parsePositiveInt = (value, fallback) => {
+  const n = parseInt(String(value ?? '').trim(), 10);
+  return Number.isSafeInteger(n) && n > 0 ? n : fallback;
+};
+export const API_RATE_LIMIT_MAX = parsePositiveInt(process.env.RATE_LIMIT_MAX, 40);
+export const API_RATE_LIMIT_WINDOW_MS = parsePositiveInt(process.env.RATE_LIMIT_WINDOW_MS, 60000);
 
 // Loopback-only exemption for local development. Without it, a dev session
-// (page reloads, repeated logins, scripts) exhausts the 40-request window and
-// locks the developer out of /api/auth/login with a 429 for up to 15 minutes,
-// while the only cure is waiting out the window or restarting the process.
+// (page reloads, repeated logins, scripts) exhausts the request window and
+// locks the developer out of /api/auth/login with a 429 until the window
+// elapses, while the only cure is waiting it out or restarting the process.
 //
 // Safety: the exemption requires an EXPLICIT NODE_ENV === 'development' AND a
 // loopback peer address. Anything else (production, test, unset NODE_ENV) keeps
-// the 40/15-min limit, so a misconfigured deploy can never end up with the
+// the configured limit, so a misconfigured deploy can never end up with the
 // limiter disabled. Non-loopback clients are never exempt.
 const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 export const isLocalDevRequest = (req) =>
@@ -85,9 +91,9 @@ export const applySecurityMiddleware = (app) => {
   }));
   app.use(express.json({limit:'32kb'}));
   app.use('/uploads', express.static(UPLOAD_DIR));
-  // Limits are unchanged (40 requests / 15 min window). Only the rejection body
-  // is overridden: express-rate-limit's default handler sends plain text, which
-  // is not parseable JSON. res.json() also sets Content-Type: application/json.
+  // Only the rejection body is overridden: express-rate-limit's default handler
+  // sends plain text, which is not parseable JSON. res.json() also sets
+  // Content-Type: application/json.
   // `skip` only ever matches loopback traffic outside production (see above),
   // which is what keeps local dev from self-locking out of /api/auth/login.
   app.use(rateLimit({

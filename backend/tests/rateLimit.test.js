@@ -77,7 +77,7 @@ describe('rate limiter — JSON 429 contract', () => {
           }
         }
 
-        assert.equal(API_RATE_LIMIT_MAX, 40, 'the /api limiter must stay at 40 requests / 15 min');
+        assert.equal(API_RATE_LIMIT_MAX, 40, 'the /api limiter must stay at 40 requests / 1 min');
         assert.equal(statuses.filter((s) => s === 200).length, API_RATE_LIMIT_MAX, `the first ${API_RATE_LIMIT_MAX} requests must still be allowed`);
         assert.ok(limited, `request ${API_RATE_LIMIT_MAX + 1} must be rate limited`);
         assert.equal(limited.status, 429, 'HTTP status must stay 429');
