@@ -9,6 +9,7 @@ import Property from './property.js';
 import PropertyImage from './propertyImage.js';
 import PropertyCommission from './propertyCommission.js';
 import OtpToken from './otpToken.js';
+import PasswordResetOtp from './passwordResetOtp.js';
 import RefreshToken from './refreshToken.js';
 import ActivityLog from './activityLog.js';
 import Notification from './notification.js';
@@ -59,6 +60,10 @@ PropertyCommission.belongsTo(User, { foreignKey: 'broker_id', as: 'broker' });
 User.hasMany(OtpToken, { foreignKey: 'user_id', as: 'otp_tokens', onDelete: 'CASCADE' });
 OtpToken.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
+// User → PasswordResetOtps
+User.hasMany(PasswordResetOtp, { foreignKey: 'user_id', as: 'password_reset_otps', onDelete: 'CASCADE' });
+PasswordResetOtp.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
 // User → RefreshTokens
 User.hasMany(RefreshToken, { foreignKey: 'user_id', as: 'refresh_tokens', onDelete: 'CASCADE' });
 RefreshToken.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
@@ -83,6 +88,7 @@ const db = {
   PropertyImage,
   PropertyCommission,
   OtpToken,
+  PasswordResetOtp,
   RefreshToken,
   ActivityLog,
   Notification,

@@ -108,7 +108,7 @@ export function ClientLoginPage() {
                 <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
                 <span>Keep me signed in</span>
               </label>
-              <a href="mailto:nextgendevcoders@gmail.com?subject=Client%20portal%20password%20help">Forgot password?</a>
+              <SpaLink to="/forgot-password">Forgot password?</SpaLink>
             </div>
 
             {error && <p className="lla-err" role="alert"><AlertCircle size={15} /> {error}</p>}

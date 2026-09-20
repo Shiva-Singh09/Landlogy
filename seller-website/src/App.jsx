@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getCurrentRoute } from './app/routes';
 import { PortalPreloader } from './components/loading/PortalPreloader';
 import { ClientLoginPage } from './pages/auth/ClientLoginPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { ClientPortalPage } from './pages/client/ClientPortalPage';
 import { SellerLandingPage } from './pages/public/SellerLandingPage';
 import './styles/tokens.css';
@@ -29,6 +30,8 @@ export default function App() {
         switch (route) {
           case 'client-login':
             return <ClientLoginPage />;
+          case 'forgot-password':
+            return <ForgotPasswordPage />;
           case 'client-portal':
             return <ClientPortalPage />;
           case 'public':
