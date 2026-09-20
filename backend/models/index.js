@@ -2,6 +2,7 @@ import sequelize from '../config/database.js';
 
 import User from './user.js';
 import Enquiry from './enquiry.js';
+import Feedback from './feedback.js';
 import PropertyType from './propertyType.js';
 import PropertyCategory from './propertyCategory.js';
 import Property from './property.js';
@@ -75,6 +76,7 @@ const db = {
   Sequelize: sequelize.Sequelize,
   User,
   Enquiry,
+  Feedback,
   PropertyType,
   PropertyCategory,
   Property,

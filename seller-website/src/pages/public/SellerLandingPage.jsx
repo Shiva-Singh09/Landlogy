@@ -212,6 +212,14 @@ function LandlogyForm({ mode }) {
       message: parts.join(' · ')
     };
 
+    /* data-only extras for the dedicated feedback channel — the rating is also
+       sent on its own so `feedback.rating` can be analysed later, and `source`
+       marks which surface the feedback came from. No UI/behaviour change. */
+    if (mode === 'feedback') {
+      payload.rating = rating;
+      payload.source = 'seller-landing-page';
+    }
+
     try {
       const res = await fetch(`${API_BASE}/api/enquiries`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
