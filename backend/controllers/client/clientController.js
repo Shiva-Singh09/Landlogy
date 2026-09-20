@@ -151,9 +151,40 @@ export const listProperties = async (req, res) => {
       order: [['created_at', 'DESC']],
       limit: limitNum, offset: (pageNum - 1) * limitNum,
     });
+
+    // ── COVER image resolution (additive; list endpoint only) ─────────
+    // One batched query for the whole page (never per-row): each property's
+    // canonical image is its `property_images.is_primary = true` row; when a
+    // property has no primary, the lowest `sort_order` (then created_at, then
+    // id) is the deterministic fallback; no images → `primary_image: null` and
+    // the card keeps its existing placeholder.
+    const propertyIds = rows.map((row) => row.id);
+    const coverByProperty = new Map();
+    if (propertyIds.length > 0) {
+      const images = await db.PropertyImage.findAll({
+        where: { property_id: propertyIds },
+        attributes: ['id', 'property_id', 'url', 'is_primary', 'sort_order', 'created_at'],
+        order: [['sort_order', 'ASC'], ['created_at', 'ASC'], ['id', 'ASC']],
+      });
+      for (const img of images) {
+        const current = coverByProperty.get(img.property_id);
+        // Rows arrive in the deterministic order above, so the first primary
+        // seen is the lowest-ordered primary and the first row seen is the
+        // lowest-ordered image — both are stable choices.
+        if (!current || (!current.is_primary && img.is_primary)) {
+          coverByProperty.set(img.property_id, img);
+        }
+      }
+    }
+
     return res.json({
       ok: true,
-      properties: rows.map(safeClientProperty),
+      // `safeClientProperty` remains the allowlist source of truth; the cover
+      // URL is attached additively per property so no other response changes.
+      properties: rows.map((row) => ({
+        ...safeClientProperty(row),
+        primary_image: coverByProperty.get(row.id)?.url || null,
+      })),
       pagination: { page: pageNum, limit: limitNum, total: count, totalPages: Math.ceil(count / limitNum) },
     });
   } catch (err) {
