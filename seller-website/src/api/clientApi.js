@@ -82,6 +82,31 @@ export const createClientProperty = (payload, token) =>
     token
   });
 
+// ── Seller notifications ─────────────────────────────────────────────
+// Recipient is always derived server-side from the JWT; the client never sends
+// a recipient id. These reuse the shared clientApi() wrapper (auth, JSON and
+// error handling stay in one place).
+export const fetchClientNotifications = (page = 1, limit = 4, read = 'all', token) =>
+  clientApi(
+    `/api/client/notifications?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}&read=${encodeURIComponent(read)}`,
+    { token }
+  );
+
+export const fetchClientUnreadCount = (token) =>
+  clientApi('/api/client/notifications/unread-count', { token });
+
+export const markClientNotificationRead = (id, token) =>
+  clientApi(`/api/client/notifications/${encodeURIComponent(id)}/read`, {
+    method: 'PATCH',
+    token
+  });
+
+export const markAllClientNotificationsRead = (token) =>
+  clientApi('/api/client/notifications/read-all', {
+    method: 'PATCH',
+    token
+  });
+
 // Upload a single property image via multipart/form-data.
 // Backend field name must be "image" (mirrors admin upload config).
 // Supports is_primary caption via FormData fields.

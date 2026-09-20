@@ -1037,3 +1037,87 @@ button.lp-link:disabled { opacity: .5; cursor: not-allowed; }
   .image-preview-grid { grid-template-columns: repeat(auto-fill, minmax(136px,1fr)); }
   .image-preview-thumb { height: 98px; }
 }
+
+/* ══════════ notifications (navbar bell popup) ══════════
+   Additive only — no existing selector is modified, so `.lp-icon` (shared by
+   the drawer close and image-upload close buttons) keeps its current styling.
+   Tokens only: no new colours, fonts, gradients or shadows. */
+.lp-notif { position: relative; display: flex; overflow: visible; }
+.lp-top, .lp-top-r { overflow: visible; }
+.lp-notif-badge { position: absolute; top: -4px; right: -4px; display: grid; place-items: center;
+  min-width: 17px; height: 17px; padding: 0 4px; border: 2px solid var(--paper); border-radius: var(--r-full);
+  background: var(--amber); color: var(--ink); font: 700 10px/1 var(--sans); font-variant-numeric: tabular-nums; }
+
+.lp-notif-pop { position: absolute; top: calc(100% + 10px); right: 0; z-index: 60;
+  display: flex; flex-direction: column; width: min(450px, calc(100vw - 32px)); max-width: calc(100vw - 16px);
+  height: 50vh; max-height: 50vh;
+  border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--paper);
+  box-shadow: var(--sh-3); overflow: hidden; }
+.lp-notif-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s3);
+  padding: var(--s4) var(--s4) var(--s3); border-bottom: 1px solid var(--line-2); }
+.lp-notif-head h2 { font-size: 21px; line-height: 1.2; }
+.lp-notif-head .lp-icon { width: 32px; height: 32px; flex-shrink: 0; }
+
+.lp-notif-list { display: grid; gap: 2px; margin: 0; padding: var(--s2); list-style: none;
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: none; -ms-overflow-style: none; }
+.lp-notif-list::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.lp-notif-head, .lp-notif-foot { flex-shrink: 0; }
+.lp-notif-state, .lp-notif-empty { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: none; -ms-overflow-style: none; }
+.lp-notif-pop .lp-notif-state::-webkit-scrollbar, .lp-notif-pop .lp-notif-empty::-webkit-scrollbar { display: none; width: 0; height: 0; }
+/* Bulletproof: hide the scrollbar on ANY scrollable descendant inside the popup
+   (list / loading / error / empty states) while keeping wheel + touch scrolling.
+   Scoped to .lp-notif-pop only — nothing global is affected. */
+.lp-notif-pop, .lp-notif-pop * { scrollbar-width: none; -ms-overflow-style: none; }
+.lp-notif-pop::-webkit-scrollbar, .lp-notif-pop *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.lp-notif-list.is-page { max-height: none; padding: 0; }
+
+.lp-notif-item { display: grid; gap: 6px; width: 100%; padding: 11px var(--s3);
+  border: 1px solid transparent; border-radius: var(--r-sm); background: transparent; text-align: left;
+  color: var(--tx-700); font: 500 var(--t-small)/1.55 var(--sans);
+  transition: background .2s, border-color .2s; }
+.lp-notif-item:hover { background: var(--stone); }
+.lp-notif-item.is-unread { background: var(--stone); }
+.lp-notif-item.is-unread:hover { border-color: var(--line); }
+.lp-notif-item:disabled { cursor: default; opacity: 1; }
+.lp-notif-t { display: flex; align-items: flex-start; gap: 8px; color: var(--ink); font-weight: 700; }
+.lp-notif-dot { flex-shrink: 0; width: 6px; height: 6px; margin-top: 6px; border-radius: 50%;
+  background: var(--emerald); }
+.lp-notif-m { color: var(--tx-500); overflow-wrap: anywhere; }
+.lp-notif-item.is-compact .lp-notif-m { display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden; }
+.lp-notif-meta { display: flex; align-items: center; gap: 8px; color: var(--tx-300);
+  font: 600 var(--t-micro)/1 var(--sans); letter-spacing: .07em; text-transform: uppercase; }
+.lp-notif-meta time { letter-spacing: .02em; text-transform: none; }
+
+.lp-notif-state { display: grid; justify-items: center; gap: var(--s2); padding: var(--s6) var(--s4);
+  color: var(--tx-500); font-size: var(--t-small); text-align: center; }
+.lp-notif-state p { max-width: 42ch; }
+.lp-notif-state[role="alert"] p { color: var(--ll-error); }
+
+.lp-notif-empty { padding: var(--s4) var(--s4) var(--s5); gap: var(--s2); }
+.lp-notif-empty .lp-empty-i { width: 46px; height: 46px; }
+.lp-notif-empty h3 { font-size: 19px; }
+.lp-notif-empty p { max-width: 34ch; font-size: var(--t-small); }
+
+.lp-notif-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s3);
+  padding: var(--s3) var(--s4); border-top: 1px solid var(--line-2); background: var(--stone); }
+.lp-notif-foot .lp-btn { padding: 9px 14px; }
+
+.lp-notif-pager { display: flex; align-items: center; justify-content: space-between; gap: var(--s3);
+  margin-top: var(--s4); padding-top: var(--s4); border-top: 1px solid var(--line); }
+.lp-notif-pageno { color: var(--tx-500); font: 600 var(--t-micro)/1 var(--sans);
+  letter-spacing: .08em; text-transform: uppercase; }
+.lp-notif-pager .lp-btn { padding: 9px 14px; }
+
+@media (max-width: 860px) {
+  .lp-notif-pop { width: min(430px, calc(100vw - 24px)); }
+}
+
+@media (max-width: 560px) {
+  /* Fixed panel so it can never overflow the viewport (top bar is 60px here). */
+  .lp-notif-pop { position: fixed; top: 60px; left: 12px; right: 12px; width: auto; }
+  .lp-notif-foot { flex-wrap: wrap; }
+  .lp-notif-empty { padding: var(--s3) var(--s4) var(--s4); }
+}
