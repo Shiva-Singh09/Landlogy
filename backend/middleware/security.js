@@ -24,6 +24,9 @@ const parsePositiveInt = (value, fallback) => {
 export const API_RATE_LIMIT_MAX = parsePositiveInt(process.env.RATE_LIMIT_MAX, 40);
 export const API_RATE_LIMIT_WINDOW_MS = parsePositiveInt(process.env.RATE_LIMIT_WINDOW_MS, 60000);
 
+export const FORGOT_PASSWORD_RATE_LIMIT_MAX = parsePositiveInt(process.env.FORGOT_PASSWORD_RATE_LIMIT_MAX, 5);
+export const FORGOT_PASSWORD_RATE_LIMIT_WINDOW_MS = parsePositiveInt(process.env.FORGOT_PASSWORD_RATE_LIMIT_WINDOW_MS, 60 * 60 * 1000);
+
 // Loopback-only exemption for local development. Without it, a dev session
 // (page reloads, repeated logins, scripts) exhausts the request window and
 // locks the developer out of /api/auth/login with a 429 until the window
@@ -36,6 +39,16 @@ export const API_RATE_LIMIT_WINDOW_MS = parsePositiveInt(process.env.RATE_LIMIT_
 const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 export const isLocalDevRequest = (req) =>
   process.env.NODE_ENV === 'development' && LOOPBACK_IPS.has(String(req.ip || ''));
+
+export const forgotPasswordLimiter = rateLimit({
+  windowMs: FORGOT_PASSWORD_RATE_LIMIT_WINDOW_MS,
+  max: FORGOT_PASSWORD_RATE_LIMIT_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  statusCode: 429,
+  skip: isLocalDevRequest,
+  handler: (_req, res) => jsonError(res, 429, 'Too many password reset attempts. Please try again later.'),
+});
 
 const DEVELOPMENT_ORIGINS = [
   'http://localhost:3000',

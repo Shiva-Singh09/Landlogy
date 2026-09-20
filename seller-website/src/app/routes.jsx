@@ -28,6 +28,7 @@ export function getCurrentRoute() {
   const path = getCurrentPathname();
 
   if (path === '/client-login') return 'client-login';
+  if (path === '/forgot-password' || path === '/client-forgot-password') return 'forgot-password';
   if (path.startsWith('/client-portal')) return 'client-portal';
   return 'public';
 }

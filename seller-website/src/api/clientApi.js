@@ -65,6 +65,28 @@ export const clientLoginApi = (email, password) =>
     body: { email: String(email).trim().toLowerCase(), password }
   });
 
+export const forgotPasswordApi = (email) =>
+  clientApi('/api/auth/forgot-password', {
+    method: 'POST',
+    body: { email: String(email).trim().toLowerCase() }
+  });
+
+export const verifyOtpApi = (email, otp) =>
+  clientApi('/api/auth/verify-otp', {
+    method: 'POST',
+    body: { email: String(email).trim().toLowerCase(), otp: String(otp).trim() }
+  });
+
+export const resetPasswordApi = (resetToken, newPassword, confirmPassword) =>
+  clientApi('/api/auth/reset-password', {
+    method: 'POST',
+    body: {
+      reset_token: resetToken,
+      new_password: newPassword,
+      confirm_password: confirmPassword
+    }
+  });
+
 export const fetchClientMe = (token) => clientApi('/api/client/me', { token });
 export const fetchClientProperties = (token) => clientApi('/api/client/properties', { token });
 export const fetchClientProperty = (id, token) => clientApi(`/api/client/properties/${encodeURIComponent(id)}`, { token });
