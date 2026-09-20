@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
+import { storage as storageCfg } from './storage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,8 +11,9 @@ const __dirname = path.dirname(__filename);
 // Upload directory
 const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, '..', 'uploads');
 
-// Ensure upload directory exists
-if (!fs.existsSync(UPLOAD_DIR)) {
+// Ensure upload directory exists (local driver only — Supabase mode never
+// writes upload buffers to the local disk).
+if (storageCfg.driver !== 'supabase' && !fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
@@ -26,8 +28,8 @@ const ALLOWED_MIME_TYPES = {
 // Maximum file size (5 MB)
 const MAX_FILE_SIZE = parseInt(process.env.MAX_UPLOAD_SIZE || '5242880', 10);
 
-// Storage configuration
-const storage = multer.diskStorage({
+// Storage configuration (local driver — unchanged legacy behaviour)
+const diskStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, UPLOAD_DIR);
   },
@@ -39,8 +41,8 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter
-const fileFilter = (req, file, cb) => {
+// File filter — identical for both drivers (JPEG / PNG / WebP only)
+export const fileFilter = (req, file, cb) => {
   if (ALLOWED_MIME_TYPES[file.mimetype]) {
     cb(null, true);
   } else {
@@ -48,9 +50,19 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// Shared filename generator: 16 random bytes as hex + validated extension.
+// Used by the local diskStorage callback above AND by the Supabase branch so
+// every driver produces the same object-name convention.
+export const generateImageFilename = (mimetype) =>
+  `${crypto.randomBytes(16).toString('hex')}${ALLOWED_MIME_TYPES[mimetype] || '.jpg'}`;
+
+// Engine selection happens once at boot: local → disk, supabase → memory
+// (buffers are pushed straight to the bucket, never persisted locally).
+const storageEngine = storageCfg.driver === 'supabase' ? multer.memoryStorage() : diskStorage;
+
 // Multer upload instance
 export const upload = multer({
-  storage,
+  storage: storageEngine,
   fileFilter,
   limits: {
     fileSize: MAX_FILE_SIZE,
@@ -59,12 +71,12 @@ export const upload = multer({
 });
 
 // Multi-file upload instance for the Seller (client) image flow.
-// Reuses the SAME disk storage, MIME allow-list and 5 MB per-file size limit as the
-// single-file `upload` above — only the global file-count cap is dropped so a Seller
-// can attach several images in one request. Does NOT alter the Admin route, which
-// still imports the single-file `upload` (limits.files = 1).
+// Reuses the SAME storage engine, MIME allow-list and 5 MB per-file size limit
+// as the single-file `upload` above — only the global file-count cap is dropped
+// so a Seller can attach several images in one request. Does NOT alter the
+// Admin route, which still imports the single-file `upload` (limits.files = 1).
 export const uploadMulti = multer({
-  storage,
+  storage: storageEngine,
   fileFilter,
   limits: { fileSize: MAX_FILE_SIZE },
 });
