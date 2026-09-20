@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
-  AtSign, BadgeCheck, Building2, Check, Clock, IdCard,KeyRound ,Mail, MapPin,
+  AlertCircle, AtSign, BadgeCheck, Building2, Check, Clock, IdCard,KeyRound ,Mail, MapPin,
   MessageCircle, Phone, Shield, ShieldCheck, Smartphone, UserRound
 } from 'lucide-react';
 import { ProfileSkeleton } from '../../components/loading/PortalSkeletons';
 import { refOf } from '../../components/client/PropertyCard';
+import { CLIENT_STORE, CLIENT_TOKEN_KEY, requestPasswordResetApi, verifyPasswordResetApi } from '../../api/clientApi';
 import {
   formatDate, formatPriceINR, initialsFor, statusLabel, SUPPORT_CONTACT
 } from '../../config/constants';
@@ -27,6 +28,22 @@ const FAQ = [
 
 export function ProfilePage({ user, properties = [] }) {
   const [copied, setCopied] = useState('');
+  // ── Account Security: single self-service password RESET flow (Task 6).
+  //       1. "Reset my password" opens the new-password fields
+  //       2. "Change password" → POST /api/client/password-reset/request
+  //       3. on success → OTP field
+  //       4. "Verify" → POST /api/client/password-reset/verify
+  //       5. on success → "Password changed successfully."
+  // No forced-change step and no recovery placeholder; the request endpoint issues the OTP.
+  // Token comes from the existing client-auth store — the recipient is derived
+  // server-side from the JWT; user_id/email are never sent from the client.
+  // Passwords/OTP are kept only in component state and cleared after success.
+  const [rpStage, setRpStage] = useState('idle'); // 'idle' | 'entry' | 'pending' | 'verified'
+  const [rp, setRp] = useState({ next: '', confirm: '' });
+  const [otp, setOtp] = useState('');
+  const [rpBusy, setRpBusy] = useState(false);
+  const [rpError, setRpError] = useState('');
+  const [rpOk, setRpOk] = useState('');
   if (!user) return <ProfileSkeleton />;
 
   const name = user.name || 'Client';
@@ -49,6 +66,85 @@ export function ProfilePage({ user, properties = [] }) {
       setCopied(label);
       setTimeout(() => setCopied(''), 1600);
     } catch {}
+  };
+
+  // ── Account Security password RESET flow (Task 6) ──────────────────────────
+  // The previous change form was removed; this card now runs two handlers only:
+  // 1) startReset — validates the two new-password fields, then POSTs the
+  //    request endpoint to generate + dispatch an OTP (recipient = req.user).
+  // 2) submitVerify — confirms the OTP and applies the new password.
+  const resetPasswordValidation = () => {
+    if (!rp.next || !rp.confirm) return 'Please fill in both password fields.';
+    if (rp.next.length < 8) return 'Your new password must be at least 8 characters long.';
+    if (rp.next.length > 128) return 'Your new password must be shorter than 128 characters.';
+    if (rp.next !== rp.confirm) return 'The new passwords do not match. Please re-enter them.';
+    return '';
+  };
+
+  const startReset = async (event) => {
+    event.preventDefault();
+    setRpError('');
+    setRpOk('');
+
+    const validationError = resetPasswordValidation();
+    if (validationError) {
+      setRpError(validationError);
+      return;
+    }
+
+    setRpBusy(true);
+    try {
+            await requestPasswordResetApi(CLIENT_STORE.get(CLIENT_TOKEN_KEY));
+      // Only on success do we reveal the OTP field (no fake success).
+      setRpStage('pending');
+      setRpError('');
+    } catch (err) {
+      if (err && err.code === 'NETWORK') {
+        setRpError('Unable to reach LANDLOGY services. Please check your connection and try again.');
+      } else if (err && (err.status === 401 || err.status === 403)) {
+        setRpError('Your session is no longer valid. Please log in again.');
+      } else if (err && err.message) {
+        // Server-owned, user-actionable wording.
+        setRpError(err.message);
+      } else {
+        setRpError('Unable to start password reset right now. Please try again.');
+      }
+    } finally {
+      setRpBusy(false);
+    }
+  };
+
+  const submitVerify = async (event) => {
+    event.preventDefault();
+    setRpError('');
+    setRpOk('');
+
+    if (!otp) {
+      setRpError('Please enter the verification code sent to you.');
+      return;
+    }
+
+    setRpBusy(true);
+    try {
+      await verifyPasswordResetApi(otp, rp.next, CLIENT_STORE.get(CLIENT_TOKEN_KEY));
+      // Success — surface confirmation and clear all sensitive state.
+      setRpStage('verified');
+      setOtp('');
+      setRp({ next: '', confirm: '' });
+      setRpOk('Password changed successfully.');
+    } catch (err) {
+      if (err && err.code === 'NETWORK') {
+        setRpError('Unable to reach LANDLOGY services. Please check your connection and try again.');
+      } else if (err && (err.status === 401 || err.status === 403)) {
+        setRpError('Your session is no longer valid. Please log in again.');
+      } else if (err && err.message) {
+        setRpError(err.message);
+      } else {
+        setRpError('Unable to verify your code right now. Please try again.');
+      }
+    } finally {
+      setRpBusy(false);
+    }
   };
 
   return (
@@ -223,10 +319,69 @@ export function ProfilePage({ user, properties = [] }) {
               <div><span>Account status</span><b className="ok">{user.status || 'Active'}</b></div>
               <div><span>Reference</span><b>{accountRef || '—'}</b></div>
             </div>
-            <a href={WA('Hi LANDLOGY, I need to reset my portal password.')} target="_blank"
-              rel="noreferrer" className="lp-btn lp-btn-b" style={{ width: '100%', marginTop: 'var(--s4)' }}>
-              <KeyRound size={15} /> Reset my password
-            </a>
+
+            {/* Password RESET (Task 6) — the ONLY password flow on this card.
+                No forced-change form, no redirect, no placeholder notice. */}
+            {rpStage === 'verified' ? (
+              <p className="lp-ok" role="status" style={{ marginTop: 'var(--s4)' }}>
+                <Check size={16} /> {rpOk}
+              </p>
+            ) : rpStage === 'idle' ? (
+              <button type="button" className="lp-btn lp-btn-a" style={{ width: '100%' }}
+                onClick={() => { setRpStage('entry'); setRpError(''); setRpOk(''); }}>
+                <KeyRound size={15} /> Reset my password
+              </button>
+            ) : (
+              <form
+                onSubmit={rpStage === 'pending' ? submitVerify : startReset}
+                noValidate
+                style={{ marginTop: 'var(--s4)' }}
+              >
+                <span className="lp-k">Reset my password</span>
+                <p style={{ margin: '4px 0 var(--s3)', fontSize: 'var(--t-small)', color: 'var(--tx-500)' }}>
+                  Enter a new password and the code we send to verify your identity.
+                </p>
+
+                {rpStage === 'pending' ? (
+                  <div className="lp-field">
+                    <label htmlFor="rp-otp">Verification code</label>
+                    <input id="rp-otp" name="rp-otp" type="text" inputMode="numeric"
+                      autoComplete="one-time-code"
+                      value={otp} onChange={(e) => setOtp(e.target.value)}
+                      placeholder="Enter the code sent to you" disabled={rpBusy} required />
+                  </div>
+                ) : (
+                  <>
+                    <div className="lp-field">
+                      <label htmlFor="rp-new">New password <em>8–128 characters</em></label>
+                      <input id="rp-new" name="rp-new" type="password" autoComplete="new-password"
+                        value={rp.next} onChange={(e) => setRp((p) => ({ ...p, next: e.target.value }))}
+                        placeholder="At least 8 characters" disabled={rpBusy} required />
+                    </div>
+                    <div className="lp-field">
+                      <label htmlFor="rp-confirm">Confirm new password</label>
+                      <input id="rp-confirm" name="rp-confirm" type="password" autoComplete="new-password"
+                        value={rp.confirm} onChange={(e) => setRp((p) => ({ ...p, confirm: e.target.value }))}
+                        placeholder="Type it once more" disabled={rpBusy} required />
+                    </div>
+                  </>
+                )}
+
+                {rpError && (
+                  <div className="lp-err" role="alert" style={{ marginBottom: 'var(--s3)' }}>
+                    <AlertCircle size={16} />
+                    <div><strong>Couldn&apos;t continue</strong><p>{rpError}</p></div>
+                  </div>
+                )}
+
+                <button type="submit" className="lp-btn lp-btn-a" style={{ width: '100%' }} disabled={rpBusy}>
+                  <KeyRound size={15} />
+                  {rpBusy
+                    ? (rpStage === 'pending' ? 'Verifying…' : 'Resetting…')
+                    : (rpStage === 'pending' ? 'Verify' : 'Change password')}
+                </button>
+              </form>
+            )}
 
             <p className="lp-quiet">
               <ShieldCheck size={14} /> LANDLOGY will never ask for your password over a call or message. If someone does, hang up and tell us.

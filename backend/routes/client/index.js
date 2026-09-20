@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../../middleware/auth.js';
 import { uploadMulti } from '../../config/upload.js';
 import { getMe, createProperty, listProperties, getProperty, uploadImages } from '../../controllers/client/clientController.js';
 import { listNotifications, unreadCount, markNotificationRead, markAllNotificationsRead } from '../../controllers/client/clientNotificationController.js';
+import { requestReset, verifyReset } from '../../controllers/client/clientAuthController.js';
 
 const router = Router();
 
@@ -23,6 +24,12 @@ router.get('/notifications/unread-count', sellerOnly, unreadCount);
 router.patch('/notifications/read-all', sellerOnly, markAllNotificationsRead);
 router.get('/notifications', sellerOnly, listNotifications);
 router.patch('/notifications/:id/read', sellerOnly, markNotificationRead);
+
+// ── Seller self-service password reset (Task 6 recovery flow) ──────────────
+// Both routes are authenticated + seller-authorized (sellerOnly). Identity is
+// always derived from req.user.id — never trusted from the request body.
+router.post('/password-reset/request', sellerOnly, requestReset);
+router.post('/password-reset/verify', sellerOnly, verifyReset);
 
 
 // Convert multer upload validation errors into proper JSON responses for the
