@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { ArrowUpRight, Bell, X } from 'lucide-react';
 import { formatDate } from '../../config/constants';
 import { SpaLink } from '../../utils/bus';
+import { InlineSpinner } from '../loading/InlineSpinner';
+import { NotificationPopupSkeleton } from '../loading/PortalSkeletons';
 
 // Seller notification popup + row. Purely presentational: state lives in
 // useClientNotifications, so the navbar badge and this popup always show the
@@ -69,7 +71,7 @@ export function NotificationPopup({
       </div>
 
       {showLoading ? (
-        <p className="lp-notif-state" role="status">Loading notifications…</p>
+        <NotificationPopupSkeleton />
       ) : showError ? (
         <div className="lp-notif-state" role="alert">
           <p>{error}</p>
@@ -93,7 +95,7 @@ export function NotificationPopup({
 
       <div className="lp-notif-foot">
         <button type="button" className="lp-btn lp-btn-b" disabled={busy || unreadCount === 0} onClick={onMarkAllRead}>
-          Mark all as read
+          {busy ? <InlineSpinner label="Updating…" /> : 'Mark all as read'}
         </button>
         <SpaLink to="/client-portal/notifications" className="lp-link" onClick={onClose}>
           View more notifications <ArrowUpRight size={14} />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AlertCircle, Check, Eye, EyeOff, LogOut } from 'lucide-react';
 import logo from '../../assets/Logo.png';
+import { InlineSpinner } from '../../components/loading/InlineSpinner';
 import { setClientPasswordApi } from '../../api/clientApi';
 
 const strengthOf = (pw) => {
@@ -115,7 +116,7 @@ export function PasswordSetupPage({ displayName, displayEmail, token, doLogout, 
           {error && <p className="lla-err" role="alert"><AlertCircle size={15} /> {error}</p>}
 
           <button className="lla-btn lla-btn-a" type="submit" disabled={saving}>
-            {saving ? 'Saving…' : <><Check size={16} /> Save and continue</>}
+            {saving ? <InlineSpinner label="Saving…" /> : <><Check size={16} /> Save and continue</>}
           </button>
           <button className="lla-btn lla-btn-b" type="button" onClick={doLogout} disabled={saving}>
             <LogOut size={15} /> Log out

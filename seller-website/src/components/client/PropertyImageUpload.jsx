@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ImageIcon, Loader2, Upload, X, CheckCircle, AlertCircle, Flag } from 'lucide-react';
+import { ImageIcon, Upload, X, CheckCircle, AlertCircle, Flag } from 'lucide-react';
 import { uploadClientPropertyImage } from '../../api/clientApi';
+import { InlineSpinner } from '../loading/InlineSpinner';
 import { IMAGE_UPLOAD, formatFileSize } from '../../config/constants';
 
 // Supported file types string for the file input accept attribute.
@@ -278,7 +279,15 @@ export function PropertyImageUpload({ propertyId, token, onImagesUploaded, onErr
 
               <div className="image-preview-progress">
                 {entry.status === 'uploading' && (
-                  <div className="image-progress-bar">
+                  <div
+                    className={`image-progress-bar${entry.progress > 0 ? '' : ' image-progress-indeterminate'}`}
+                    role="progressbar"
+                    aria-label={`Uploading ${entry.file.name}`}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={entry.progress}
+                    aria-valuetext={entry.progress > 0 ? `${entry.progress}% uploaded` : 'Uploading…'}
+                  >
                     <div className="image-progress-fill" style={{ width: `${entry.progress}%` }} />
                   </div>
                 )}
@@ -289,6 +298,9 @@ export function PropertyImageUpload({ propertyId, token, onImagesUploaded, onErr
               <div className="image-preview-meta">
                 <span className="image-file-name" title={entry.file.name}>{entry.file.name}</span>
                 <span className="image-file-size">{formatFileSize(entry.file.size)}</span>
+                {entry.status === 'uploading' && entry.progress > 0 && (
+                  <span className="image-progress-meta" aria-hidden="true">{entry.progress}%</span>
+                )}
                 {entry.uploaded && entry.uploaded.is_primary && (
                   <span className="image-status-badge image-status-primary">Cover</span>
                 )}
@@ -311,7 +323,7 @@ export function PropertyImageUpload({ propertyId, token, onImagesUploaded, onErr
                     disabled={isUploadingAny}
                     title="Retry upload"
                   >
-                    <Loader2 size={12} className={isUploadingAny ? 'spin' : ''} /> Retry
+                    {isUploadingAny ? <InlineSpinner size={12} /> : null} Retry
                   </button>
                 )}
                 {(entry.status === 'pending' || entry.status === 'error') && (

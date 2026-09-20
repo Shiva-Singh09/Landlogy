@@ -1,48 +1,40 @@
 import React from 'react';
 
-export function PageSkeleton({ children, className = '' }) {
-  return <div className={`portal-skeleton ${className}`}>{children}</div>;
+export function PageSkeleton({ children, className = '', label = 'Loading…' }) {
+  return (
+    <div className={`portal-skeleton ${className}`} aria-busy="true">
+      <span role="status" className="lp-sr-only">{label}</span>
+      <div aria-hidden="true" style={{ display: 'grid', gap: 'inherit' }}>{children}</div>
+    </div>
+  );
 }
 
 export function DashboardSkeleton() {
   return (
-    <PageSkeleton>
-      <div className="portal-welcome skeleton-row">
-        <div>
-          <span className="skeleton-line short" />
-          <span className="skeleton-line title" />
-          <span className="skeleton-line medium" />
-        </div>
-        <span className="skeleton-line tiny" />
-      </div>
-
-      <div className="portal-overview-grid skeleton-grid">
-        <div className="portal-mini-card skeleton-card">
-          <span className="skeleton-line short" />
-          <span className="skeleton-line medium" />
-          <span className="skeleton-line long" />
-          <span className="skeleton-line bar" />
-        </div>
-        <div className="portal-mini-card skeleton-card">
-          <span className="skeleton-line short" />
-          <span className="skeleton-line medium" />
-          <span className="skeleton-line long" />
-          <span className="skeleton-line long" />
+    <PageSkeleton label="Loading your dashboard…">
+      <div className="lp-bandline skeleton-card">
+        <div style={{ display: 'flex', gap: 'var(--s5)' }}>
+          <span className="skeleton-line short" style={{ width: 90 }} />
+          <span className="skeleton-line short" style={{ width: 90 }} />
         </div>
       </div>
-
-      <div className="portal-lower-grid skeleton-grid">
-        <div className="portal-profile skeleton-card">
-          <span className="skeleton-line short" />
-          <div className="skeleton-pair">
-            <span className="skeleton-line medium" />
-            <span className="skeleton-line medium" />
-          </div>
-        </div>
-        <div className="portal-support skeleton-card">
-          <span className="skeleton-line short" />
-          <span className="skeleton-line medium" />
-          <span className="skeleton-line long" />
+      <div className="lp-card skeleton-card">
+        <span className="skeleton-line short" />
+        <span className="skeleton-line title" style={{ width: '45%' }} />
+        <div className="lp-proglist">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="lp-prog" style={{ pointerEvents: 'none' }}>
+              <div className="lp-prog-top">
+                <span className="skeleton-thumb" style={{ minHeight: 48, width: 56 }} />
+                <div style={{ display: 'grid', gap: 8, flex: 1 }}>
+                  <span className="skeleton-line medium" />
+                  <span className="skeleton-line short" />
+                </div>
+                <span className="skeleton-line pill" />
+              </div>
+              <span className="skeleton-line bar" />
+            </div>
+          ))}
         </div>
       </div>
     </PageSkeleton>
@@ -51,61 +43,60 @@ export function DashboardSkeleton() {
 
 export function PropertyCardSkeleton({ count = 3 }) {
   return (
-    <div className="portal-section" style={{ display: 'grid', gap: '18px' }}>
-      {Array.from({ length: count }).map((_, index) => (
-        <article key={index} className="owner-property-card skeleton-card property-skeleton-card">
-          <div className="skeleton-thumb" />
-          <div className="owner-property-info">
-            <div className="property-title-row">
-              <div style={{ width: '100%' }}>
-                <span className="skeleton-line tiny" />
-                <span className="skeleton-line title medium" />
-                <span className="skeleton-line short" />
-              </div>
-              <span className="skeleton-line pill" />
+    <PageSkeleton label="Loading your properties…">
+      <div className="lp-pgrid2">
+        {Array.from({ length: count }).map((_, index) => (
+          <article key={index} className="lp-pc skeleton-card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="skeleton-thumb" style={{ borderRadius: 0, minHeight: 190 }} />
+            <div className="lp-pc-body" style={{ display: 'grid', gap: 10 }}>
+              <span className="skeleton-line short" />
+              <span className="skeleton-line title" style={{ width: '80%' }} />
+              <span className="skeleton-line medium" />
+              <span className="skeleton-line bar" />
             </div>
-            <div className="property-facts skeleton-facts">
-              <span className="skeleton-line short" />
-              <span className="skeleton-line short" />
-              <span className="skeleton-line short" />
-              <span className="skeleton-line short" />
-            </div>
-          </div>
-        </article>
-      ))}
-    </div>
+          </article>
+        ))}
+      </div>
+    </PageSkeleton>
   );
 }
 
 export function PropertyDetailsSkeleton() {
   return (
-    <PageSkeleton>
-      <div className="portal-welcome skeleton-row">
-        <div>
+    <PageSkeleton label="Loading this property…">
+      <div className="lp-dhead">
+        <div className="lp-dhero-ph">
           <span className="skeleton-line short" />
           <span className="skeleton-line title" />
-        </div>
-        <span className="skeleton-line medium pill-shell" />
-      </div>
-
-      <div className="portal-section">
-        <div className="portal-mini-card skeleton-card skeleton-gallery" />
-        <div className="portal-mini-card skeleton-card">
-          <span className="skeleton-line short" />
           <span className="skeleton-line medium" />
-          <div className="skeleton-grid-4">
+        </div>
+        <div className="lp-dhero-meta">
+          <span className="skeleton-line medium" />
+          <span className="skeleton-line medium" />
+        </div>
+      </div>
+      <div className="lp-dgrid">
+        <div style={{ display: 'grid', gap: 'var(--s4)' }}>
+          <div className="lp-card skeleton-card">
             <span className="skeleton-line short" />
+            <div className="skeleton-thumb skeleton-gallery" />
+          </div>
+          <div className="lp-card skeleton-card">
             <span className="skeleton-line short" />
-            <span className="skeleton-line short" />
-            <span className="skeleton-line short" />
+            <div className="skeleton-grid-2">
+              <span className="skeleton-line medium" />
+              <span className="skeleton-line medium" />
+            </div>
           </div>
         </div>
-        <div className="portal-mini-card skeleton-card">
+        <div className="lp-card skeleton-card">
           <span className="skeleton-line short" />
-          <div className="skeleton-grid-2">
+          <div className="timeline-skeleton-row">
+            <span className="skeleton-dot" />
             <span className="skeleton-line medium" />
-            <span className="skeleton-line medium" />
-            <span className="skeleton-line medium" />
+          </div>
+          <div className="timeline-skeleton-row">
+            <span className="skeleton-dot" />
             <span className="skeleton-line medium" />
           </div>
         </div>
@@ -116,34 +107,21 @@ export function PropertyDetailsSkeleton() {
 
 export function StatusTimelineSkeleton() {
   return (
-    <PageSkeleton>
-      <div className="portal-welcome skeleton-row">
-        <div>
-          <span className="skeleton-line short" />
-          <span className="skeleton-line title" />
-        </div>
-      </div>
-
-      <div className="portal-section">
-        <div className="portal-mini-card skeleton-card">
-          <span className="skeleton-line short" />
+    <PageSkeleton label="Loading property status…">
+      <div className="lp-card skeleton-card">
+        <span className="skeleton-line short" />
+        <span className="skeleton-line title" style={{ width: '55%' }} />
+        <div className="timeline-skeleton-row">
+          <span className="skeleton-dot" />
           <span className="skeleton-line medium" />
         </div>
-
-        <div className="portal-mini-card skeleton-card timeline-skeleton">
-          <span className="skeleton-line short" />
-          <div className="timeline-skeleton-row">
-            <span className="skeleton-dot" />
-            <span className="skeleton-line medium" />
-          </div>
-          <div className="timeline-skeleton-row">
-            <span className="skeleton-dot" />
-            <span className="skeleton-line medium" />
-          </div>
-          <div className="timeline-skeleton-row">
-            <span className="skeleton-dot" />
-            <span className="skeleton-line medium" />
-          </div>
+        <div className="timeline-skeleton-row">
+          <span className="skeleton-dot" />
+          <span className="skeleton-line medium" />
+        </div>
+        <div className="timeline-skeleton-row">
+          <span className="skeleton-dot" />
+          <span className="skeleton-line medium" />
         </div>
       </div>
     </PageSkeleton>
@@ -152,54 +130,76 @@ export function StatusTimelineSkeleton() {
 
 export function ProfileSkeleton() {
   return (
-    <PageSkeleton>
-      <div className="portal-welcome skeleton-row">
-        <div>
+    <PageSkeleton label="Loading your profile…">
+      <div className="lp-grid">
+        <div className="lp-card skeleton-card">
           <span className="skeleton-line short" />
-          <span className="skeleton-line title" />
-        </div>
-      </div>
-
-      <div className="portal-section">
-        <div className="portal-mini-card skeleton-card">
           <div className="skeleton-grid-2">
-            <span className="skeleton-line medium" />
-            <span className="skeleton-line medium" />
             <span className="skeleton-line medium" />
             <span className="skeleton-line medium" />
             <span className="skeleton-line medium" />
             <span className="skeleton-line medium" />
           </div>
         </div>
+        <div className="lp-card skeleton-card">
+          <span className="skeleton-line short" />
+          <span className="skeleton-line long" />
+          <span className="skeleton-line medium" />
+        </div>
       </div>
     </PageSkeleton>
   );
 }
 
-export function NotificationSkeleton() {
+export function NotificationSkeleton({ rows = 4 }) {
   return (
-    <PageSkeleton>
-      <div className="portal-welcome skeleton-row">
-        <div>
-          <span className="skeleton-line short" />
-          <span className="skeleton-line title" />
-        </div>
+    <PageSkeleton label="Loading notifications…">
+      <div className="lp-card skeleton-card">
+        <span className="skeleton-line short" />
+        <span className="skeleton-line title" style={{ width: '50%' }} />
+        {Array.from({ length: rows }).map((_, index) => (
+          <div key={index} style={{ display: 'grid', gap: 8, padding: 'var(--s3) 0', borderTop: index ? '1px solid var(--line-2)' : 0 }}>
+            <span className="skeleton-line medium" />
+            <span className="skeleton-line long" />
+          </div>
+        ))}
       </div>
-      <div className="portal-mini-card skeleton-card notification-skeleton" />
     </PageSkeleton>
+  );
+}
+
+export function NotificationPopupSkeleton() {
+  return (
+    <div aria-busy="true" style={{ display: 'grid', gap: 10, padding: 'var(--s3) var(--s4)' }}>
+      <span role="status" className="lp-sr-only">Loading notifications…</span>
+      <div aria-hidden="true" style={{ display: 'grid', gap: 10 }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{ display: 'grid', gap: 6 }}>
+            <span className="skeleton-line medium" />
+            <span className="skeleton-line short" />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 export function DocumentsSkeleton() {
   return (
-    <PageSkeleton>
-      <div className="portal-welcome skeleton-row">
-        <div>
+    <PageSkeleton label="Loading documents…">
+      <div className="lp-grid">
+        <div className="lp-card skeleton-card">
           <span className="skeleton-line short" />
-          <span className="skeleton-line title" />
+          <span className="skeleton-line title" style={{ width: '55%' }} />
+          <span className="skeleton-line long" />
+          <span className="skeleton-line medium" />
+        </div>
+        <div className="lp-card skeleton-card">
+          <span className="skeleton-line short" />
+          <span className="skeleton-line long" />
+          <span className="skeleton-line long" />
         </div>
       </div>
-      <div className="portal-mini-card skeleton-card documents-skeleton" />
     </PageSkeleton>
   );
 }

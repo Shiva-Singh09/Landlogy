@@ -1,24 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import logo from '../../assets/Logo.png';
 
-export function PortalPreloader({ active = true }) {
-  const [visible, setVisible] = useState(active);
-
-  useEffect(() => {
-    if (!active) return;
-
-    const timer = window.setTimeout(() => setVisible(false), 220);
-    return () => window.clearTimeout(timer);
-  }, [active]);
-
-  if (!visible) return null;
+// Brand loader — ONLY for true blocking bootstrap (initial auth/session
+// restoration) where the app cannot safely render yet. No timers, no minimum
+// delay: the parent mounts this only while genuinely waiting, and unmounts it
+// the moment bootstrap resolves. Indeterminate bar (not a fake percentage).
+export function PortalPreloader({ active = true, label = 'Preparing your workspace…' }) {
+  if (!active) return null;
 
   return (
-    <div className="portal-preloader" aria-live="polite" aria-busy="true">
+    <div className="portal-preloader" role="status" aria-label="Loading your workspace">
       <div className="portal-preloader-card">
         <img src={logo} alt="LANDLOGY" />
-        <span>Preparing your workspace…</span>
-        <div className="portal-preloader-bar"><span /></div>
+        <span aria-live="polite">{label}</span>
+        <div className="portal-preloader-bar" aria-hidden="true"><span /></div>
       </div>
     </div>
   );
