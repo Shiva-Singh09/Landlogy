@@ -2,11 +2,20 @@ const TOKEN_STORAGE_KEY = "landlogy_admin_token";
 const PROFILE_STORAGE_KEY = "landlogy_admin_profile";
 
 function resolveBaseUrl(): string {
-  const fromEnv = import.meta.env.VITE_API_URL;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
+  const legacyUrl = import.meta.env.VITE_API_URL;
+  const fromEnv =
+    (typeof baseUrl === "string" && baseUrl.trim().length > 0 ? baseUrl.trim() : "") ||
+    (typeof legacyUrl === "string" && legacyUrl.trim().length > 0 ? legacyUrl.trim() : "");
+  // Production builds must explicitly target the deployed API. Local development
+  // retains its existing backend URL so the current workflow continues to work.
   const raw =
-    typeof fromEnv === "string" && fromEnv.trim().length > 0
-      ? fromEnv.trim()
-      : "http://localhost:5000";
+    fromEnv ||
+    (import.meta.env.DEV
+      ? "http://localhost:5000"
+      : (() => {
+          throw new Error("VITE_API_BASE_URL is required for production builds.");
+        })());
   return raw.replace(/\/+$/, "");
 }
 
