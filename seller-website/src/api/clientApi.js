@@ -75,6 +75,27 @@ export const setClientPasswordApi = (currentPassword, newPassword, token) =>
     token
   });
 
+// ── Seller self-service password reset (Task 6 recovery flow) ──────────────
+// Authenticated: the recipient is always derived server-side from the JWT, so
+// the client never sends user_id/email. The request endpoint generates and
+// dispatches an OTP; the verify endpoint confirms the OTP and applies the new
+// password. Passwords/OTP are never persisted in the client store.
+export const requestPasswordResetApi = (token) =>
+  clientApi('/api/client/password-reset/request', {
+    method: 'POST',
+    // The reset request NEVER carries the new password — identity and the
+    // password are handled only by the verify step.
+    body: {},
+    token
+  });
+
+export const verifyPasswordResetApi = (otp, newPassword, token) =>
+  clientApi('/api/client/password-reset/verify', {
+    method: 'POST',
+    body: { otp, new_password: newPassword },
+    token
+  });
+
 export const createClientProperty = (payload, token) =>
   clientApi('/api/client/properties', {
     method: 'POST',
