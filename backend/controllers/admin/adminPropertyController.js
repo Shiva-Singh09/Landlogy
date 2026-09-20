@@ -5,6 +5,16 @@ import { UPLOAD_DIR } from '../../config/upload.js';
 import { PROPERTY_STATUSES } from '../../utils/constants.js';
 import { clean } from '../../utils/validation.js';
 import { recordActivity, describeActivity, ACTIVITY_ACTIONS, buildActivityRecord } from '../../services/common/activityLog.js';
+import { storage } from '../../config/storage.js';
+import { generateImageFilename } from '../../config/upload.js';
+
+// Delete a multer temp file if one exists on disk. In supabase mode multer uses
+// memoryStorage, so req.file has no `path` — a plain fs.unlinkSync would throw.
+const cleanupMulterFile = (file) => {
+  if (file?.path) {
+    try { fs.unlinkSync(file.path); } catch {}
+  }
+};
 
 // ── Admin Property Management ────────────────────────────────────
 
@@ -169,14 +179,14 @@ export const uploadImage = async (req, res) => {
     // Validate UUID format
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
       // Clean up uploaded file if validation fails
-      if (req.file) fs.unlinkSync(req.file.path);
+      cleanupMulterFile(req.file);
       return res.status(400).json({ ok: false, error: 'Invalid property ID format.' });
     }
 
     // Verify property exists
     const property = await db.Property.findByPk(id);
     if (!property) {
-      if (req.file) fs.unlinkSync(req.file.path);
+      cleanupMulterFile(req.file);
       return res.status(404).json({ ok: false, error: 'Property not found.' });
     }
 
@@ -185,8 +195,26 @@ export const uploadImage = async (req, res) => {
       return res.status(400).json({ ok: false, error: 'No image file provided. Use field name "image".' });
     }
 
-    // Build relative URL for storage
-    const imageUrl = `/uploads/${req.file.filename}`;
+    // ── Supabase driver: upload the buffer to the bucket and store the public
+    // HTTPS URL. The legacy local branch below is untouched. ──
+    let imageUrl;
+    if (storage.driver === 'supabase') {
+      try {
+        const { publicUrl } = await storage.uploadPropertyImage({
+          propertyId: id,
+          buffer: req.file.buffer,
+          mimetype: req.file.mimetype,
+          filename: generateImageFilename(req.file.mimetype),
+        });
+        imageUrl = publicUrl;
+      } catch (upErr) {
+        console.error('[ADMIN] Supabase image upload failed:', upErr?.message || upErr);
+        return res.status(502).json({ ok: false, error: 'Unable to upload image right now. Please try again later.' });
+      }
+    } else {
+      // Build relative URL for storage (legacy local behaviour)
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
 
     // Keep a single primary per property when the caller marks this upload as
     // primary. sort_order appends after the current max (same as Seller flow).
@@ -227,9 +255,7 @@ export const uploadImage = async (req, res) => {
     // Multer rejection (MIME / 5 MB size) arrives here as an Error because the
     // admin image route has no dedicated error mapper. Convert the known cases
     // to matching JSON statuses; delete any stray file.
-    if (req.file) {
-      try { fs.unlinkSync(req.file.path); } catch {}
-    }
+    cleanupMulterFile(req.file);
     if (err?.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({ ok: false, error: 'File too large. Maximum size is 5 MB.' });
     }
@@ -313,15 +339,24 @@ export const deleteImage = async (req, res) => {
       return res.status(404).json({ ok: false, error: 'Image not found.' });
     }
 
-    // Delete stored file
-    const filePath = path.join(UPLOAD_DIR, path.basename(image.url));
-    try {
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+    // Storage cleanup, then DB deletion. Supabase public URL → remove the
+    // object (only when it belongs to the configured bucket under properties/);
+    // legacy `/uploads/...` → existing local unlink. Storage failure is logged
+    // but never blocks the database delete.
+    if (storage.isSupabaseStorageURL(image.url)) {
+      const removed = await storage.removePropertyImage(image.url);
+      if (!removed) console.error('[ADMIN] Supabase object cleanup failed; deleting DB row anyway.');
+    } else {
+      // Delete stored file (legacy local behaviour)
+      const filePath = path.join(UPLOAD_DIR, path.basename(image.url));
+      try {
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      } catch (fileErr) {
+        console.error('[ADMIN] Failed to delete image file:', fileErr?.message || fileErr);
+        // Continue to delete DB record even if file deletion fails
       }
-    } catch (fileErr) {
-      console.error('[ADMIN] Failed to delete image file:', fileErr?.message || fileErr);
-      // Continue to delete DB record even if file deletion fails
     }
 
     // Delete database record

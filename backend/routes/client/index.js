@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth.js';
 import { uploadMulti } from '../../config/upload.js';
 import { getMe, createProperty, listProperties, getProperty, uploadImages } from '../../controllers/client/clientController.js';
+import { listNotifications, unreadCount, markNotificationRead, markAllNotificationsRead } from '../../controllers/client/clientNotificationController.js';
 
 const router = Router();
 
@@ -13,6 +14,16 @@ router.post('/properties', sellerOnly, createProperty);          // owner always
 router.get('/properties', sellerOnly, listProperties);            // owner always derived server-side
 router.get('/properties/:id', sellerOnly, getProperty);          // foreign property → 404
 router.post('/properties/:id/images', sellerOnly, uploadMulti.array('image', 10), uploadImages); // Seller attaches images to own property
+
+// ── Seller notifications (own rows only; recipient derived from the JWT) ──
+// Static paths are registered before `/:id/read` so they can never be captured
+// as a notification id. Admin notification routes live in routes/admin and are
+// untouched by this module.
+router.get('/notifications/unread-count', sellerOnly, unreadCount);
+router.patch('/notifications/read-all', sellerOnly, markAllNotificationsRead);
+router.get('/notifications', sellerOnly, listNotifications);
+router.patch('/notifications/:id/read', sellerOnly, markNotificationRead);
+
 
 // Convert multer upload validation errors into proper JSON responses for the
 // Seller image endpoint (file type / size / count). This error handler is scoped

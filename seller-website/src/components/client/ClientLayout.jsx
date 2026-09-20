@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Bell, Home, LayoutDashboard, LogOut, Menu, Phone, Plus, UserRound, X } from 'lucide-react';
 import logo from '../../assets/Logo.png';
 import { initialsFor, SUPPORT_CONTACT } from '../../config/constants';
 import { SpaLink } from '../../utils/bus';
+import { NotificationPopup } from './NotificationPopup';
+import { useClientNotifications } from '../../hooks/useClientNotifications';
 
 const NAV = [
   { label: 'Dashboard', path: '/client-portal', icon: LayoutDashboard },
@@ -25,6 +27,9 @@ const isActive = (path, current) =>
 
 export function ClientLayout({ user, currentPath, onLogout, children }) {
   const [open, setOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef(null);
+  const notif = useClientNotifications({ limit: 4 });
   const activePath = currentPath || '/client-portal';
   const displayName = user?.name || 'Client';
   const current = [...NAV, ...EXTRA].find((n) => isActive(n.path, activePath));
@@ -38,12 +43,22 @@ export function ClientLayout({ user, currentPath, onLogout, children }) {
   }, []);
 
   useEffect(() => {
-    const esc = (e) => { if (e.key === 'Escape') setOpen(false); };
+    const esc = (e) => { if (e.key === 'Escape') { setOpen(false); setNotifOpen(false); } };
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
   }, []);
 
-  useEffect(() => { setOpen(false); }, [currentPath]);
+  useEffect(() => { setOpen(false); setNotifOpen(false); }, [currentPath]);
+
+  /* close the popup on any click outside the bell area */
+  useEffect(() => {
+    if (!notifOpen) return undefined;
+    const onPointerDown = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) setNotifOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [notifOpen]);
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
@@ -84,9 +99,40 @@ export function ClientLayout({ user, currentPath, onLogout, children }) {
         </div>
 
         <div className="lp-top-r">
-          <SpaLink to="/client-portal/notifications" className="lp-icon" aria-label="Notifications">
-            <Bell size={17} />
-          </SpaLink>
+          <div className="lp-notif" ref={notifRef}>
+            <button
+              type="button"
+              className="lp-icon"
+              aria-label={notif.unreadCount > 0 ? `Notifications, ${notif.unreadCount} unread` : 'Notifications'}
+              aria-haspopup="dialog"
+              aria-expanded={notifOpen}
+              aria-controls="lp-notif-popup"
+              onClick={() => setNotifOpen((value) => !value)}
+            >
+              <Bell size={17} />
+              {notif.unreadCount > 0 && (
+                <span className="lp-notif-badge" aria-hidden="true">
+                  {notif.unreadCount > 9 ? '9+' : notif.unreadCount}
+                </span>
+              )}
+            </button>
+
+            {notifOpen && (
+              <NotificationPopup
+                id="lp-notif-popup"
+                notifications={notif.notifications}
+                unreadCount={notif.unreadCount}
+                loading={notif.loading}
+                error={notif.error}
+                busy={notif.busy}
+                onOpen={() => notif.refresh({ page: 1, size: 4 })}
+                onRetry={() => notif.refresh({ page: 1, size: 4 })}
+                onMarkRead={notif.markRead}
+                onMarkAllRead={notif.markAllRead}
+                onClose={() => setNotifOpen(false)}
+              />
+            )}
+          </div>
 
           <div className="lp-who">
             <span className="lp-av">{initialsFor(displayName)}</span>

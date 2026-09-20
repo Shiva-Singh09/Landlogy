@@ -5,6 +5,8 @@ import {
 } from '../../services/client/sellerProvisioning.js';
 import { clean } from '../../utils/validation.js';
 import { notifyAdmins, NOTIFICATION_TYPES } from '../../services/common/notificationService.js';
+import { storage } from '../../config/storage.js';
+import { generateImageFilename } from '../../config/upload.js';
 
 // ── GET /api/client/me (Seller only) ─────────────────────────────
 export const getMe = async (req, res) => {
@@ -151,9 +153,40 @@ export const listProperties = async (req, res) => {
       order: [['created_at', 'DESC']],
       limit: limitNum, offset: (pageNum - 1) * limitNum,
     });
+
+    // ── COVER image resolution (additive; list endpoint only) ─────────
+    // One batched query for the whole page (never per-row): each property's
+    // canonical image is its `property_images.is_primary = true` row; when a
+    // property has no primary, the lowest `sort_order` (then created_at, then
+    // id) is the deterministic fallback; no images → `primary_image: null` and
+    // the card keeps its existing placeholder.
+    const propertyIds = rows.map((row) => row.id);
+    const coverByProperty = new Map();
+    if (propertyIds.length > 0) {
+      const images = await db.PropertyImage.findAll({
+        where: { property_id: propertyIds },
+        attributes: ['id', 'property_id', 'url', 'is_primary', 'sort_order', 'created_at'],
+        order: [['sort_order', 'ASC'], ['created_at', 'ASC'], ['id', 'ASC']],
+      });
+      for (const img of images) {
+        const current = coverByProperty.get(img.property_id);
+        // Rows arrive in the deterministic order above, so the first primary
+        // seen is the lowest-ordered primary and the first row seen is the
+        // lowest-ordered image — both are stable choices.
+        if (!current || (!current.is_primary && img.is_primary)) {
+          coverByProperty.set(img.property_id, img);
+        }
+      }
+    }
+
     return res.json({
       ok: true,
-      properties: rows.map(safeClientProperty),
+      // `safeClientProperty` remains the allowlist source of truth; the cover
+      // URL is attached additively per property so no other response changes.
+      properties: rows.map((row) => ({
+        ...safeClientProperty(row),
+        primary_image: coverByProperty.get(row.id)?.url || null,
+      })),
       pagination: { page: pageNum, limit: limitNum, total: count, totalPages: Math.ceil(count / limitNum) },
     });
   } catch (err) {
@@ -237,6 +270,51 @@ export const uploadImages = async (req, res) => {
 
     if (!files.length) {
       return res.status(400).json({ ok: false, error: 'No image files provided. Use field name "image".' });
+    }
+
+    // ── Storage driver: supabase → push buffers to the bucket first, then
+    // persist rows. local → legacy on-disk behaviour is untouched below. ──
+    if (storage.driver === 'supabase') {
+      const isPrimaryFlagSupa = req.body.is_primary === 'true' || req.body.is_primary === true;
+      const lastOrderSupa = await db.PropertyImage.max('sort_order', { where: { property_id: pid } });
+      const baseOrderSupa = (Number.isInteger(lastOrderSupa) && lastOrderSupa > 0 ? lastOrderSupa : 0) + 1;
+
+      // Keep a single primary per property (same rule as local mode).
+      if (isPrimaryFlagSupa) {
+        await db.PropertyImage.update({ is_primary: false }, { where: { property_id: pid, is_primary: true } });
+      }
+
+      const uploaded = []; // { objectPath } — cleaned up if the operation fails
+      const saved = [];
+      try {
+        for (let i = 0; i < files.length; i += 1) {
+          const filename = generateImageFilename(files[i].mimetype);
+          const { objectPath, publicUrl } = await storage.uploadPropertyImage({
+            propertyId: pid,
+            buffer: files[i].buffer,
+            mimetype: files[i].mimetype,
+            filename,
+          });
+          uploaded.push({ objectPath }); // pending cleanup if this row never persists
+          const image = await db.PropertyImage.create({
+            property_id: pid,
+            url: publicUrl, // absolute HTTPS URL stored directly in property_images.url
+            caption: clean(req.body.caption, 200) || null,
+            is_primary: isPrimaryFlagSupa && i === 0,
+            sort_order: baseOrderSupa + i,
+          });
+          saved.push(safeClientImage(image));
+          uploaded.pop(); // persisted → exclude from any later failure cleanup
+        }
+      } catch (upErr) {
+        // Best-effort cleanup of every object uploaded during this request.
+        for (const u of uploaded) await storage.removeObjectPath(u.objectPath);
+        console.error('[CLIENT] Failed to upload property images (supabase):', upErr?.message || upErr);
+        return res.status(502).json({ ok: false, error: 'Unable to upload images right now. Please try again later.' });
+      }
+
+      console.log(`[CLIENT] Uploaded ${saved.length} image(s) to storage for property ${pid} by seller ${req.user.id}`);
+      return res.status(201).json({ ok: true, images: saved });
     }
 
     const isPrimaryFlag = req.body.is_primary === 'true' || req.body.is_primary === true;
