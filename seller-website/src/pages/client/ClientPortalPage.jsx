@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchClientMe, fetchClientProperties } from '../../api/clientApi';
 import { ClientLayout } from '../../components/client/ClientLayout';
+import { PortalPreloader } from '../../components/loading/PortalPreloader';
 import { useClientAuth } from '../../hooks/useClientAuth';
 import { getClientPortalPropertyId, getClientPortalSection } from '../../app/routes';
 import { navigate } from '../../utils/bus';
@@ -33,6 +34,10 @@ export function ClientPortalPage() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // First blocking bootstrap only: the brand/full-screen loader may appear
+  // here and nowhere else. Subsequent navigations stay inside the shell and
+  // use skeleton screens per page.
+  const [bootstrapping, setBootstrapping] = useState(true);
 
   /* held in a ref so it never re-triggers the load effect */
   const logoutRef = useRef(logout);
@@ -72,7 +77,7 @@ export function ClientPortalPage() {
           ? 'We could not reach LANDLOGY. Please check your connection and try again.'
           : 'We could not load your portal right now. Please try again in a moment.');
       } finally {
-        if (alive) setLoading(false);
+        if (alive) { setLoading(false); setBootstrapping(false); }
       }
     })();
 
@@ -114,6 +119,10 @@ export function ClientPortalPage() {
     ? `/client-portal/properties/${propertyId}`
     : PATHS[route] || PATHS.dashboard;
 
+  // Blocking bootstrap: the entire shell cannot render until the first
+  // auth/session + data load resolves. This is the ONLY full-screen loader.
+  if (bootstrapping && loading) return <PortalPreloader active />;
+
   const page = (() => {
     switch (route) {
       case 'add-property':
@@ -134,7 +143,7 @@ export function ClientPortalPage() {
       case 'notifications':
         return <NotificationsPage />;
       case 'profile':
-        return <ProfilePage user={user} properties={properties} />;
+        return <ProfilePage user={user} properties={properties} loading={loading} />;
       case 'support':
         return <SupportPage />;
       default:

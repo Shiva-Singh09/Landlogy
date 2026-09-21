@@ -3,6 +3,7 @@ import {
   AlertCircle, AtSign, BadgeCheck, Building2, Check, Clock, IdCard,KeyRound ,Mail, MapPin,
   MessageCircle, Phone, Shield, ShieldCheck, Smartphone, UserRound
 } from 'lucide-react';
+import { InlineSpinner } from '../../components/loading/InlineSpinner';
 import { ProfileSkeleton } from '../../components/loading/PortalSkeletons';
 import { refOf } from '../../components/client/PropertyCard';
 import { CLIENT_STORE, CLIENT_TOKEN_KEY, requestPasswordResetApi, verifyPasswordResetApi } from '../../api/clientApi';
@@ -26,7 +27,7 @@ const FAQ = [
    'Message us and we will update it. We handle this for you so your ownership records stay accurate.']
 ];
 
-export function ProfilePage({ user, properties = [] }) {
+export function ProfilePage({ user, properties = [], loading = false }) {
   const [copied, setCopied] = useState('');
   // ── Account Security: single self-service password RESET flow (Task 6).
   //       1. "Reset my password" opens the new-password fields
@@ -44,7 +45,7 @@ export function ProfilePage({ user, properties = [] }) {
   const [rpBusy, setRpBusy] = useState(false);
   const [rpError, setRpError] = useState('');
   const [rpOk, setRpOk] = useState('');
-  if (!user) return <ProfileSkeleton />;
+  if (loading || !user) return <ProfileSkeleton />;
 
   const name = user.name || 'Client';
   const list = Array.isArray(properties) ? properties : [];
@@ -375,10 +376,9 @@ export function ProfilePage({ user, properties = [] }) {
                 )}
 
                 <button type="submit" className="lp-btn lp-btn-a" style={{ width: '100%' }} disabled={rpBusy}>
-                  <KeyRound size={15} />
                   {rpBusy
-                    ? (rpStage === 'pending' ? 'Verifying…' : 'Resetting…')
-                    : (rpStage === 'pending' ? 'Verify' : 'Change password')}
+                    ? <InlineSpinner label={rpStage === 'pending' ? 'Verifying…' : 'Resetting…'} />
+                    : (<><KeyRound size={15} />{rpStage === 'pending' ? 'Verify' : 'Change password'}</>)}
                 </button>
               </form>
             )}

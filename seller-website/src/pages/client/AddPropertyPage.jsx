@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import {
   AlertCircle, ArrowLeft, ArrowRight, Building2, Check, Images,
-  Loader2, MapPin, Plus, Wallet
+  MapPin, Plus, Wallet
 } from 'lucide-react';
 import { createClientProperty, uploadClientPropertyImage } from '../../api/clientApi';
+import { InlineSpinner } from '../../components/loading/InlineSpinner';
 import { formatPriceINR, SUPPORT_CONTACT } from '../../config/constants';
 import { PropertyImageSelector } from '../../components/client/PropertyImageSelector';
 import { refOf } from '../../components/client/PropertyCard';
@@ -359,8 +360,16 @@ export function AddPropertyPage({ token, onBack, onSuccess }) {
         </section>
 
         {phase === 'uploading' && (
-          <div className="lp-progress">
-            <div className="lp-progress-bar">
+          <div className="lp-progress" role="status" aria-live="polite">
+            <div
+              className="lp-progress-bar"
+              role="progressbar"
+              aria-label="Uploading photos"
+              aria-valuemin={0}
+              aria-valuemax={progress.total || 0}
+              aria-valuenow={progress.done}
+              aria-valuetext={`Uploading photo ${progress.done} of ${progress.total}`}
+            >
               <span style={{ width: `${progress.total ? (progress.done / progress.total) * 100 : 0}%` }} />
             </div>
             <small>Uploading photo {progress.done} of {progress.total}</small>
@@ -376,8 +385,8 @@ export function AddPropertyPage({ token, onBack, onSuccess }) {
           <div>
             <button type="button" className="lp-btn lp-btn-b" onClick={onBack} disabled={busy}>Cancel</button>
             <button type="submit" className="lp-btn lp-btn-a" disabled={busy}>
-              {phase === 'saving' ? <><Loader2 size={15} className="lp-spin" /> Saving…</>
-                : phase === 'uploading' ? <><Loader2 size={15} className="lp-spin" /> Uploading…</>
+              {phase === 'saving' ? <InlineSpinner label="Saving…" />
+                : phase === 'uploading' ? <InlineSpinner label={`Uploading ${progress.done} of ${progress.total}…`} />
                 : <>Submit property <ArrowRight size={15} /></>}
             </button>
           </div>

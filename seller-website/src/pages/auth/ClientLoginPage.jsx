@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AlertCircle, ArrowUpRight, ChevronRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import logo from '../../assets/Logo.png';
 import heroVisual from '../../assets/Hero1.png';
+import { InlineSpinner } from '../../components/loading/InlineSpinner';
 import { useClientAuth } from '../../hooks/useClientAuth';
 import { navigate, SpaLink } from '../../utils/bus';
 
@@ -114,7 +115,7 @@ export function ClientLoginPage() {
             {error && <p className="lla-err" role="alert"><AlertCircle size={15} /> {error}</p>}
 
             <button className="lla-btn lla-btn-a" type="submit" disabled={loading}>
-              {loading ? 'Signing in…' : <>Sign in <ArrowUpRight size={16} /></>}
+              {loading ? <InlineSpinner label="Signing in…" /> : <>Sign in <ArrowUpRight size={16} /></>}
             </button>
           </form>
 

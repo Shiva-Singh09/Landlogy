@@ -4,6 +4,8 @@ import { SUPPORT_CONTACT } from '../../config/constants';
 import { SpaLink } from '../../utils/bus';
 import { EmptyState } from '../../components/client/EmptyState';
 import { NotificationItem } from '../../components/client/NotificationPopup';
+import { InlineSpinner } from '../../components/loading/InlineSpinner';
+import { NotificationSkeleton } from '../../components/loading/PortalSkeletons';
 import { useClientNotifications } from '../../hooks/useClientNotifications';
 
 const WA = `https://wa.me/${SUPPORT_CONTACT.phoneRaw.replace(/\D/g, '')}?text=${encodeURIComponent('Hi LANDLOGY, I have a question about my property.')}`;
@@ -23,6 +25,9 @@ export function NotificationsPage() {
   const total = pagination?.total || 0;
   const totalPages = pagination?.totalPages || 0;
   const isEmpty = !loading && !error && notifications.length === 0;
+
+  // Page-level fetch with known list layout → skeleton, not a spinner.
+  if (loading && notifications.length === 0) return <NotificationSkeleton rows={PAGE_SIZE > 6 ? 6 : 4} />;
 
   return (
     <>
@@ -53,12 +58,12 @@ export function NotificationsPage() {
                 </p>
               </div>
               <button type="button" className="lp-btn lp-btn-b" disabled={busy || unreadCount === 0} onClick={markAllRead}>
-                Mark all as read
+                {busy ? <InlineSpinner label="Updating…" /> : 'Mark all as read'}
               </button>
             </div>
 
             {loading ? (
-              <p className="lp-notif-state" role="status">Loading notifications…</p>
+              <p className="lp-notif-state" role="status"><InlineSpinner label="Loading notifications…" /></p>
             ) : error ? (
               <div className="lp-notif-state" role="alert">
                 <p>{error}</p>
