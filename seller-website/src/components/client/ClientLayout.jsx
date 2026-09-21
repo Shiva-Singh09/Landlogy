@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Bell, Home, LayoutDashboard, LogOut, Menu, Phone, Plus, UserRound, X } from 'lucide-react';
 import logo from '../../assets/Logo.png';
+import landlogyIcon from '../../assets/LandlogyIcon.svg';
 import { initialsFor, SUPPORT_CONTACT } from '../../config/constants';
-import { SpaLink } from '../../utils/bus';
+import { navigate, SpaLink } from '../../utils/bus';
+import { playSound } from '../../utils/notificationSound';
 import { NotificationPopup } from './NotificationPopup';
 import { useClientNotifications } from '../../hooks/useClientNotifications';
+import { useClientPushSubscription } from '../../hooks/useClientPushSubscription';
 
 const NAV = [
   { label: 'Dashboard', path: '/client-portal', icon: LayoutDashboard },
@@ -30,9 +33,36 @@ export function ClientLayout({ user, currentPath, onLogout, children }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef(null);
   const notif = useClientNotifications({ limit: 4 });
+  // Shared push/sound state — the same hook the Profile and Support settings
+  // use, so the popup status control always matches those settings.
+  const push = useClientPushSubscription();
   const activePath = currentPath || '/client-portal';
   const displayName = user?.name || 'Client';
   const current = [...NAV, ...EXTRA].find((n) => isActive(n.path, activePath));
+
+  // Service-worker messages:
+  //  - 'landlogy_push' → a push arrived while the portal tab is focused. The
+  //    worker skips its system notification, so the app owns the alert: refresh
+  //    the in-app list/badge (a read-only GET — no duplicate rows) and play the
+  //    chime when the sound preference is on (the singleton enforces that).
+  //  - 'notification_focus' → the seller clicked a system notification and an
+  //    existing window was focused; route it inside the SPA. Seller routes only
+  //    (must start with /client-portal) — never admin routes.
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return undefined;
+    const onMessage = (event) => {
+      const data = event.data || {};
+      if (data.type === 'landlogy_push') {
+        notif.refresh({ page: 1, size: 4 });
+        playSound();
+      } else if (data.type === 'notification_focus') {
+        const url = typeof data.url === 'string' ? data.url : '';
+        if (url.startsWith('/client-portal')) navigate(url);
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage);
+  }, [notif.refresh]);
 
   useEffect(() => {
     const tag = document.createElement('meta');
@@ -93,7 +123,10 @@ export function ClientLayout({ user, currentPath, onLogout, children }) {
             <Menu size={18} />
           </button>
           <SpaLink to="/" className="lp-logo" aria-label="LANDLOGY home">
-            <img src={logo} alt="LANDLOGY" />
+            {/* Full wordmark while the topbar is wide; compact LANDLOGY A-symbol
+                on the narrow mobile topbar (swapped in portal.css ≤560px). */}
+            <img src={logo} alt="LANDLOGY" className="lp-logo-full" />
+            <img src={landlogyIcon} alt="" aria-hidden="true" className="lp-logo-mark" />
           </SpaLink>
           {current && <><span className="lp-sep" /><b className="lp-page">{current.label}</b></>}
         </div>
@@ -130,6 +163,15 @@ export function ClientLayout({ user, currentPath, onLogout, children }) {
                 onMarkRead={notif.markRead}
                 onMarkAllRead={notif.markAllRead}
                 onClose={() => setNotifOpen(false)}
+                soundEnabled={push.soundEnabled}
+                onToggleSound={push.toggleSound}
+                notificationStatus={{
+                  pushStatus: push.pushStatus,
+                  subscribed: push.subscribed,
+                  busy: push.busy,
+                  onSubscribe: push.onSubscribe,
+                  onUnsubscribe: push.onUnsubscribe
+                }}
               />
             )}
           </div>

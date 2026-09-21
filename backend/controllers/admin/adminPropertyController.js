@@ -5,6 +5,7 @@ import { UPLOAD_DIR } from '../../config/upload.js';
 import { PROPERTY_STATUSES } from '../../utils/constants.js';
 import { clean } from '../../utils/validation.js';
 import { recordActivity, describeActivity, ACTIVITY_ACTIONS, buildActivityRecord } from '../../services/common/activityLog.js';
+import { createNotification, NOTIFICATION_TYPES } from '../../services/common/notificationService.js';
 import { storage } from '../../config/storage.js';
 import { generateImageFilename } from '../../config/upload.js';
 
@@ -813,12 +814,32 @@ export const updatePropertyStatus = async (req, res) => {
     property.status_history = history;
     await property.save();
     console.log(`[ADMIN] Property ${id} status updated from '${previousStatus}' to '${status}' by admin ${req.user.id}`);
-    recordActivity(ACTIVITY_ACTIONS.PROPERTY_STATUS_CHANGED, {
+        recordActivity(ACTIVITY_ACTIONS.PROPERTY_STATUS_CHANGED, {
       actorUserId: req.user.id,
       entityType: 'property',
       entityId: property.id,
       description: describeActivity(ACTIVITY_ACTIONS.PROPERTY_STATUS_CHANGED, { label: property.title, from: previousStatus, to: status }),
     });
+
+        // Seller lifecycle notification: the property owner (seller) is the only
+    // recipient. Owner is derived from property.owner_id — never from the
+    // request. createNotification() is fire-and-forget (push is delivered best
+    // effort via deliverAfterCommit); a delivery failure never fails the status
+    // update or creates a duplicate row.
+    if (property.owner_id) {
+      void createNotification({
+        recipient_user_id: property.owner_id,
+        type: NOTIFICATION_TYPES.PROPERTY_STATUS_CHANGED,
+        title: status === 'active' ? 'Your property is now live'
+          : status === 'rejected' ? 'Property not approved'
+          : status === 'sold' ? 'Property marked as sold'
+          : 'Property status updated',
+        message: property.title,
+        related_entity_type: 'property',
+        related_entity_id: property.id,
+      });
+    }
+
     return res.json({
       ok: true,
       property: {
