@@ -4,6 +4,11 @@ import { deliverAfterCommit } from './pushService.js';
 const NOTIFICATION_TYPES = Object.freeze({
   NEW_ENQUIRY: 'new_enquiry',
   PROPERTY_REVIEW: 'property_review',
+  // Seller-facing lifecycle events: created for the property owner (req.user.id
+  // is never accepted from the client). Push is delivered by deliverAfterCommit
+  // for any row produced by createNotification().
+  PROPERTY_SUBMITTED: 'property_submitted',
+  PROPERTY_STATUS_CHANGED: 'property_status_changed',
 });
 
 /**
