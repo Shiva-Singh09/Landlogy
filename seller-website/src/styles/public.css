@@ -609,6 +609,7 @@ body.is-scrolled .ll-logo img { width: 108px; }
 .lla-mark { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: var(--s4);
   border-radius: var(--r-md); background: var(--ink); color: var(--amber);
   font-family: var(--serif); font-size: 22px; }
+.lla-mark img { width: 26px; height: auto; }
 .lla-kicker { display: block; margin-bottom: var(--s2); color: var(--tx-500);
   font: 600 var(--t-micro)/1 var(--sans); letter-spacing: .15em; text-transform: uppercase; }
 .lla-card h2 { margin-bottom: 6px; color: var(--tx-900); font-size: 32px; line-height: 1.1; }
