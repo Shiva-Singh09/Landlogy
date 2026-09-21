@@ -20,6 +20,8 @@
 .lp-top-l { display: flex; align-items: center; gap: var(--s3); min-width: 0; }
 .lp-logo { display: flex; align-items: center; flex-shrink: 0; }
 .lp-logo img { width: 116px; height: auto; object-fit: contain; }
+/* compact LANDLOGY A-symbol — shown only on the narrow mobile topbar */
+.lp-logo .lp-logo-mark { display: none; width: 30px; height: 30px; }
 .lp-sep { width: 1px; height: 22px; background: var(--line); flex-shrink: 0; }
 .lp-page { color: var(--ink); font-family: var(--serif); font-weight: 400; font-size: 17px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -543,7 +545,10 @@ button.lp-link:disabled { opacity: .5; cursor: not-allowed; }
   .lp-drawer-top { padding: 0 var(--s2) var(--s4); }
 }
 @media (max-width: 560px) {
-  .lp-logo img { width: 92px; }
+  /* Narrow 60px topbar (burger + bell + avatar + logout): the compact LANDLOGY
+     A-symbol replaces the full wordmark instead of being squeezed. */
+  .lp-logo .lp-logo-full { display: none; }
+  .lp-logo .lp-logo-mark { display: block; }
 }
 
 /* ══════════ profile ══════════ */
@@ -1214,6 +1219,45 @@ button.lp-link:disabled { opacity: .5; cursor: not-allowed; }
 
 @media (max-width: 560px) {
   .lp-notif-pop { position: fixed; top: 60px; left: 12px; right: 12px; width: auto; }
-  .lp-notif-foot { flex-wrap: wrap; }
+  /* small screens only: the three controls may stack, one per row */
+  .lp-notif-controls { grid-template-columns: minmax(0, 1fr); }
   .lp-notif-empty { padding: var(--s3) var(--s4) var(--s4); }
 }
+
+/* ── Notification settings card (shared Profile + Support) ─────────────── */
+.lp-notif-brief { display: grid; gap: var(--s3); align-content: start; }
+.lp-notif-pill { display: inline-flex; align-items: center; gap: 7px; justify-self: start;
+  padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--stone); color: var(--ink); font: 600 var(--t-micro)/1 var(--sans);
+  letter-spacing: .07em; text-transform: uppercase; }
+/* one labelled row per setting: text left, status + action right */
+.lp-notif-setting { display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--s3); padding: var(--s3) 0; border-top: 1px solid var(--line-2); }
+.lp-notif-setting-info { display: grid; gap: 6px; min-width: 0; }
+.lp-notif-setting-info p { margin: 0; max-width: 46ch; }
+.lp-notif-setting-action { display: flex; flex-direction: column; align-items: flex-end;
+  gap: var(--s2); flex-shrink: 0; }
+@media (max-width: 700px) {
+  .lp-notif-setting { flex-direction: column; }
+  .lp-notif-setting-action { flex-direction: row; align-items: center; }
+}
+/* semantic pill states — colours come ONLY from the existing ll-* tokens */
+.lp-notif-pill.is-ok { background: var(--ll-success-bg); color: var(--ll-success-text); border-color: transparent; }
+.lp-notif-pill.is-warn { background: var(--ll-warn-bg); color: var(--ll-warn-text); border-color: transparent; }
+.lp-notif-pill.is-err { background: var(--ll-error-bg); color: var(--ll-error); border-color: transparent; }
+.lp-notif-pill.is-info { background: var(--ll-info-bg); color: var(--ll-info-strong); border-color: transparent; }
+/* popup footer: one control row, then the view-more link centred below */
+.lp-notif-foot { flex-direction: column; align-items: stretch; row-gap: var(--s2); }
+/* The THREE controls are one deterministic grid row on desktop — never a flex
+   wrap. Tracks size to their content but may only shrink (min 0), so the row
+   can never break: the compact label span ellipsifies as a last-resort safety
+   net instead of pushing a control onto a second line. */
+.lp-notif-controls { display: grid; grid-template-columns: repeat(3, minmax(0, auto));
+  align-items: center; justify-content: space-between; gap: 6px; }
+.lp-notif-controls > * { min-width: 0; }
+.lp-notif-controls .lp-btn { padding: 9px 8px; gap: 5px; font-size: 12px; }
+.lp-notif-controls .lp-btn .lp-ctl-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.lp-notif-controls .lp-notif-pill { justify-content: center; gap: 5px; padding: 8px 10px;
+  overflow: hidden; white-space: nowrap; }
+.lp-notif-controls .lp-notif-pill .lp-ctl-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.lp-notif-more { display: flex; align-items: center; justify-content: center; width: 100%; }

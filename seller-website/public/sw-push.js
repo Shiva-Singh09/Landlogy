@@ -1,7 +1,8 @@
-// ── Minimal seller service-worker for Web Push (foreground+background) ───
-// One shared worker for the seller-app lifecycle + incoming push. The React app
-// owns the in-app notification UI; this worker only renders system notifications
-// when the tab/background/PWA cannot.
+// ── LANDLOGY seller service-worker: PWA shell + Web Push (one worker) ────
+// Single shared worker for the seller-app lifecycle (minimal static-shell
+// caching below) + incoming push. The React app owns the in-app notification
+// UI; this worker only renders system notifications when the tab/background/
+// installed PWA cannot. The push behaviour below is untouched by PWA caching.
 'use strict';
 const APP_URL = self.location.origin;
 const STANDARD_ICON = `${APP_URL}/icon-192.png`;
@@ -15,8 +16,35 @@ function routeFor(data) {
   return base && data.related_entity_id ? `${base}/${data.related_entity_id}` : '/client-portal';
 }
 
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+// ── PWA lifecycle — minimal, static-only caching ──────────────────────────
+// Hashed build assets and brand icons are cache-first (immutable content);
+// navigations are network-first with the cached shell as offline fallback.
+// /api/*, /uploads/*, every non-GET request and cross-origin requests are
+// NEVER intercepted — private/dynamic data can never be served stale.
+const STATIC_CACHE = 'landlogy-static-v1';
+const PRECACHE = ['/', '/manifest.webmanifest', '/favicon.svg', '/icon-192.png',
+  '/icon-512.png', '/apple-touch-icon.png'];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(STATIC_CACHE);
+    // cache:'reload' bypasses the HTTP cache — the shell is never pre-cached stale.
+    await Promise.all(PRECACHE.map((path) => cache
+      .add(new Request(APP_URL + path, { cache: 'reload' }))
+      .catch(() => undefined)));
+    self.skipWaiting();
+  })());
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names
+      .filter((name) => name.startsWith('landlogy-') && name !== STATIC_CACHE)
+      .map((name) => caches.delete(name)));
+    self.clients.claim();
+  })());
+});
 
 self.addEventListener('push', (event) => {
   let data = {};
@@ -64,4 +92,35 @@ self.addEventListener('notificationclick', (event) => {
     if (focused) return focused.focus().then((client) => client.postMessage({ type: 'notification_focus', url }));
     return clients.openWindow(url);
   }));
+});
+
+// ── PWA fetch: static assets only — private/dynamic data always hits network ─
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  // Non-GET (mutations, uploads, auth) is never intercepted or cached.
+  if (request.method !== 'GET') return;
+  let url;
+  try { url = new URL(request.url); } catch { return; }
+  // Cross-origin requests (fonts/CDN) are left to the network untouched.
+  if (url.origin !== APP_URL) return;
+  // Seller API + uploads: network only — never cached, never served stale.
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/uploads/')) return;
+  // SPA navigations: network-first; the cached shell only covers offline startup.
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(() => caches.match('/')));
+    return;
+  }
+  // Same-origin static assets (+ manifest): cache-first with backfill. Bundle
+  // filenames are hashed, so a cache hit can never be a stale build.
+  if (!/\.(js|css|png|svg|ico|webp|woff2?)$/.test(url.pathname)
+    && url.pathname !== '/manifest.webmanifest') return;
+  event.respondWith(
+    caches.match(request).then((hit) => hit || fetch(request).then((response) => {
+      if (response && response.ok) {
+        const copy = response.clone();
+        caches.open(STATIC_CACHE).then((cache) => cache.put(request, copy)).catch(() => undefined);
+      }
+      return response;
+    }))
+  );
 });
