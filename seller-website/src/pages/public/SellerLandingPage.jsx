@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ArrowUpRight, Check, Clock, Mail, MapPin,MessageCircle,
-  Menu, MousePointer2, Phone, Scale, Search, ShieldCheck, Users, X
+  ArrowUpRight, Check, Clock, Mail, MapPin,
+    Layers, Menu, MessageCircle, MousePointer2, Phone, Scale, Search, ShieldCheck, Users, X
 } from 'lucide-react';
 import logo from '../../assets/Logo.png';
 import heroVisual from '../../assets/Hero1.png';
@@ -384,7 +384,8 @@ const CORRIDORS = ['India', 'Dubai', 'Global network'];
 
 export function SellerLandingPage() {
   const [menu, setMenu] = useState(false);
-  const [tab, setTab] = useState('sell');
+   const [tab, setTab] = useState('sell');
+  const [cat, setCat] = useState('all');
   const { site, error, load } = useSiteData();
   useReveal(!!site);
   useMotionVars();
@@ -514,41 +515,65 @@ export function SellerLandingPage() {
           </div>
         </div>
       </header>
-
-      {/* clusters */}
+      {/* services catalogue */}
       <section id="services" className="ll-sec ll-stone">
         <div className="ll-wrap">
           <div className="ll-head" data-reveal>
             <div>
               <span className="ll-kicker">What we do</span>
-              <h2>Everything a property sale needs, in one place.</h2>
+              <h2>Forty services across one connected network.</h2>
             </div>
-            <p>Three groups of work, running in order, so nothing is promoted before it is understood.</p>
+            <p>Land, property, investment, development and the professionals who support every one of them.</p>
           </div>
-             <div className="ll-clusters" data-stagger>
-            <span className="ll-thread" data-reveal aria-hidden="true" />
-            {CLUSTERS.map((c) => (
-              <article className="ll-panel ll-cluster" data-reveal key={c.n}>
-                <div className="ll-cluster-top"><b>{c.n}</b><small>{c.code}</small></div>
-                <h3>{c.title}</h3>
-                <p>{c.text}</p>
-                <div className="ll-rows">
-                  {c.names.map((name) => {
-                    const s = svc(name);
-                    return s ? (
-                      <a className="ll-row" href="#enquire" key={name}>
-                        <span><i>{s[0]}</i>{s[1]}</span><ArrowUpRight size={14} />
-                      </a>
-                    ) : null;
-                  })}
-                </div>
-                <div className="ll-cluster-foot"><ShieldCheck size={13} /> {c.foot}</div>
-              </article>
-            ))}
+
+          <div className="ll-cats" data-reveal>
+            {site.serviceCategories.map((c) => {
+              const count = c.key === 'all'
+                ? site.serviceCatalog.length
+                : site.serviceCatalog.filter((s) => s.cat === c.key).length;
+              return (
+                <button type="button" key={c.key} onClick={() => setCat(c.key)}
+                  className={`ll-cat ${cat === c.key ? 'on' : ''}`}>
+                  {c.label} <b>{count}</b>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="ll-cat-grid">
+            {site.serviceCatalog
+              .filter((s) => cat === 'all' || s.cat === cat)
+              .map((s) => (
+                <a className="ll-svc" href="#enquire" key={s.n}>
+                  <span className="ll-svc-n">{s.n}</span>
+                  <h3>{s.title}</h3>
+                  <p>{s.desc}</p>
+                  <ArrowUpRight className="ll-svc-go" size={15} />
+                </a>
+              ))}
           </div>
         </div>
       </section>
 
+      {/* ecosystem chain */}
+      <section className="ll-sec">
+        <div className="ll-wrap">
+          <div className="ll-head" data-reveal>
+            <div>
+              <span className="ll-kicker">The ecosystem</span>
+              <h2>{site.brand.tagline}</h2>
+            </div>
+            <p>Every participant in a property decision, working through one network.</p>
+          </div>
+          <div className="ll-chain" data-reveal>
+            {site.ecosystem.map((node, i) => (
+              <span className="ll-chain-n" key={node} style={{ '--i': i }}>
+                <i>{String(i + 1).padStart(2, '0')}</i>{node}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
       {/* land aggregation */}
       <section id="capabilities" className="ll-sec">
         <div className="ll-wrap ll-split">
@@ -764,9 +789,10 @@ export function SellerLandingPage() {
               <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
             </div>
           </div>
+                   <p className="ll-foot-note">{site.brand.disclaimer}</p>
           <div className="ll-foot-btm">
             <p>© 2026 LANDLOGY. All rights reserved.</p>
-            <p>{site.contact.workingHours.weekday}</p>
+            <p>{site.contact.website} · {site.brand.reach}</p>
           </div>
         </div>
       </footer>
