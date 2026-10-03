@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowUpRight, Check, Clock, Mail, MapPin,
-    Layers, Menu, MessageCircle, MousePointer2, Phone, Scale, Search, ShieldCheck, Users, X
+    Layers, MessageCircle, MousePointer2, Phone, Scale, Search, ShieldCheck, Users, X
 } from 'lucide-react';
 import logo from '../../assets/Logo.png';
 import heroVisual from '../../assets/Hero1.png';
 import { API_BASE } from '../../config/constants';
+import { SiteNav, SiteFooter } from '../../components/public/SiteChrome';
 import { SpaLink } from '../../utils/bus';
 
 /* ───────── hooks ───────── */
@@ -352,50 +353,24 @@ function House3D() {
 }
 
 /* ───────── page ───────── */
-
-const NAV = [
-  ['#services', 'What we do'],
-  ['#capabilities', 'Capabilities'],
-  ['#process', 'How it works'],
-  ['#team', 'Our team'],
-  ['#contact', 'Contact']
-];
-
 const TABS = [['sell', 'Sell'], ['value', 'Valuation'], ['advice', 'Advice']];
 
-const CLUSTERS = [
-  { n: '01', code: 'Pricing', title: 'Getting it priced right',
-    text: 'Before anything is promoted, we work out what the property is genuinely worth and how it should be positioned.',
-    names: ['Property Assessment', 'Pricing & Positioning', 'Professional Presentation'],
-    foot: 'Research before recommendation' },
-  { n: '02', code: 'Verification', title: 'Getting it verified',
-    text: 'Ownership, documents and location context are organised early, so nothing surfaces late in a negotiation.',
-    names: ['Verification Support', 'Land Aggregation', 'Property Intelligence & Presentation'],
-    foot: 'Checked before promotion' },
-  { n: '03', code: 'Closing', title: 'Getting it sold',
-    text: 'The property reaches buyers whose requirements actually match it, and you have support through to handover.',
-    names: ['Relevant Buyer Reach', 'Negotiation & Closing Support', '3D Property Visualization'],
-    foot: 'Guidance through the sale' }
-];
 
 const STAKE_TAGS = ['Sell-side', 'Capital', 'Development', 'Channel', 'Demand', 'Partners'];
 const STAGE_OUTCOME = ['Enquiry received', 'Under review', 'Documents organised', 'Strategy agreed', 'Live and supported'];
 const CORRIDORS = ['India', 'Dubai', 'Global network'];
 
 export function SellerLandingPage() {
-  const [menu, setMenu] = useState(false);
+ 
    const [tab, setTab] = useState('sell');
   const [cat, setCat] = useState('all');
+  const [q, setQ] = useState('');
   const { site, error, load } = useSiteData();
   useReveal(!!site);
   useMotionVars();
   useTouchPlay(!!site);
   const spy = useScrollSpy(!!site, SPY_IDS);
 
-  useEffect(() => {
-    document.body.classList.toggle('menu-open', menu);
-    return () => document.body.classList.remove('menu-open');
-  }, [menu]);
 
   if (!site) {
     return (
@@ -410,40 +385,11 @@ export function SellerLandingPage() {
     );
   }
 
-  const svc = (name) => site.sellerServices.find((s) => s[1] === name);
-  const closeMenu = () => setMenu(false);
+  
 
   return (
     <main className="ll">
-      {/* nav */}
-      <nav className="ll-nav">
-        <div className="ll-wrap ll-nav-in">
-          <a className="ll-logo" href="#top" aria-label="LANDLOGY home"><img src={logo} alt="LANDLOGY" /></a>
-          <div className="ll-links">
-            {NAV.map(([href, label]) => (
-              <a key={href} href={href} className={spy === href.slice(1) ? 'on' : ''}>{label}</a>
-            ))}
-          </div>
-          <div className="ll-nav-cta">
-            <SpaLink className="ll-quiet" to="/client-login">Client login</SpaLink>
-            <a href="#enquire" className="ll-btn ll-btn-a">List your property</a>
-          </div>
-          <button className="ll-ham" type="button" onClick={() => setMenu((v) => !v)}
-            aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu}>
-            {menu ? <X /> : <Menu />}
-          </button>
-        </div>
-        <span className="ll-bar" aria-hidden="true" />
-      </nav>
-
-      {menu && (
-        <div className="ll-menu">
-          {NAV.map(([href, label]) => <a key={href} href={href} onClick={closeMenu}>{label}</a>)}
-          <a href={`tel:${site.contact.phoneRaw}`} onClick={closeMenu}>Call us</a>
-          <SpaLink to="/client-login" onClick={closeMenu}>Client login</SpaLink>
-          <a className="ll-btn ll-btn-a" href="#enquire" onClick={closeMenu}>List your property</a>
-        </div>
-      )}
+            <SiteNav site={site} spy={spy} onHome />
 
       {/* corridor */}
       <div className="ll-strip">
@@ -515,7 +461,7 @@ export function SellerLandingPage() {
           </div>
         </div>
       </header>
-      {/* services catalogue */}
+           {/* services directory */}
       <section id="services" className="ll-sec ll-stone">
         <div className="ll-wrap">
           <div className="ll-head" data-reveal>
@@ -523,54 +469,45 @@ export function SellerLandingPage() {
               <span className="ll-kicker">What we do</span>
               <h2>Forty services across one connected network.</h2>
             </div>
-            <p>Land, property, investment, development and the professionals who support every one of them.</p>
+            <p>Twelve of the most requested. The full list of {site.serviceCatalog.length} covers land, property, investment, development, professional network and intelligence.</p>
           </div>
 
-          <div className="ll-cats" data-reveal>
-            {site.serviceCategories.map((c) => {
-              const count = c.key === 'all'
-                ? site.serviceCatalog.length
-                : site.serviceCatalog.filter((s) => s.cat === c.key).length;
+                   <div className="ll-feat12" data-stagger>
+            {site.featuredServices.map((n) => {
+              const s = site.serviceCatalog.find((x) => x.n === n);
+              if (!s) return null;
+              const label = site.serviceCategories.find((c) => c.key === s.cat)?.label;
               return (
-                <button type="button" key={c.key} onClick={() => setCat(c.key)}
-                  className={`ll-cat ${cat === c.key ? 'on' : ''}`}>
-                  {c.label} <b>{count}</b>
-                </button>
+                <a className="ll-f12" href="#enquire" data-reveal key={s.n}>
+                  <span className="ll-f12-top">
+                    <b>{s.n}</b>
+                    <small>{label}</small>
+                  </span>
+                  <h3>{s.title}</h3>
+                  <p>{s.desc}</p>
+                  <span className="ll-f12-go">Enquire <ArrowUpRight size={14} /></span>
+                </a>
               );
             })}
           </div>
 
-          <div className="ll-cat-grid">
-            {site.serviceCatalog
-              .filter((s) => cat === 'all' || s.cat === cat)
-              .map((s) => (
-                <a className="ll-svc" href="#enquire" key={s.n}>
-                  <span className="ll-svc-n">{s.n}</span>
-                  <h3>{s.title}</h3>
-                  <p>{s.desc}</p>
-                  <ArrowUpRight className="ll-svc-go" size={15} />
-                </a>
+          <SpaLink to="/services" className="ll-allsvc" data-reveal>
+            <span>
+              <b>All {site.serviceCatalog.length} services</b>
+              <small>Land, property, investment, development, professional network and intelligence</small>
+            </span>
+            <i>Browse the full list <ArrowUpRight size={16} /></i>
+          </SpaLink>
+          {/* ecosystem chain, folded in */}
+          <div className="ll-chainwrap" data-reveal>
+            <span className="ll-kicker">{site.brand.tagline}</span>
+            <div className="ll-chain">
+              {site.ecosystem.map((node, i) => (
+                <span className="ll-chain-n" key={node}>
+                  <i>{String(i + 1).padStart(2, '0')}</i>{node}
+                </span>
               ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ecosystem chain */}
-      <section className="ll-sec">
-        <div className="ll-wrap">
-          <div className="ll-head" data-reveal>
-            <div>
-              <span className="ll-kicker">The ecosystem</span>
-              <h2>{site.brand.tagline}</h2>
             </div>
-            <p>Every participant in a property decision, working through one network.</p>
-          </div>
-          <div className="ll-chain" data-reveal>
-            {site.ecosystem.map((node, i) => (
-              <span className="ll-chain-n" key={node} style={{ '--i': i }}>
-                <i>{String(i + 1).padStart(2, '0')}</i>{node}
-              </span>
-            ))}
           </div>
         </div>
       </section>
@@ -762,40 +699,7 @@ export function SellerLandingPage() {
         </div>
       </section>
 
-      {/* footer */}
-      <footer className="ll-foot">
-        <div className="ll-wrap">
-          <div className="ll-foot-grid">
-            <div className="ll-foot-b">
-              <img src={logo} alt="LANDLOGY" />
-              <p>{site.brand.tagline}</p>
-            </div>
-            <div>
-              <h4>For owners</h4>
-              <a href="#enquire">List your property</a>
-              <a href="#services">What we do</a>
-              <a href="#capabilities">Capabilities</a>
-              <a href="#process">How it works</a>
-            </div>
-            <div>
-              <h4>Access</h4>
-              <SpaLink to="/client-login">Client login</SpaLink>
-              <a href="#team">Our team</a>
-              <a href="#contact">Contact us</a>
-            </div>
-            <div>
-              <h4>Reach us</h4>
-              <a href={`tel:${site.contact.phoneRaw}`}>{site.contact.phone}</a>
-              <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
-            </div>
-          </div>
-                   <p className="ll-foot-note">{site.brand.disclaimer}</p>
-          <div className="ll-foot-btm">
-            <p>© 2026 LANDLOGY. All rights reserved.</p>
-            <p>{site.contact.website} · {site.brand.reach}</p>
-          </div>
-        </div>
-      </footer>
+           <SiteFooter site={site} onHome />
       <div className="ll-mbar">
         <a href={`tel:${site.contact.phoneRaw}`}>
           <Phone size={17} /><span>Call</span>

@@ -5,7 +5,7 @@
     "slogan": "Buy · Sell · Lease · Invest · Aggregate · Develop · Connect",
     "description": "Landlogy is an integrated real estate ecosystem connecting landowners, buyers, investors, developers, brokers, channel partners and real estate professionals through one connected network.",
     "reach": "India · Dubai · Global real estate network",
-    "disclaimer": "Legal title verification, statutory due diligence, valuation and other regulated professional services are performed by appropriately qualified professionals. Landlogy facilitates ecosystem connectivity and strategic support."
+    "disclaimer": "Legal title verification, statutory due diligence, valuation and other regulated professional services should be  performed by appropriately qualified professionals. Landlogy facilitates ecosystem connectivity and strategic support."
   },
 
   "pillars": [
@@ -24,6 +24,8 @@
     { "key": "network", "label": "Professional network" },
     { "key": "intelligence", "label": "Intelligence" }
   ],
+
+  "featuredServices": ["01", "03", "05", "04", "06", "07", "11", "13", "14", "36", "38", "40"],
 
   "serviceCatalog": [
     { "n": "01", "cat": "land", "title": "Land Aggregation", "desc": "Identifying, connecting and aggregating multiple land parcels for large land requirements." },
