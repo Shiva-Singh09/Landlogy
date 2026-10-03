@@ -380,7 +380,7 @@ const CLUSTERS = [
 
 const STAKE_TAGS = ['Sell-side', 'Capital', 'Development', 'Channel', 'Demand', 'Partners'];
 const STAGE_OUTCOME = ['Enquiry received', 'Under review', 'Documents organised', 'Strategy agreed', 'Live and supported'];
-const CORRIDORS = ['Lucknow', 'Delhi NCR', 'Mumbai', 'Bangalore'];
+const CORRIDORS = ['India', 'Dubai', 'Global network'];
 
 export function SellerLandingPage() {
   const [menu, setMenu] = useState(false);
@@ -448,7 +448,7 @@ export function SellerLandingPage() {
       <div className="ll-strip">
         <div className="ll-wrap ll-strip-in">
           <span className="ll-strip-l">
-            <b><i className="ll-dot" /> Now working in</b>
+                       <b><i className="ll-dot" /> Operating across</b>
             <span>{CORRIDORS.join(' · ')}</span>
           </span>
           <a href={`tel:${site.contact.phoneRaw}`}><Phone size={12} /> {site.contact.phone}</a>
@@ -459,8 +459,8 @@ export function SellerLandingPage() {
       <header id="top" className="ll-hero">
         <div className="ll-wrap ll-hero-grid">
           <section className="ll-panel ll-story" data-reveal>
-            <span className="ll-kicker">For property owners across India</span>
-            <h1>Sell your property at the <em>right price.</em></h1>
+            <span className="ll-kicker">{site.brand.slogan}</span>
+            <h1>A complete real estate <em>ecosystem.</em></h1>
             <p className="ll-lead">{site.brand.description}</p>
 
             <div className="ll-shot">
@@ -472,11 +472,11 @@ export function SellerLandingPage() {
               </div>
             </div>
 
-            <div className="ll-pillars">
-              <div><Search size={16} /><b>Research</b><small>Location and demand</small></div>
-              <div><ShieldCheck size={16} /><b>Verify</b><small>Title and documents</small></div>
-              <div><Users size={16} /><b>Connect</b><small>Relevant buyers</small></div>
-              <div><Scale size={16} /><b>Close</b><small>Through to handover</small></div>
+                   <div className="ll-pillars">
+              {site.pillars.map((p, i) => {
+                const I = [Layers, Search, Users, Scale][i] || Search;
+                return <div key={p.key}><I size={16} /><b>{p.label}</b><small>{p.note}</small></div>;
+              })}
             </div>
           </section>
 
