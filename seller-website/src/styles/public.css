@@ -867,3 +867,21 @@ body.is-scrolled .ll-logo img { width: 108px; }
 .ll-links .ll-ext::before { content: ''; width: 5px; height: 5px; border-radius: 50%;
   background: var(--amber); transition: transform .25s var(--ease); }
 .ll-links .ll-ext:hover::before { transform: scale(1.4); }
+
+
+/* tab switch feels deliberate */
+.ll-intake form, .ll-intake > p { animation: llSwap .35s var(--ease); }
+@keyframes llSwap {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* hero panels end level now the band is gone */
+.ll-hero { padding-bottom: var(--s6); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ll-intake form, .ll-intake > p { animation: none; }
+}
+
+
+
