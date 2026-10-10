@@ -7,22 +7,18 @@
     "reach": "India · Dubai · Global real estate network",
     "disclaimer": "Legal title verification, statutory due diligence, valuation and other regulated professional services should be  performed by appropriately qualified professionals. Landlogy facilitates ecosystem connectivity and strategic support."
   },
-
   "pillars": [
-    { "key": "aggregate", "label": "Aggregate", "note": "Multiple parcels, one opportunity" },
+    { "key": "aggregate", "label": "Aggregate", "note": "Parcels into one opportunity" },
     { "key": "transact", "label": "Buy & sell", "note": "Land, property, commercial" },
     { "key": "invest", "label": "Invest", "note": "Opportunity and advisory" },
     { "key": "connect", "label": "Connect", "note": "Professionals and partners" }
   ],
-
   "serviceCategories": [
     { "key": "all", "label": "All services" },
     { "key": "land", "label": "Land" },
     { "key": "property", "label": "Property" },
-    { "key": "investment", "label": "Investment" },
-    { "key": "development", "label": "Development" },
-    { "key": "network", "label": "Professional network" },
-    { "key": "intelligence", "label": "Intelligence" }
+    { "key": "capital", "label": "Investment & Development" },
+    { "key": "network", "label": "Network & Intelligence" }
   ],
 
   "featuredServices": ["01", "03", "05", "04", "06", "07", "11", "13", "14", "36", "38", "40"],
@@ -38,13 +34,13 @@
     { "n": "08", "cat": "property", "title": "Residential Property", "desc": "Plots, apartments, houses, villas and residential project opportunities." },
     { "n": "09", "cat": "land", "title": "Agricultural Land", "desc": "Agricultural land buying, selling, aggregation and investment opportunities." },
     { "n": "10", "cat": "land", "title": "Industrial Land & Property", "desc": "Industrial plots, warehouses and industrial-use property opportunities." },
-    { "n": "11", "cat": "investment", "title": "Real Estate Investment", "desc": "Identifying land, property and development opportunities for investors." },
-    { "n": "12", "cat": "investment", "title": "Land Investment Advisory", "desc": "Strategic guidance based on location, development potential and available property information." },
+    { "n": "11", "cat": "capital", "title": "Real Estate Investment", "desc": "Identifying land, property and development opportunities for investors." },
+    { "n": "12", "cat": "capital", "title": "Land Investment Advisory", "desc": "Strategic guidance based on location, development potential and available property information." },
     { "n": "13", "cat": "land", "title": "Project Land Sourcing", "desc": "Land sourcing support for developers and project promoters based on location and size requirements." },
     { "n": "14", "cat": "land", "title": "Joint Venture Opportunities", "desc": "Connecting landowners with potential developers and investors for development partnerships." },
     { "n": "15", "cat": "land", "title": "Land Development", "desc": "Connecting landowners, developers, investors and professionals for potential development opportunities." },
-    { "n": "16", "cat": "development", "title": "Property Development Consulting", "desc": "Strategic support for project planning, opportunity identification and ecosystem coordination." },
-    { "n": "17", "cat": "development", "title": "Real Estate Project Marketing", "desc": "Promoting projects and properties to relevant buyers, investors and channel partners." },
+    { "n": "16", "cat": "capital", "title": "Property Development Consulting", "desc": "Strategic support for project planning, opportunity identification and ecosystem coordination." },
+    { "n": "17", "cat": "capital", "title": "Real Estate Project Marketing", "desc": "Promoting projects and properties to relevant buyers, investors and channel partners." },
     { "n": "18", "cat": "property", "title": "Property Listing", "desc": "Listing land and properties within the Landlogy real estate ecosystem." },
     { "n": "19", "cat": "property", "title": "Buyer Requirement Matching", "desc": "Identifying relevant land and property opportunities according to buyer requirements." },
     { "n": "20", "cat": "property", "title": "Seller Requirement Matching", "desc": "Connecting property sellers with relevant buyers, investors and developers." },
@@ -57,17 +53,17 @@
     { "n": "27", "cat": "network", "title": "Legal & Compliance Network", "desc": "Connectivity with lawyers, documentation experts and compliance professionals." },
     { "n": "28", "cat": "network", "title": "Property Valuation Support", "desc": "Coordination with valuation professionals for indicative market assessment." },
     { "n": "29", "cat": "network", "title": "Finance Connectivity", "desc": "Connecting eligible buyers, investors and developers with relevant financial professionals or institutions." },
-    { "n": "30", "cat": "development", "title": "Construction & Development Network", "desc": "Connectivity with architects, engineers, contractors, builders and construction professionals." },
-    { "n": "31", "cat": "development", "title": "Architecture & Design Network", "desc": "Connections with architecture, interior design and 3D visualization professionals." },
+    { "n": "30", "cat": "capital", "title": "Construction & Development Network", "desc": "Connectivity with architects, engineers, contractors, builders and construction professionals." },
+    { "n": "31", "cat": "capital", "title": "Architecture & Design Network", "desc": "Connections with architecture, interior design and 3D visualization professionals." },
     { "n": "32", "cat": "network", "title": "Property Management Network", "desc": "Connectivity with property maintenance, management and operational service providers." },
     { "n": "33", "cat": "network", "title": "Channel Partner Network", "desc": "Connecting brokers, consultants, dealers and independent real estate professionals." },
     { "n": "34", "cat": "network", "title": "Referral Network", "desc": "Referral-based connectivity for relevant property opportunities and requirements." },
-    { "n": "35", "cat": "investment", "title": "NRI Real Estate Support", "desc": "Support for NRI buyers, investors and property owners through relevant opportunities and professional networks." },
-    { "n": "36", "cat": "investment", "title": "Dubai Real Estate Connectivity", "desc": "Connecting India and Dubai real estate opportunities, investors and professionals." },
-    { "n": "37", "cat": "intelligence", "title": "Real Estate Research", "desc": "Research support related to locations, property categories, development opportunities and market information." },
-    { "n": "38", "cat": "intelligence", "title": "Location Intelligence", "desc": "Support in understanding connectivity, development potential and real estate opportunities in a location." },
-    { "n": "39", "cat": "intelligence", "title": "Marketing & Promotion", "desc": "Digital marketing, social media promotion and targeted property promotion support." },
-    { "n": "40", "cat": "intelligence", "title": "Strategic Consulting", "desc": "Strategic consulting for land acquisition, property strategy, investment planning, development opportunities and ecosystem networking." }
+    { "n": "35", "cat": "capital", "title": "NRI Real Estate Support", "desc": "Support for NRI buyers, investors and property owners through relevant opportunities and professional networks." },
+    { "n": "36", "cat": "capital", "title": "Dubai Real Estate Connectivity", "desc": "Connecting India and Dubai real estate opportunities, investors and professionals." },
+    { "n": "37", "cat": "network", "title": "Real Estate Research", "desc": "Research support related to locations, property categories, development opportunities and market information." },
+    { "n": "38", "cat": "network", "title": "Location Intelligence", "desc": "Support in understanding connectivity, development potential and real estate opportunities in a location." },
+    { "n": "39", "cat": "network", "title": "Marketing & Promotion", "desc": "Digital marketing, social media promotion and targeted property promotion support." },
+    { "n": "40", "cat": "network", "title": "Strategic Consulting", "desc": "Strategic consulting for land acquisition, property strategy, investment planning, development opportunities and ecosystem networking." }
   ],
 
   "ecosystem": [

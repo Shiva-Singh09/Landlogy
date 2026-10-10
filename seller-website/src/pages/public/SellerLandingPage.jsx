@@ -376,7 +376,7 @@ function House3D() {
 }
 
 /* ───────── page ───────── */
-const TABS = [['list', 'I have land / property'], ['looking', 'I am looking'], ['partner', 'Partner with us']];
+const TABS = [['list', 'I have land'], ['looking', 'I am looking'], ['partner', 'Partner']];
 
 
 const STAKE_TAGS = ['Supply', 'Capital', 'Development', 'Channel', 'Demand', 'Services'];
@@ -473,16 +473,7 @@ export function SellerLandingPage() {
           </aside>
         </div>
 
-        <div className="ll-wrap">
-          <div className="ll-band" data-reveal>
-            {site.numbersBand.items.map((item) => (
-              <div key={item.label}>
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-              </div>
-            ))}
-          </div>
-        </div>
+     
       </header>
            {/* services directory */}
       <section id="services" className="ll-sec ll-stone">
@@ -490,9 +481,9 @@ export function SellerLandingPage() {
           <div className="ll-head" data-reveal>
             <div>
               <span className="ll-kicker">What we do</span>
-              <h2>Forty services across one connected network.</h2>
+              <h2>One network, {site.serviceCatalog.length} ways in.</h2>
             </div>
-            <p>Twelve of the most requested. The full list of {site.serviceCatalog.length} covers land, property, investment, development, professional network and intelligence.</p>
+            <p>Twelve of the most requested below. The full list covers land, property, investment, development and the professional network behind them.</p>
           </div>
 
                    <div className="ll-feat12" data-stagger>
@@ -540,7 +531,7 @@ export function SellerLandingPage() {
           <div className="ll-copy" data-reveal>
             <span className="ll-kicker">Signature capability</span>
             <h2>Land aggregation</h2>
-            <p>Neighbouring parcels are often worth more together than apart. We work out which pieces connect, organise the information behind each one, and shape a single coherent opportunity.</p>
+            <p>Neighbouring parcels are often worth far more together than apart. We identify which pieces connect, organise the information behind each one, and shape a single opportunity large enough for a developer or investor to act on.</p>
             <div className="ll-checks">
               <span><Check size={16} /> Identify connected land opportunities</span>
               <span><Check size={16} /> Organise property and location information</span>
@@ -580,7 +571,7 @@ export function SellerLandingPage() {
               <span className="ll-kicker">Who we serve</span>
               <h2>Built around everyone in a property decision.</h2>
             </div>
-            <p>Owners, investors, developers, brokers and buyers, working through one process.</p>
+            <p>Landowners, investors, developers, brokers, buyers and service professionals — one network, many routes.</p>
           </div>
           <div className="ll-stake" data-stagger>
             {site.networks.map((n, i) => (
@@ -604,7 +595,7 @@ export function SellerLandingPage() {
           <div className="ll-head" data-reveal>
             <div>
               <span className="ll-kicker">How it works</span>
-              <h2>Five stages, and you know where you stand at each one.</h2>
+              <h2>Five stages, from first message to the right connection.</h2>
             </div>
             <p>From your first message through to the right part of the network.</p>
           </div>
@@ -683,7 +674,7 @@ export function SellerLandingPage() {
               <span className="ll-kicker">Contact</span>
               <h2>Start with a conversation.</h2>
             </div>
-            <p>Land, property, investment or partnership — call, write, or use the form at the top. We reply within a working day.</p>
+            <p>Land, property, investment or partnership — call, write, or <a href="#enquire" style={{ color: 'var(--ink)', fontWeight: 700 }}>use the enquiry form</a>. We reply within a working day.</p>
           </div>
           <div className="ll-contact">
             <div data-reveal>
