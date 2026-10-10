@@ -4,6 +4,7 @@ import { ClientLoginPage } from './pages/auth/ClientLoginPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { ClientPortalPage } from './pages/client/ClientPortalPage';
 import { SellerLandingPage } from './pages/public/SellerLandingPage';
+import { ServicesPage } from './pages/public/ServicesPage';
 import './styles/tokens.css';
 import './styles/portal.css';
 import './styles/public.css';
@@ -13,9 +14,10 @@ import './styles/public.css';
 // auth/session check + first data load are genuinely in flight.
 export default function App() {
   const [route, setRoute] = useState(() => getCurrentRoute());
+  const [path, setPath] = useState(() => window.location.pathname);
 
   React.useEffect(() => {
-    const syncRoute = () => setRoute(getCurrentRoute());
+    const syncRoute = () => { setRoute(getCurrentRoute()); setPath(window.location.pathname); };
     window.addEventListener('popstate', syncRoute);
     return () => window.removeEventListener('popstate', syncRoute);
   }, []);
@@ -23,6 +25,7 @@ export default function App() {
   return (
     <>
       {(() => {
+        if (path.replace(/\/+$/, '') === '/services') return <ServicesPage />;
         switch (route) {
           case 'client-login':
             return <ClientLoginPage />;

@@ -1,437 +1,125 @@
 {
   "brand": {
     "name": "LANDLOGY",
-    "tagline": "We help property owners sell with research, verification and professional support.",
-    "slogan": "Research-led property selling.",
-    "description": "LANDLOGY is a real-estate service helping property owners sell their properties through research-backed pricing, verification, professional marketing and relevant buyer reach.",
-    "accentDash": "—"
+    "tagline": "One network. Multiple possibilities.",
+    "slogan": "Buy · Sell · Lease · Invest · Aggregate · Develop · Connect",
+    "description": "Landlogy is an integrated real estate ecosystem connecting landowners, buyers, investors, developers, brokers, channel partners and real estate professionals through one connected network.",
+    "reach": "India · Dubai · Global real estate network",
+    "disclaimer": "Legal title verification, statutory due diligence, valuation and other regulated professional services should be  performed by appropriately qualified professionals. Landlogy facilitates ecosystem connectivity and strategic support."
   },
-  "nav": {
-    "links": [
-      {
-        "label": "Why Sell With LANDLOGY",
-        "href": "#why-sell"
-      },
-      {
-        "label": "How It Works",
-        "href": "#how"
-      },
-      {
-        "label": "Our Services",
-        "href": "#services"
-      },
-      {
-        "label": "Seller Stories",
-        "href": "#stories"
-      },
-      {
-        "label": "Contact",
-        "href": "#contact"
-      }
-    ],
-    "primaryCta": {
-      "label": "List Your Property",
-      "href": "#hero"
-    },
-    "mobileMenuLabel": "Menu",
-    "userLabel": "Find your perfect property"
-  },
-  "hero": {
-    "eyebrow": "Property- Selling Service",
-    "eyebrowColor": "#c89b3c",
-    "h1": "Sell your property at the right price.",
-    "sub": "From research-backed pricing and verification to professional marketing and closing support — LANDLOGY helps property owners sell with confidence. Tell us about your property and we will handle the rest.",
-    "cta": {
-      "primary": {
-        "label": "List Your Property",
-        "size": "lg",
-        "haptic": true
-      },
-      "secondary": {
-        "label": "Get Free Property Valuation",
-        "size": "lg"
-      }
-    },
-    "announce": "Ready when you are. Free, no-obligation property assessment.",
-    "formDefaultTab": "Sell"
-  },
-  "heroStats": [
-    {
-      "value": "500+",
-      "label": "Properties listed"
-    },
-    {
-      "value": "15+",
-      "label": "Cities covered"
-    },
-    {
-      "value": "98%",
-      "label": "Client satisfaction"
-    }
+
+  "pillars": [
+    { "key": "aggregate", "label": "Aggregate", "note": "Multiple parcels, one opportunity" },
+    { "key": "transact", "label": "Buy & sell", "note": "Land, property, commercial" },
+    { "key": "invest", "label": "Invest", "note": "Opportunity and advisory" },
+    { "key": "connect", "label": "Connect", "note": "Professionals and partners" }
   ],
+
+  "serviceCategories": [
+    { "key": "all", "label": "All services" },
+    { "key": "land", "label": "Land" },
+    { "key": "property", "label": "Property" },
+    { "key": "investment", "label": "Investment" },
+    { "key": "development", "label": "Development" },
+    { "key": "network", "label": "Professional network" },
+    { "key": "intelligence", "label": "Intelligence" }
+  ],
+
+  "featuredServices": ["01", "03", "05", "04", "06", "07", "11", "13", "14", "36", "38", "40"],
+
+  "serviceCatalog": [
+    { "n": "01", "cat": "land", "title": "Land Aggregation", "desc": "Identifying, connecting and aggregating multiple land parcels for large land requirements." },
+    { "n": "02", "cat": "land", "title": "Land Buying", "desc": "Support in identifying suitable agricultural, residential, commercial and development land opportunities." },
+    { "n": "03", "cat": "land", "title": "Land Selling", "desc": "Connecting landowners with relevant buyers, investors and developers." },
+    { "n": "04", "cat": "property", "title": "Property Buying", "desc": "Support for identifying residential, commercial and investment property opportunities." },
+    { "n": "05", "cat": "property", "title": "Property Selling", "desc": "Buyer identification, property promotion and network connectivity for property owners." },
+    { "n": "06", "cat": "property", "title": "Property Leasing & Renting", "desc": "Lease and rental opportunities for residential, commercial, land and other properties." },
+    { "n": "07", "cat": "property", "title": "Commercial Property", "desc": "Offices, showrooms, shops, warehouses, commercial buildings and commercial land opportunities." },
+    { "n": "08", "cat": "property", "title": "Residential Property", "desc": "Plots, apartments, houses, villas and residential project opportunities." },
+    { "n": "09", "cat": "land", "title": "Agricultural Land", "desc": "Agricultural land buying, selling, aggregation and investment opportunities." },
+    { "n": "10", "cat": "land", "title": "Industrial Land & Property", "desc": "Industrial plots, warehouses and industrial-use property opportunities." },
+    { "n": "11", "cat": "investment", "title": "Real Estate Investment", "desc": "Identifying land, property and development opportunities for investors." },
+    { "n": "12", "cat": "investment", "title": "Land Investment Advisory", "desc": "Strategic guidance based on location, development potential and available property information." },
+    { "n": "13", "cat": "land", "title": "Project Land Sourcing", "desc": "Land sourcing support for developers and project promoters based on location and size requirements." },
+    { "n": "14", "cat": "land", "title": "Joint Venture Opportunities", "desc": "Connecting landowners with potential developers and investors for development partnerships." },
+    { "n": "15", "cat": "land", "title": "Land Development", "desc": "Connecting landowners, developers, investors and professionals for potential development opportunities." },
+    { "n": "16", "cat": "development", "title": "Property Development Consulting", "desc": "Strategic support for project planning, opportunity identification and ecosystem coordination." },
+    { "n": "17", "cat": "development", "title": "Real Estate Project Marketing", "desc": "Promoting projects and properties to relevant buyers, investors and channel partners." },
+    { "n": "18", "cat": "property", "title": "Property Listing", "desc": "Listing land and properties within the Landlogy real estate ecosystem." },
+    { "n": "19", "cat": "property", "title": "Buyer Requirement Matching", "desc": "Identifying relevant land and property opportunities according to buyer requirements." },
+    { "n": "20", "cat": "property", "title": "Seller Requirement Matching", "desc": "Connecting property sellers with relevant buyers, investors and developers." },
+    { "n": "21", "cat": "property", "title": "Corporate Real Estate Solutions", "desc": "Support for office, commercial property, land, warehouse and expansion requirements." },
+    { "n": "22", "cat": "property", "title": "Warehouse & Logistics Property", "desc": "Sourcing support for warehouses, logistics spaces and industrial properties." },
+    { "n": "23", "cat": "property", "title": "Hotel & Hospitality Property", "desc": "Opportunities involving hotels, resorts, hospitality projects and related land." },
+    { "n": "24", "cat": "property", "title": "Farmhouse & Resort Land", "desc": "Suitable land opportunities for farmhouse, resort and leisure development." },
+    { "n": "25", "cat": "network", "title": "Due Diligence Support", "desc": "Coordination with relevant professionals for preliminary review of available property documents and information." },
+    { "n": "26", "cat": "network", "title": "Property Documentation Support", "desc": "Coordination with relevant professionals for property-related documentation processes." },
+    { "n": "27", "cat": "network", "title": "Legal & Compliance Network", "desc": "Connectivity with lawyers, documentation experts and compliance professionals." },
+    { "n": "28", "cat": "network", "title": "Property Valuation Support", "desc": "Coordination with valuation professionals for indicative market assessment." },
+    { "n": "29", "cat": "network", "title": "Finance Connectivity", "desc": "Connecting eligible buyers, investors and developers with relevant financial professionals or institutions." },
+    { "n": "30", "cat": "development", "title": "Construction & Development Network", "desc": "Connectivity with architects, engineers, contractors, builders and construction professionals." },
+    { "n": "31", "cat": "development", "title": "Architecture & Design Network", "desc": "Connections with architecture, interior design and 3D visualization professionals." },
+    { "n": "32", "cat": "network", "title": "Property Management Network", "desc": "Connectivity with property maintenance, management and operational service providers." },
+    { "n": "33", "cat": "network", "title": "Channel Partner Network", "desc": "Connecting brokers, consultants, dealers and independent real estate professionals." },
+    { "n": "34", "cat": "network", "title": "Referral Network", "desc": "Referral-based connectivity for relevant property opportunities and requirements." },
+    { "n": "35", "cat": "investment", "title": "NRI Real Estate Support", "desc": "Support for NRI buyers, investors and property owners through relevant opportunities and professional networks." },
+    { "n": "36", "cat": "investment", "title": "Dubai Real Estate Connectivity", "desc": "Connecting India and Dubai real estate opportunities, investors and professionals." },
+    { "n": "37", "cat": "intelligence", "title": "Real Estate Research", "desc": "Research support related to locations, property categories, development opportunities and market information." },
+    { "n": "38", "cat": "intelligence", "title": "Location Intelligence", "desc": "Support in understanding connectivity, development potential and real estate opportunities in a location." },
+    { "n": "39", "cat": "intelligence", "title": "Marketing & Promotion", "desc": "Digital marketing, social media promotion and targeted property promotion support." },
+    { "n": "40", "cat": "intelligence", "title": "Strategic Consulting", "desc": "Strategic consulting for land acquisition, property strategy, investment planning, development opportunities and ecosystem networking." }
+  ],
+
+  "ecosystem": [
+    "Landowners", "Buyers", "Investors", "Developers", "Builders",
+    "Brokers & Channel Partners", "Architects & Engineers",
+    "Legal & Finance Professionals", "Construction & Service Providers"
+  ],
+
+  "networks": [
+    { "icon": "🏠", "title": "Landowners & Owners", "desc": "List land or property, reach relevant buyers, investors and developers, and explore aggregation or joint-venture routes." },
+    { "icon": "💼", "title": "Investors", "desc": "Land, property and development opportunities, with advisory on location, potential and market information." },
+    { "icon": "🏗️", "title": "Developers & Builders", "desc": "Project land sourcing by location and size, joint ventures, feasibility support and ecosystem coordination." },
+    { "icon": "🤝", "title": "Brokers & Channel Partners", "desc": "Join a professional network of brokers, consultants and dealers with referral-based connectivity." },
+    { "icon": "👨‍👩‍👧", "title": "Buyers & Tenants", "desc": "Residential, commercial, agricultural and industrial opportunities matched to your requirement." },
+    { "icon": "⚖️", "title": "Service Partners", "desc": "Legal, valuation, finance, architecture, construction and property management professionals — connect with clients who need you." }
+  ],
+
   "numbersBand": {
-    "title": "What property owners value most",
+    "title": "What the ecosystem brings together",
     "items": [
-      {
-        "label": "Research-led pricing",
-        "value": "Priced to the market",
-        "color": "gold"
-      },
-      {
-        "label": "Verification first",
-        "value": "Title, ownership & documents",
-        "color": "navy"
-      },
-      {
-        "label": "Professional marketing",
-        "value": "Clean listings, buyer reach",
-        "color": "gold"
-      },
-      {
-        "label": "Closing support",
-        "value": "Negotiation to handover",
-        "color": "navy"
-      }
+      { "label": "Across every asset class", "value": "Land, residential, commercial, industrial, hospitality" },
+      { "label": "Every participant", "value": "Owners, investors, developers, brokers, professionals" },
+      { "label": "India and Dubai", "value": "Domestic reach with NRI and Dubai connectivity" },
+      { "label": "One connected network", "value": "Opportunity, advisory and professional support" }
     ]
   },
-  "services": [
-    {
-      "icon": "🏠",
-      "title": "Buy Property",
-      "desc": "Homes, villas, plots, commercial spaces and investment assets across India’s key markets.",
-      "linkLabel": "Find a Property"
-    },
-    {
-      "icon": "↗",
-      "title": "Sell Property",
-      "desc": "Market-led pricing, professional photography, verified buyer network and end-to-end support.",
-      "linkLabel": "List Your Property"
-    },
-    {
-      "icon": "🔑",
-      "title": "Rent & Lease",
-      "desc": "Residential and commercial rental discovery for owners, tenants and corporate clients.",
-      "linkLabel": "Find a Rental"
-    },
-    {
-      "icon": "▦",
-      "title": "3D Visualization",
-      "desc": "Visualize proposed developments, buildings, site plans and property concepts with realistic 3D presentation.",
-      "linkLabel": "Discuss a Concept"
-    },
-    {
-      "icon": "🔍",
-      "title": "Land & Market Research",
-      "desc": "Location intelligence, pricing trends, demand analysis and infrastructure impact studies.",
-      "linkLabel": "Explore Intelligence"
-    },
-    {
-      "icon": "◫",
-      "title": "Land Aggregation",
-      "desc": "Bring suitable land parcels together for larger development and investment opportunities.",
-      "linkLabel": "Discuss Land Strategy"
-    },
-    {
-      "icon": "✅",
-      "title": "Property Verification",
-      "desc": "Title check, document verification, ownership validation and due-diligence workflows.",
-      "linkLabel": "Request Verification"
-    },
-    {
-      "icon": "📈",
-      "title": "Investment Intelligence",
-      "desc": "Opportunity screening, ROI analysis, risk assessment and market benchmarking for investors.",
-      "linkLabel": "Invest Smarter"
-    },
-    {
-      "icon": "🏗️",
-      "title": "Development & R&D",
-      "desc": "Feasibility studies, land procurement strategy and project research for developers.",
-      "linkLabel": "Explore Development"
-    },
-    {
-      "icon": "🤝",
-      "title": "Broker Network",
-      "desc": "A professional network connecting verified brokers, agents and real estate professionals.",
-      "linkLabel": "Join Network"
-    },
-    {
-      "icon": "🏦",
-      "title": "Allied Services",
-      "desc": "Home loans, legal assistance, valuation, interior design, construction and property management.",
-      "linkLabel": "View Services"
-    }
+
+  "sellerSteps": [
+    ["01", "Tell us what you have", "Share the land or property, the location and what you are trying to achieve."],
+    ["02", "We review the requirement", "Our team understands the asset and identifies the right route — sale, lease, aggregation or joint venture."],
+    ["03", "Information is organised", "Relevant property information is structured, with professional coordination where documents or valuation are involved."],
+    ["04", "Strategy and positioning", "We agree how the opportunity is presented and which part of the network it goes to."],
+    ["05", "Network, reach and support", "The opportunity moves to relevant buyers, investors or developers, with support through the discussion."]
   ],
-  "networks": [
-    {
-      "icon": "🏠",
-      "title": "Owners",
-      "desc": "List your property, reach verified buyers and tenants, and get research-backed pricing guidance."
-    },
-    {
-      "icon": "💼",
-      "title": "Investors",
-      "desc": "Access research-led opportunities, market intelligence and curated investment-grade assets."
-    },
-    {
-      "icon": "🏗️",
-      "title": "Developers",
-      "desc": "Discover land opportunities, understand market demand and get feasibility research support."
-    },
-    {
-      "icon": "🤝",
-      "title": "Brokers & Agents",
-      "desc": "Expand your pipeline, access a professional network and grow your real estate business."
-    },
-    {
-      "icon": "👨‍👩‍👧",
-      "title": "Buyers & Tenants",
-      "desc": "Search, compare, verify and connect across residential and commercial property categories."
-    },
-    {
-      "icon": "⚖️",
-      "title": "Service Partners",
-      "desc": "Legal, finance, valuation, construction and property management specialists — connect with clients who need you."
-    }
-  ],
-  "properties": [
-    {
-      "category": "sale",
-      "icon": "🏠",
-      "badge": "FOR SALE",
-      "title": "3 BHK Premium Apartment",
-      "location": "📍 Powai, Mumbai",
-      "specs": [
-        "🛏 3 BHK",
-        "🛁 2 Bath",
-        "📐 1450 sq.ft"
-      ],
-      "price": "₹1.85 Cr",
-      "priceSuffix": "onwards",
-      "verified": true
-    },
-    {
-      "category": "invest",
-      "icon": "🏢",
-      "badge": "INVESTMENT",
-      "title": "Commercial Office Space",
-      "location": "📍 Cyber City, Gurgaon",
-      "specs": [
-        "📐 2200 sq.ft",
-        "🏗 G+8"
-      ],
-      "price": "₹3.2 Cr",
-      "priceSuffix": "| 8% yield",
-      "verified": true
-    },
-    {
-      "category": "sale",
-      "icon": "🏡",
-      "badge": "FOR SALE",
-      "title": "Independent Villa with Garden",
-      "location": "📍 Whitefield, Bangalore",
-      "specs": [
-        "🛏 4 BHK",
-        "🛁 4 Bath",
-        "📐 3200 sq.ft"
-      ],
-      "price": "₹2.65 Cr",
-      "priceSuffix": "onwards",
-      "verified": true
-    },
-    {
-      "category": "rent",
-      "icon": "🏙️",
-      "badge": "FOR RENT",
-      "title": "2 BHK Furnished Apartment",
-      "location": "📍 Banjara Hills, Hyderabad",
-      "specs": [
-        "🛏 2 BHK",
-        "🛁 2 Bath",
-        "📐 1100 sq.ft"
-      ],
-      "price": "₹38,000",
-      "priceSuffix": "/month",
-      "verified": true
-    },
-    {
-      "category": "invest",
-      "icon": "🌾",
-      "badge": "INVESTMENT",
-      "title": "Agricultural Land — NA Plot",
-      "location": "📍 Pune–Nashik Highway",
-      "specs": [
-        "📐 2 Acres",
-        "🛣 NH Access"
-      ],
-      "price": "₹95 L",
-      "priceSuffix": "per acre",
-      "verified": true
-    },
-    {
-      "category": "rent",
-      "icon": "🏪",
-      "badge": "FOR RENT",
-      "title": "Retail Shop — High Street",
-      "location": "📍 Connaught Place, New Delhi",
-      "specs": [
-        "📐 800 sq.ft",
-        "🚶 High Footfall"
-      ],
-      "price": "₹1.1 L",
-      "priceSuffix": "/month",
-      "verified": true
-    }
-  ],
+
   "team": [
-    {
-      "initial": "S",
-      "name": "Shiva Singh",
-      "role": "Founder & CEO",
-      "detail": "Property Strategy",
-      "focus": "Selling Strategy",
-      "bio": "Oversees the end-to-end selling journey for property owners — from initial assessment and positioning to negotiation and closing support. Focuses on translating market research into a clear, realistic path to sale.",
-      "marker": "STRATEGY",
-      "photo": "/team/shiva-singh.jpg"
-    },
-    {
-      "initial": "H",
-      "name": "Harshit Pandey",
-      "role": "Head of Research",
-      "detail": "Market Intelligence",
-      "focus": "Research & Positioning",
-      "bio": "Leads pricing analysis, location intelligence and demand assessment that inform how a property is positioned before it reaches the market. Helps owners understand current market conditions and realistic pricing windows.",
-      "marker": "RESEARCH",
-      "photo": "/team/harshit-pandey.jpg"
-    },
-    {
-      "initial": "S",
-      "name": "Somesh Pandey",
-      "role": "Investment Advisory",
-      "detail": "Portfolio Specialist",
-      "focus": "Seller Advisory",
-      "bio": "Works with property owners to understand their selling objective and timeline, then coordinates the appropriate conversations within LANDLOGY's review process. Acts as the primary point of contact for owner enquiries.",
-      "marker": "ADVISORY",
-      "photo": "/team/somesh-pandey.jpg"
-    },
-    {
-      "initial": "D",
-      "name": "Diwakar Dixit",
-      "role": "Legal & Verification",
-      "detail": "Property Due Diligence",
-      "focus": "Verification & Compliance",
-      "bio": "Handles property documentation, ownership validation and due-diligence workflows so owners can move ahead with clarity. Ensures property information is understood and organised before any presentation or outreach.",
-      "marker": "VERIFICATION",
-      "photo": "/team/diwakar-dixit.jpg"
-    }
+    { "initial": "S", "name": "Shiva Singh", "role": "Founder & CEO", "detail": "Ecosystem Strategy", "focus": "Strategy", "bio": "Leads Landlogy's ecosystem strategy — connecting landowners, investors, developers and professionals, and shaping how an opportunity reaches the right side of the network.", "marker": "STRATEGY", "photo": "/team/shiva-singh.jpg" },
+    { "initial": "H", "name": "Harshit Pandey", "role": "Head of Research", "detail": "Location Intelligence", "focus": "Research", "bio": "Leads location intelligence and market research — connectivity, development potential and property category information that informs how an opportunity is positioned.", "marker": "RESEARCH", "photo": "/team/harshit-pandey.jpg" },
+    { "initial": "S", "name": "Somesh Pandey", "role": "Investment Advisory", "detail": "Opportunity & Portfolio", "focus": "Advisory", "bio": "Works with investors and owners to understand objective and timeline, then coordinates the right conversations within the Landlogy network.", "marker": "ADVISORY", "photo": "/team/somesh-pandey.jpg" },
+    { "initial": "D", "name": "Diwakar Dixit", "role": "Professional Network", "detail": "Legal & Documentation Coordination", "focus": "Coordination", "bio": "Coordinates with qualified legal, documentation and valuation professionals so owners and buyers can move ahead with clarity.", "marker": "NETWORK", "photo": "/team/diwakar-dixit.jpg" }
   ],
-  "reviews": [
-    {
-      "initial": "D",
-      "name": "Deepak Malhotra",
-      "role": "Homebuyer — Noida",
-      "rating": 5,
-      "text": "LANDLOGY didn’t just help us find a property — they did the research, verified the title and guided us through the entire transaction. First-time buyers couldn’t ask for more."
-    },
-    {
-      "initial": "N",
-      "name": "Neha Kapoor",
-      "role": "NRI Investor — Dubai",
-      "rating": 5,
-      "text": "As an NRI investor, finding verified commercial opportunities in India was always a challenge. LANDLOGY’s intelligence reports and due-diligence support made the entire process seamless."
-    },
-    {
-      "initial": "V",
-      "name": "Vikram Constructions",
-      "role": "Developer — Pune",
-      "rating": 5,
-      "text": "We partnered with LANDLOGY for land acquisition for our residential project in Pune. Their market research and local network saved us significant time and cost in site identification."
-    }
-  ],
+
+  "reviews": [],
+
   "contact": {
     "phone": "+91 9044936565",
     "phoneRaw": "+919044936565",
     "email": "nextgendevcoders@gmail.com",
+    "website": "www.landlogy.com",
     "address": "Halwasia, Hazratganj, Lucknow, Uttar Pradesh 226001",
-    "workingHours": {
-      "weekday": "Mon – Sat: 9:00 AM – 7:00 PM",
-      "sunday": "Sunday: 10:00 AM – 4:00 PM"
-    },
-    "whatsappMessage": "Hi LANDLOGY, I have a property enquiry",
-    "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3771.2782085447396!2d72.86508!3d19.0589!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTnCsDAzJzMyLjAiTiA3MsKwNTInMzQuMyJF!5e0!3m2!1sen!2sin!4v1620000000000!5m2!1sen!2sin"
-  },
-  "sellerServices": [
-    [
-      "📍",
-      "Property Assessment",
-      "Understand your property, its location and its position before deciding the right next step."
-    ],
-    [
-      "📊",
-      "Pricing & Positioning",
-      "Use a considered view of the property and market context to prepare a sensible selling strategy."
-    ],
-    [
-      "✓",
-      "Verification Support",
-      "Organise relevant property information and documentation before serious promotion begins."
-    ],
-    [
-      "▣",
-      "Professional Presentation",
-      "Present the property clearly with a considered description and materials that communicate its value."
-    ],
-    [
-      "◌",
-      "Relevant Buyer Reach",
-      "Connect the property with prospective buyers whose requirements are relevant to what it offers."
-    ],
-    [
-      "↗",
-      "Negotiation & Closing Support",
-      "Receive guidance through offers, discussions and the closing stages of the sale."
-    ],
-    [
-      "◬",
-      "Land Aggregation",
-      "Bring fragmented land opportunities together through structured property intelligence, verification and coordinated strategy."
-    ],
-    [
-      "◫",
-      "3D Property Visualization",
-      "Present property and space through immersive visualization concepts where multiple angles and spatial understanding add value."
-    ],
-    [
-      "◈",
-      "Property Intelligence & Presentation",
-      "Shape a clearer property story using location context, structured information and high-quality presentation."
-    ]
-  ],
-  "sellerSteps": [
-    [
-      "01",
-      "Tell Us About Your Property",
-      "Share the essentials so LANDLOGY can understand your property and selling objective."
-    ],
-    [
-      "02",
-      "LANDLOGY Reviews Your Enquiry",
-      "Our team reviews the connection request and determines the appropriate next conversation."
-    ],
-    [
-      "03",
-      "Property Assessment & Verification",
-      "Relevant property information and documentation are understood and organised."
-    ],
-    [
-      "04",
-      "Selling Strategy & Preparation",
-      "We discuss positioning, presentation and practical preparation for the market."
-    ],
-    [
-      "05",
-      "Marketing, Buyer Reach & Support",
-      "The property can move forward with relevant outreach and support through the sale."
-    ]
-  ]
+    "workingHours": { "weekday": "Mon – Sat: 9:00 AM – 7:00 PM", "sunday": "Sunday: 10:00 AM – 4:00 PM" },
+    "whatsappMessage": "Hi LANDLOGY, I have a land or property enquiry",
+    "mapEmbedUrl": "https://www.google.com/maps?q=Halwasia%20Court%2C%20Hazratganj%2C%20Lucknow%2C%20Uttar%20Pradesh%20226001&output=embed"
+  }
 }
