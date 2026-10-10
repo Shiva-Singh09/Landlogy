@@ -4,7 +4,7 @@ import {
     Layers, MessageCircle, MousePointer2, Phone, Scale, Search, ShieldCheck, Users, X
 } from 'lucide-react';
 import logo from '../../assets/Logo.png';
-import heroVisual from '../../assets/Hero1.png';
+import heroVisual from '../../assets/Hero1.jpg';
 import { API_BASE } from '../../config/constants';
 import { SiteNav, SiteFooter } from '../../components/public/SiteChrome';
 import { SpaLink } from '../../utils/bus';

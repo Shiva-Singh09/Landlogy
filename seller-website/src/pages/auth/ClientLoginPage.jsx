@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AlertCircle, ArrowUpRight, ChevronRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import logo from '../../assets/Logo.png';
 import landlogyIcon from '../../assets/LandlogyIcon.svg';
-import heroVisual from '../../assets/Hero1.png';
+import heroVisual from '../../assets/Hero1.jpg';
 import { InlineSpinner } from '../../components/loading/InlineSpinner';
 import { useClientAuth } from '../../hooks/useClientAuth';
 import { navigate, SpaLink } from '../../utils/bus';

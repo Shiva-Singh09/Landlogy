@@ -15,7 +15,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import logo from '../../assets/Logo.png';
-import heroVisual from '../../assets/Hero1.png';
+import heroVisual from '../../assets/Hero1.jpg';
 import {
   forgotPasswordApi,
   verifyOtpApi,
