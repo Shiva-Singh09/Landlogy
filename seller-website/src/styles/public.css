@@ -885,3 +885,148 @@ body.is-scrolled .ll-logo img { width: 108px; }
 
 
 
+/* ═══════════ polish pass ═══════════ */
+
+/* ── FIX: dark banner text was invisible ── */
+.ll-allsvc { position: relative; overflow: hidden; }
+.ll-allsvc span, .ll-allsvc b { color: #fff; }
+.ll-allsvc small { color: rgba(255,255,255,.58); }
+.ll-allsvc::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(520px circle at 85% 50%, rgba(255,180,0,.16), transparent 70%);
+  opacity: 0; transition: opacity .5s ease; }
+.ll-allsvc:hover::before { opacity: 1; }
+.ll-allsvc > * { position: relative; z-index: 1; }
+
+/* ── FIX: tab labels wrapping ── */
+.ll-tabs { gap: 3px; }
+.ll-tabs button { padding: 10px 4px; font-size: 10px; letter-spacing: .02em; line-height: 1.25;
+  min-height: 42px; display: flex; align-items: center; justify-content: center; text-align: center; }
+
+/* ── staged hero entrance ── */
+@keyframes llRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+.ll-hero .ll-story > * { animation: llRise .8s var(--ease) both; }
+.ll-hero .ll-story > *:nth-child(1) { animation-delay: .05s }
+.ll-hero .ll-story > *:nth-child(2) { animation-delay: .14s }
+.ll-hero .ll-story > *:nth-child(3) { animation-delay: .22s }
+.ll-hero .ll-story > *:nth-child(4) { animation-delay: .30s }
+.ll-hero .ll-story > *:nth-child(5) { animation-delay: .38s }
+.ll-intake { animation: llRise .9s var(--ease) .18s both; }
+
+/* ── headline: let the accent land ── */
+.ll-story h1 em { position: relative; display: inline-block; }
+.ll-story h1 em::after { content: ''; position: absolute; left: 0; right: 0; bottom: .08em;
+  height: 3px; background: var(--amber); border-radius: 2px;
+  transform: scaleX(0); transform-origin: left;
+  animation: llUnderline .9s var(--ease) 1s forwards; }
+@keyframes llUnderline { to { transform: scaleX(1); } }
+
+/* ── hero image: slow drift ── */
+.ll-shot img { animation: llDrift 26s ease-in-out infinite alternate; }
+@keyframes llDrift { from { transform: scale(1.04) } to { transform: scale(1.1) } }
+.ll-shot { position: relative; }
+.ll-shot::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.14) 50%, transparent 62%);
+  transform: translateX(-120%); transition: transform 1.1s ease; }
+.ll-shot:hover::after { transform: translateX(120%); }
+
+/* ── service cards: gradient wash + lift ── */
+.ll-f12 { overflow: hidden; }
+.ll-f12::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(420px circle at 20% 0%, rgba(255,180,0,.1), transparent 68%);
+  transition: opacity .4s ease; }
+.ll-f12:hover::before { opacity: 1; }
+.ll-f12 > * { position: relative; z-index: 1; }
+.ll-f12-top b { display: inline-block; transition: transform .4s var(--ease); }
+.ll-f12:hover .ll-f12-top b { transform: translateY(-3px) scale(1.14); }
+
+/* ── ecosystem chain: ripple in ── */
+.ll-chain-n { animation: llPop .55s var(--ease) both; }
+.ll-chain-n:nth-child(1){animation-delay:.04s}
+
+
+
+/* ═══════════ final pass: depth + smoothness ═══════════ */
+
+/* ── global easing: everything decelerates the same way ── */
+.ll a, .ll button, .ll input, .ll select, .ll textarea,
+.ll-tile, .ll-f12, .ll-chain-n, .ll-panel, .ll-exp-row {
+  transition-timing-function: var(--ease);
+}
+
+/* ── hero: warm light from the top-left ── */
+.ll-hero { position: relative; }
+.ll-hero::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(900px circle at 8% -10%, rgba(255,180,0,.07), transparent 55%),
+    radial-gradient(700px circle at 95% 15%, rgba(69,32,107,.045), transparent 60%); }
+.ll-hero > * { position: relative; z-index: 1; }
+
+/* ── panels: the faintest top highlight ── */
+.ll-panel { position: relative; }
+.ll-panel::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(170deg, rgba(255,255,255,.9), transparent 36%);
+  opacity: .7; }
+.ll-panel > * { position: relative; z-index: 1; }
+
+/* ── stone sections: gradient instead of flat fill ── */
+.ll-stone { background: linear-gradient(180deg, var(--stone) 0%, #FAFAFB 55%, var(--stone) 100%); }
+
+/* ── ink sections: depth from a single light source ── */
+.ll-ink { position: relative; overflow: hidden; }
+.ll-ink::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(700px circle at 12% 0%, rgba(255,180,0,.09), transparent 58%),
+    radial-gradient(600px circle at 90% 100%, rgba(69,32,107,.3), transparent 62%); }
+.ll-ink > * { position: relative; z-index: 1; }
+
+/* ── kicker: rule becomes a gradient ── */
+.ll-kicker::before { background: linear-gradient(180deg, var(--amber), rgba(255,180,0,.25)); }
+
+/* ── accent underline: gradient, fades at the tail ── */
+.ll-story h1 em::after {
+  background: linear-gradient(90deg, var(--amber) 0%, var(--amber) 62%, rgba(255,180,0,.2) 100%); }
+
+/* ── service cards: a quiet floor ── */
+.ll-f12 { background: linear-gradient(180deg, var(--paper) 72%, #FCFCFD 100%); }
+.ll-f12:hover { background: linear-gradient(180deg, var(--stone) 0%, var(--paper) 100%); }
+
+/* ── dark banner: real gradient, not flat ink ── */
+.ll-allsvc { background: linear-gradient(118deg, var(--ink) 0%, #221E30 48%, var(--indigo) 140%); }
+
+/* ── help/CTA strip: same family ── */
+.ll-svccta { background: linear-gradient(118deg, var(--ink) 0%, #201C2C 55%, var(--indigo) 150%); }
+
+/* ── footer: lifts away from the page above ── */
+.ll-foot { background: linear-gradient(180deg, #14121C 0%, var(--ink) 40%); }
+
+/* ── primary button: subtle warmth across it ── */
+.ll-btn-a { background: linear-gradient(135deg, var(--amber-hi) 0%, var(--amber) 55%); }
+.ll-btn-a:hover { background: linear-gradient(135deg, #FFD469 0%, var(--amber-hi) 60%); }
+
+/* ── chain chips: warm on hover ── */
+.ll-chain-n:hover { background: linear-gradient(135deg, var(--amber-lt), #FFF9EC); }
+
+/* ── tiles: lift feels weighted, not snappy ── */
+.ll-tile { transition: border-color .35s, box-shadow .45s, transform .45s var(--ease), background .35s; }
+.ll-f12 { transition: background .4s, transform .4s var(--ease); }
+
+/* ── scroll bar matches the brand ── */
+.ll ::-webkit-scrollbar { width: 10px; height: 10px; }
+.ll ::-webkit-scrollbar-track { background: var(--stone); }
+.ll ::-webkit-scrollbar-thumb { background: #D9D5E2; border-radius: 999px; border: 3px solid var(--stone); }
+.ll ::-webkit-scrollbar-thumb:hover { background: var(--tx-300); }
+
+/* ── selection colour ── */
+.ll ::selection { background: var(--amber-lt); color: var(--ink); }
+
+/* ── nav: softens as it gains the scrolled state ── */
+.ll-nav { transition: box-shadow .4s, background .4s, backdrop-filter .4s; }
+body.is-scrolled .ll-nav { backdrop-filter: blur(22px) saturate(1.15); }
+
+/* ── reveal: slightly longer, lands softer ── */
+.ll [data-reveal] { transition: opacity .85s ease, transform .85s var(--ease); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ll *, .ll *::before, .ll *::after { transition-duration: .01ms !important; }
+}

@@ -376,7 +376,7 @@ function House3D() {
 }
 
 /* ───────── page ───────── */
-const TABS = [['list', 'I have land / property'], ['looking', 'I am looking'], ['partner', 'Partner with us']];
+const TABS = [['list', 'I have land'], ['looking', 'I am looking'], ['partner', 'Partner']];
 
 
 const STAKE_TAGS = ['Supply', 'Capital', 'Development', 'Channel', 'Demand', 'Services'];
