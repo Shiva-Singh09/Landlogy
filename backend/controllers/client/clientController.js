@@ -4,7 +4,7 @@ import {
   safeClientProperty, UUID_RE, getCachedPropertyType, getCachedPropertyCategory,
 } from '../../services/client/sellerProvisioning.js';
 import { clean } from '../../utils/validation.js';
-import { notifyAdmins, NOTIFICATION_TYPES } from '../../services/common/notificationService.js';
+import { createNotification, notifyAdmins, NOTIFICATION_TYPES } from '../../services/common/notificationService.js';
 import { storage } from '../../config/storage.js';
 import { generateImageFilename } from '../../config/upload.js';
 
@@ -119,13 +119,27 @@ export const createProperty = async (req, res) => {
       status: 'under_review',
       status_history: initialHistory,
     }, { transaction });
-    await notifyAdmins({
+        await notifyAdmins({
       type: NOTIFICATION_TYPES.PROPERTY_REVIEW,
       title: 'Property awaiting review', message: created.title,
       related_entity_type: 'property', related_entity_id: created.id,
     }, { transaction });
     return created;
     });
+
+  // Seller notification (in-app + push). Created AFTER the property transaction
+  // commits so a failed notification can never roll back the property or be
+  // created for a rolled-back row. createNotification() is fire-and-forget:
+  // delivery failure is logged/swallowed and never fails the business operation.
+  // Owner is derived server-side from the JWT — never from the request body.
+  void createNotification({
+    recipient_user_id: ownerId,
+    type: NOTIFICATION_TYPES.PROPERTY_SUBMITTED,
+    title: 'Property submitted for review',
+    message: property.title,
+    related_entity_type: 'property',
+    related_entity_id: property.id,
+  });
 
     console.log(`[CLIENT] Property created: ${property.id} by seller ${ownerId}`);
 

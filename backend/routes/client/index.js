@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../../middleware/auth.js';
 import { uploadMulti } from '../../config/upload.js';
 import { getMe, createProperty, listProperties, getProperty, uploadImages } from '../../controllers/client/clientController.js';
 import { listNotifications, unreadCount, markNotificationRead, markAllNotificationsRead } from '../../controllers/client/clientNotificationController.js';
+import { getPushConfig, saveSubscription, removeSubscription, pushStatus } from '../../controllers/client/clientPushController.js';
 import { requestReset, verifyReset } from '../../controllers/client/clientAuthController.js';
 
 const router = Router();
@@ -30,6 +31,16 @@ router.patch('/notifications/:id/read', sellerOnly, markNotificationRead);
 // always derived from req.user.id — never trusted from the request body.
 router.post('/password-reset/request', sellerOnly, requestReset);
 router.post('/password-reset/verify', sellerOnly, verifyReset);
+
+// ── Seller browser push subscriptions ──────────────────────────────────────
+// Reuse the role-agnostic push handlers (req.user.id is taken from the JWT, so a
+// seller can only ever manage their own subscriptions). Permission is requested
+// only from an explicit user action in the frontend — these endpoints never
+// prompt. Routes mirror the admin push surface but live under /api/client.
+router.get('/push/config', sellerOnly, getPushConfig);
+router.post('/push/subscribe', sellerOnly, saveSubscription);
+router.delete('/push/subscribe', sellerOnly, removeSubscription);
+router.get('/push/status', sellerOnly, pushStatus);
 
 
 // Convert multer upload validation errors into proper JSON responses for the

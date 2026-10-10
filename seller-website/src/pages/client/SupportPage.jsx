@@ -1,9 +1,10 @@
 import React from 'react';
 import { Clock, Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
+import { NotificationSettingsCard } from '../../components/client/NotificationSettingsCard';
+import { useClientPushSubscription } from '../../hooks/useClientPushSubscription';
 import { SUPPORT_CONTACT } from '../../config/constants';
 
 const WA = `https://wa.me/${SUPPORT_CONTACT.phoneRaw.replace(/\D/g, '')}?text=${encodeURIComponent('Hi LANDLOGY, I need help with my property.')}`;
-
 const FAQ = [
   ['How long does a review take?', 'Most properties are reviewed within two to three working days of being submitted. You will see the stage change here, and we will call you.'],
   ['Can I change my property details?', 'Yes. Call or message us with your property reference and what needs changing, and we will update it.'],
@@ -11,7 +12,14 @@ const FAQ = [
   ['When will I hear about buyers?', 'Once a property is approved it goes to relevant buyers. Your point of contact will call you as enquiries come in.']
 ];
 
+
 export function SupportPage() {
+  // Sound + subscription state live in the shared hook so Profile and Support
+  // always show the same status from one source of truth.
+  const {
+    pushStatus, subscribed, soundEnabled, busy, toggleSound, onSubscribe, onUnsubscribe,
+  } = useClientPushSubscription();
+
   return (
     <>
       <header className="lp-head">
@@ -66,7 +74,19 @@ export function SupportPage() {
             <div><MapPin size={15} /><span><small>Office</small><b>Halwasia, Hazratganj,<br />Lucknow, Uttar Pradesh 226001</b></span></div>
           </div>
         </section>
+
       </div>
+
+      {/* shared browser-notification settings (Task 7) — same surface as Profile */}
+      <NotificationSettingsCard
+        pushStatus={pushStatus}
+        subscribed={subscribed}
+        soundEnabled={soundEnabled}
+        busy={busy}
+        onSubscribe={onSubscribe}
+        onUnsubscribe={onUnsubscribe}
+        onToggleSound={toggleSound}
+      />
     </>
   );
 }

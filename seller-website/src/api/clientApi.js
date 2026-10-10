@@ -24,6 +24,29 @@ export const CLIENT_STORE = {
   }
 };
 
+export function pushClientStorage() {
+  // Small push-ready state used only by the seller push mode. No long-lived
+  // token caches or large blobs — just the current push subscription key so
+  // we can distinguish saved vs unsaved subscription during the flow.
+  const key = '__landlogy_seller_push';
+  try {
+    const raw = CLIENT_STORE.get(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        get: () => parsed && (typeof parsed === 'object') ? parsed : null,
+        set: (value) => {
+          CLIENT_STORE.set(key, JSON.stringify(value), false);
+          return value;
+        },
+        clear: () => CLIENT_STORE.clear(key)
+      };
+    }
+  } catch {}
+  const store = { value: null, set: (value) => { store.value = value; return value; }, clear: () => { store.value = null; } };
+  return store;
+}
+
 export async function clientApi(path, { method = 'GET', body, token } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   const authToken = token || CLIENT_STORE.get(CLIENT_TOKEN_KEY);
@@ -149,6 +172,67 @@ export const markAllClientNotificationsRead = (token) =>
     method: 'PATCH',
     token
   });
+
+export const fetchClientPushConfig = (token) =>
+  clientApi('/api/client/push/config', { token });
+
+// Body shape mirrors the shared backend contract (adminPushController.saveSubscription):
+// the subscription envelope is nested and `silent` rides at the top level.
+export const saveClientPushSubscription = (record, token) =>
+  clientApi('/api/client/push/subscribe', {
+    method: 'POST',
+    body: {
+      subscription: { endpoint: record.endpoint, keys: record.keys },
+      silent: record.silent ?? false
+    },
+    token
+  });
+
+// The seller route is DELETE /push/subscribe (mirrors the admin surface);
+// the endpoint travels in the JSON body, never in a query string.
+export const removeClientPushSubscription = (endpoint, token) =>
+  clientApi('/api/client/push/subscribe', {
+    method: 'DELETE',
+    body: { endpoint },
+    token
+  });
+
+export const fetchClientPushStatus = (token) =>
+  clientApi('/api/client/push/status', { token });
+
+// ── Push subscription extraction ──────────────────────────────────────────
+// Base64url-encode an ArrayBuffer (PushSubscription.getKey results) — the
+// backend validator expects unpadded base64url strings for p256dh/auth.
+const toBase64Url = (value) => {
+  if (!value) return null;
+  const bytes = new Uint8Array(value);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+
+// Extract endpoint + keys from a browser PushSubscription. `getKey()` is the
+// standard API and returns ArrayBuffers; older browsers only expose `toJSON()`,
+// whose keys are already base64url. Missing keys surface as null (never
+// fabricated) and the backend rejects the save, so the UI shows an error.
+export async function pushSubscriptionDetails(subscription) {
+  if (!subscription || !subscription.endpoint) {
+    return { endpoint: null, keys: { p256dh: null, auth: null } };
+  }
+  let keys = { p256dh: null, auth: null };
+  try {
+    if (typeof subscription.getKey === 'function') {
+      keys = {
+        p256dh: toBase64Url(subscription.getKey('p256dh')),
+        auth: toBase64Url(subscription.getKey('auth'))
+      };
+    } else {
+      const json = subscription.toJSON();
+      keys = { p256dh: json?.keys?.p256dh || null, auth: json?.keys?.auth || null };
+    }
+  } catch {}
+  return { endpoint: subscription.endpoint, keys };
+}
 
 // Upload a single property image via multipart/form-data.
 // Backend field name must be "image" (mirrors admin upload config).

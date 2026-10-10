@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import {
-  AlertCircle, AtSign, BadgeCheck, Building2, Check, Clock, IdCard,KeyRound ,Mail, MapPin,
-  MessageCircle, Phone, Shield, ShieldCheck, Smartphone, UserRound
+  AlertCircle, AtSign, BadgeCheck, Building2, Check, Clock, IdCard,
+  KeyRound, Mail, MapPin, MessageCircle, Phone, Shield, ShieldCheck, Smartphone, UserRound
 } from 'lucide-react';
 import { InlineSpinner } from '../../components/loading/InlineSpinner';
 import { ProfileSkeleton } from '../../components/loading/PortalSkeletons';
+import { NotificationSettingsCard } from '../../components/client/NotificationSettingsCard';
+import { useClientPushSubscription } from '../../hooks/useClientPushSubscription';
 import { refOf } from '../../components/client/PropertyCard';
 import { CLIENT_STORE, CLIENT_TOKEN_KEY, requestPasswordResetApi, verifyPasswordResetApi } from '../../api/clientApi';
 import {
@@ -45,6 +47,9 @@ export function ProfilePage({ user, properties = [], loading = false }) {
   const [rpBusy, setRpBusy] = useState(false);
   const [rpError, setRpError] = useState('');
   const [rpOk, setRpOk] = useState('');
+  // Shared browser-push state (Task 7) — the same hook/surface SupportPage uses.
+  // Called unconditionally BEFORE the skeleton early-return so hook order is stable.
+  const push = useClientPushSubscription();
   if (loading || !user) return <ProfileSkeleton />;
 
   const name = user.name || 'Client';
@@ -389,6 +394,17 @@ export function ProfilePage({ user, properties = [], loading = false }) {
           </section>
         </div>
       </div>
+
+      {/* notification settings (shared, Task 7) — same surface as Support */}
+      <NotificationSettingsCard
+        pushStatus={push.pushStatus}
+        subscribed={push.subscribed}
+        soundEnabled={push.soundEnabled}
+        busy={push.busy}
+        onSubscribe={push.onSubscribe}
+        onUnsubscribe={push.onUnsubscribe}
+        onToggleSound={push.toggleSound}
+      />
     </>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, ArrowUpRight, ChevronRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import logo from '../../assets/Logo.png';
+import landlogyIcon from '../../assets/LandlogyIcon.svg';
 import heroVisual from '../../assets/Hero1.png';
 import { InlineSpinner } from '../../components/loading/InlineSpinner';
 import { useClientAuth } from '../../hooks/useClientAuth';
@@ -78,7 +79,10 @@ export function ClientLoginPage() {
         <SpaLink className="lla-back" to="/"><ChevronRight size={15} /> Back to LANDLOGY</SpaLink>
 
         <div className="lla-card">
-          <div className="lla-mark">L</div>
+          <div className="lla-mark">
+            {/* Compact LANDLOGY A-symbol — replaces the former text-only mark. */}
+            <img src={landlogyIcon} alt="LANDLOGY" />
+          </div>
           <span className="lla-kicker">Secure access</span>
           <h2 id="lla-title">Client login</h2>
           <p>For LANDLOGY clients and property owners.</p>
