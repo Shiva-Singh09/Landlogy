@@ -128,27 +128,42 @@ function Field({ label, name, select, options, textarea, type = 'text', placehol
 
 const PHONE_RE = /^(?:\+91\s?)?[6-9]\d{9}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PROPERTY_TYPES = ['Residential apartment', 'Independent house / villa', 'Plot / land', 'Commercial space', 'Office space', 'Warehouse / industrial'];
 
-/* each mode decides which fields render and how the message is built */
+
+const ASSET_TYPES = [
+  'Agricultural land', 'Residential plot / land', 'Commercial land', 'Industrial land / plot',
+  'Apartment / flat', 'House / villa', 'Commercial space / office', 'Shop / showroom',
+  'Warehouse / logistics', 'Hotel / hospitality', 'Farmhouse / resort land', 'Other'
+];
+
+const LOOKING_FOR = [
+  'Land to buy', 'Property to buy', 'Space to lease or rent', 'Investment opportunity',
+  'Project land for development', 'Joint venture opportunity', 'Something else'
+];
+
+const PARTNER_ROLES = [
+  'Developer / Builder', 'Investor', 'Broker / Channel partner', 'Architect / Engineer',
+  'Legal / Finance professional', 'Construction / Service provider'
+];
+
 const MODES = {
-  sell: {
-    intent: 'Sell my property',
-    blurb: 'Tell us what you own and where it is. We come back with a realistic view of price and the next step.',
+  list: {
+    intent: 'List land or property',
+    blurb: 'Land, a plot, a building or a commercial space — tell us what you hold and we will identify the right route and the right side of the network.',
     cta: 'Send enquiry',
-    fields: ['type', 'city', 'notes']
+    fields: ['asset', 'city', 'size', 'notes']
   },
-  value: {
-    intent: 'Property valuation',
-    blurb: 'A research-backed price range before you decide whether to list. No obligation to sell.',
-    cta: 'Request valuation',
-    fields: ['type', 'city', 'size', 'age']
+  looking: {
+    intent: 'Looking for land or property',
+    blurb: 'Buying, leasing, investing or sourcing land for a project — tell us the requirement and we will match it against the network.',
+    cta: 'Share requirement',
+    fields: ['looking', 'city', 'budget', 'notes']
   },
-  advice: {
-    intent: 'Advice',
-    blurb: 'Not ready to sell yet? Ask about timing, paperwork or what the market is doing in your area.',
-    cta: 'Ask the team',
-    fields: ['topic', 'city', 'question']
+  partner: {
+    intent: 'Join the network',
+    blurb: 'Developers, investors, brokers and professionals who want to work within the Landlogy ecosystem.',
+    cta: 'Request a conversation',
+    fields: ['role', 'city', 'question']
   },
   feedback: {
     intent: 'Website feedback',
@@ -184,9 +199,10 @@ function LandlogyForm({ mode }) {
     else if (name.length < 2 || name.length > 80) err.name = 'Name must be 2–80 characters.';
     if (!PHONE_RE.test(String(d.phone || '').replace(/\s+/g, ''))) err.phone = 'Enter a valid 10-digit mobile number.';
     if (d.email && !EMAIL_RE.test(String(d.email).trim())) err.email = 'Enter a valid email address.';
-    if (has('city') && !String(d.city || '').trim()) err.city = 'Please enter the city.';
-    if (has('type') && !String(d.property_type || '').trim()) err.property_type = 'Please choose a property type.';
-    if (has('topic') && !String(d.topic || '').trim()) err.topic = 'Please choose a topic.';
+    if (has('city') && !String(d.city || '').trim()) err.city = 'Please enter the city or area.';
+    if (has('asset') && !String(d.property_type || '').trim()) err.property_type = 'Please choose what you hold.';
+    if (has('looking') && !String(d.property_type || '').trim()) err.property_type = 'Please choose what you are looking for.';
+    if (has('role') && !String(d.topic || '').trim()) err.topic = 'Please choose your role.';
     if (has('question') && String(d.question || '').trim().length < 10) err.question = 'Please write at least 10 characters.';
     if (has('improve') && String(d.improve || '').trim().length < 10) err.improve = 'Please write at least 10 characters.';
 
@@ -253,35 +269,42 @@ function LandlogyForm({ mode }) {
 
       <Field label="Email (optional)" name="email" type="email" placeholder="e.g. rohit@gmail.com" autoComplete="email" error={errors.email} clearError={clearError} />
 
-      {has('type') && (
-        <Field label="Property type" name="property_type" select options={PROPERTY_TYPES}
+      {has('asset') && (
+        <Field label="What do you hold?" name="property_type" select options={ASSET_TYPES}
           placeholder="Choose one" error={errors.property_type} clearError={clearError} />
       )}
 
-      {has('topic') && (
-        <Field label="What is this about?" name="topic" select
-          options={['When should I sell?', 'Documents and paperwork', 'What is my area worth?', 'Something else']}
+      {has('looking') && (
+        <Field label="What are you looking for?" name="property_type" select options={LOOKING_FOR}
+          placeholder="Choose one" error={errors.property_type} clearError={clearError} />
+      )}
+
+      {has('role') && (
+        <Field label="Your role" name="topic" select options={PARTNER_ROLES}
           placeholder="Choose one" error={errors.topic} clearError={clearError} />
       )}
 
       {has('city') && (
-        <Field label="City or locality" name="city" placeholder="e.g. Gomti Nagar, Lucknow"
+        <Field label="City or area" name="city" placeholder="e.g. Gomti Nagar, Lucknow"
           autoComplete="address-level2" error={errors.city} clearError={clearError} />
       )}
 
       {has('size') && (
-        <div className="field-row">
-          <Field label="Approx size" name="size" placeholder="e.g. 1450 sq ft" />
-          <Field label="Age" name="age" select options={['Under construction', 'Under 5 years', '5–10 years', 'Over 10 years']} placeholder="Choose one" />
-        </div>
+        <Field label="Approx size (optional)" name="size" placeholder="e.g. 2 acres, or 1450 sq ft" />
+      )}
+
+      {has('budget') && (
+        <Field label="Budget range (optional)" name="budget" placeholder="e.g. ₹50L – ₹1Cr" />
       )}
 
       {has('notes') && (
-        <Field label="Anything else (optional)" name="notes" textarea placeholder="e.g. Ground floor, corner plot, ready to move" />
+        <Field label="Anything else (optional)" name="notes" textarea
+          placeholder="Location detail, timeline, or what you are trying to achieve" />
       )}
 
       {has('question') && (
-        <Field label="Your question" name="question" textarea placeholder="Ask us anything about selling"
+        <Field label="What would you like to discuss?" name="question" textarea
+          placeholder="Tell us how you would like to work with the network"
           error={errors.question} clearError={clearError} />
       )}
 
@@ -315,7 +338,7 @@ function LandAggregation() {
         <span className="agg-link agg-l2" />
       </div>
       <span className="agg-tag agg-t1">Location intelligence</span>
-      <span className="agg-tag agg-t2">Verification layer</span>
+           <span className="agg-tag agg-t2">Aggregation layer</span>
       <div className="agg-state">
         <div className="agg-before"><b>4 parcels</b><span>Fragmented</span></div>
         <div className="agg-after"><b>1 holding</b><span>Aggregated</span></div>
@@ -353,16 +376,16 @@ function House3D() {
 }
 
 /* ───────── page ───────── */
-const TABS = [['sell', 'Sell'], ['value', 'Valuation'], ['advice', 'Advice']];
+const TABS = [['list', 'I have land / property'], ['looking', 'I am looking'], ['partner', 'Partner with us']];
 
 
-const STAKE_TAGS = ['Sell-side', 'Capital', 'Development', 'Channel', 'Demand', 'Partners'];
-const STAGE_OUTCOME = ['Enquiry received', 'Under review', 'Documents organised', 'Strategy agreed', 'Live and supported'];
+const STAKE_TAGS = ['Supply', 'Capital', 'Development', 'Channel', 'Demand', 'Services'];
+const STAGE_OUTCOME = ['Enquiry received', 'Requirement understood', 'Information structured', 'Route agreed', 'Live in the network'];
 const CORRIDORS = ['India', 'Dubai', 'Global network'];
 
 export function SellerLandingPage() {
  
-   const [tab, setTab] = useState('sell');
+   const [tab, setTab] = useState('list');
   const [cat, setCat] = useState('all');
   const [q, setQ] = useState('');
   const { site, error, load } = useSiteData();
@@ -411,11 +434,11 @@ export function SellerLandingPage() {
             <p className="ll-lead">{site.brand.description}</p>
 
             <div className="ll-shot">
-              <img src={heroVisual} alt="A property listed through LANDLOGY" />
+              <img src={heroVisual} alt="Real estate opportunities across the LANDLOGY network" />
               <div className="ll-shot-scrim" />
               <div className="ll-shot-cap">
-                <span>Property intelligence</span>
-                <strong>Clearer positioning for serious decisions.</strong>
+                <span>One network. Multiple possibilities.</span>
+                <strong>Land, property, investment and development — connected.</strong>
               </div>
             </div>
 
@@ -430,8 +453,8 @@ export function SellerLandingPage() {
           <aside id="enquire" className="ll-panel ll-intake" data-reveal>
             <div className="ll-intake-top">
               <div>
-                <span className="ll-kicker">Direct enquiry</span>
-                <h2>Tell us about your property</h2>
+                                <span className="ll-kicker">Direct enquiry</span>
+                <h2>Start a conversation</h2>
               </div>
               <img src={logo} alt="" />
             </div>
@@ -535,14 +558,14 @@ export function SellerLandingPage() {
         <div className="ll-wrap ll-split flip">
           <div className="ll-copy" data-reveal>
             <span className="ll-kicker">Visual clarity</span>
-            <h2>3D visualisation with context</h2>
-            <p>A buyer needs to understand the space, not just look at photographs of it. We take the flat plan and build it out, so the shape, scale and potential of a property are obvious at a glance.</p>
+            <h2>Architecture &amp; design network</h2>
+            <p>A buyer needs to understand the space, not just look at photographs of it. We connect owners and developers with architecture, interior design and 3D visualization professionals who can show what a site or building could become.</p>
             <div className="ll-checks">
-              <span><Check size={16} /> Clarify space and positioning</span>
-              <span><Check size={16} /> Show what the property could become</span>
-              <span><Check size={16} /> Reduce the guesswork for buyers</span>
+              <span><Check size={16} /> Connections with architects and designers</span>
+              <span><Check size={16} /> 3D visualization professionals in the network</span>
+              <span><Check size={16} /> Clearer presentation for serious buyers</span>
             </div>
-            <a href="#enquire" className="ll-btn ll-btn-c">Request a presentation <ArrowUpRight size={15} /></a>
+            <a href="#enquire" className="ll-btn ll-btn-c">Request a connection <ArrowUpRight size={15} /></a>
             <span className="ll-hint"><MousePointer2 size={13} /> Hover the plan to raise the building</span>
           </div>
           <House3D />
@@ -583,7 +606,7 @@ export function SellerLandingPage() {
               <span className="ll-kicker">How it works</span>
               <h2>Five stages, and you know where you stand at each one.</h2>
             </div>
-            <p>From your first message through preparation, marketing and closing support.</p>
+            <p>From your first message through to the right part of the network.</p>
           </div>
           <div className="ll-journey" data-stagger>
             <span className="ll-thread" data-reveal aria-hidden="true" />
@@ -605,9 +628,9 @@ export function SellerLandingPage() {
           <div className="ll-head" data-reveal>
             <div>
               <span className="ll-kicker">Our team</span>
-              <h2>The people who will handle your property.</h2>
+                     <h2>The people behind the network.</h2>
             </div>
-            <p>Research, advisory, verification and strategy in one small team.</p>
+            <p>Strategy, research, advisory and professional coordination in one team.</p>
           </div>
           <div className="ll-team" data-stagger>
             {site.team.map((m) => (
@@ -627,6 +650,7 @@ export function SellerLandingPage() {
       </section>
 
       {/* reviews */}
+      {site.reviews?.length > 0 && (
       <section className="ll-sec">
         <div className="ll-wrap">
           <div className="ll-head" data-reveal>
@@ -650,7 +674,7 @@ export function SellerLandingPage() {
           </div>
         </div>
       </section>
-
+      )}
       {/* contact */}
       <section id="contact" className="ll-sec ll-stone">
         <div className="ll-wrap">
@@ -659,7 +683,7 @@ export function SellerLandingPage() {
               <span className="ll-kicker">Contact</span>
               <h2>Start with a conversation.</h2>
             </div>
-            <p>Call, write, or use the form at the top. We reply within a working day.</p>
+            <p>Land, property, investment or partnership — call, write, or use the form at the top. We reply within a working day.</p>
           </div>
           <div className="ll-contact">
             <div data-reveal>
